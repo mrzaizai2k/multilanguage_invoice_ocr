@@ -1,0 +1,12 @@
+psutil
+PyYAML
+python-dotenv
+opencv-python-headless
+pandas
+torch
+torchvision 
+torchaudio
+transformers
+paddlepaddle-gpu
+paddleocr>=2.0.6
+scikit-learn
