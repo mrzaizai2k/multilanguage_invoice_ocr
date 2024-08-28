@@ -1,6 +1,75 @@
-# multilanguage_invoice_ocr
-Invoice extraction in multi-language
+# Invoice Information Extractor
 
-        conda create -n invoice python=3.10 -y
+## Introduction
 
-        pip install -r setup.txt
+The **Invoice Information Extractor** is a web application built using Streamlit that allows users to upload images or PDF files containing invoices and extract relevant information from them using Optical Character Recognition (OCR) and natural language processing techniques. It provides an easy-to-use interface for visualizing extracted data in both JSON and table formats.
+
+## Features
+
+- Upload single or multiple images and PDF files.
+- Rotate images for better OCR accuracy.
+- Extract invoice data such as names, dates, amounts, etc.
+- Display extracted information in structured formats (JSON or table).
+- Dynamically create thumbnails for uploaded images.
+
+## Requirements
+
+To run this application, you need the following libraries:
+
+- Python 3.x
+- Streamlit
+- Pillow
+- NumPy
+- Additional dependencies (OCR and invoice extraction libraries)
+
+
+Make sure you have the following files in the `config` directory:
+
+- `key_name_dict.json`: A JSON file that maps keys to human-readable field names.
+- `config.yaml`: A YAML configuration file for the OCR and invoice extraction setup.
+
+## Getting Started
+
+Follow these steps to run the application:
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/yourusername/invoice-information-extractor.git
+   cd invoice-information-extractor
+   ```
+
+2. **Install the required packages:**
+
+   If you haven't already done so, set up a virtual environment and install the dependencies:
+
+   ```bash
+   # Create a virtual environment (optional)
+   python -m venv venv
+   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+   
+   # Install requirements
+   pip install -r setup.txt
+   ```
+
+3. **Run the app:**
+
+   Start the Streamlit application:
+
+   ```bash
+   streamlit run app.py
+   ```
+   
+   Replace `app.py` with the name of your main Python file if it's different.
+
+4. **Access the application:**
+
+   Open your browser and go to `http://localhost:8501` to interact with the Invoice Information Extractor.
+
+## Usage
+
+1. Upload one or more invoice images or PDF files using the file uploader interface.
+2. Select an image from the uploaded files to view it in the main display area.
+3. Use the rotation buttons to adjust the image for optimal OCR results.
+4. Wait for the extraction process to complete, after which you can view the extracted information in JSON format or as a table.
+
