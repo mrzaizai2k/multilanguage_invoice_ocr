@@ -6,6 +6,7 @@ ocr:
   target_language: en
   language_dict_path: config/language_dict.json
   device: Null
+  resize_size: 640
 
 llm_extract:
   invoice_template_path: config/invoice_template.txt

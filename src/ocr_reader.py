@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 import requests
 import time
-from src.Utils.utils import timeit, read_config
+from src.Utils.utils import timeit, read_config, resize_same_ratio
 
 class GoogleTranslator:
     def __init__(self):
@@ -66,6 +66,7 @@ class OcrReader:
         self.language_detector = self.config['language_detector']
         self.language_thresh = self.config['language_thresh']
         self.target_language = self.config['target_language']
+        self.resize_size = self.config['resize_size']
 
 
         # Load language dictionary from JSON file
@@ -101,17 +102,19 @@ class OcrReader:
         self.image_classifier(dummy_image, candidate_labels=candidate_labels)
         print("Model pipeline initialized with dummy data.")
 
-    def get_image(self, input_data):
+    def get_image(self, input_data:any) -> Image:
         if isinstance(input_data, str):  # If input_data is a path
             image = Image.open(input_data)
         elif isinstance(input_data, Image.Image):  # If input_data is a PIL image
             image = input_data
         else:
             raise ValueError("Unsupported input data type")
+        
+        image = resize_same_ratio(image, target_size=self.resize_size)
         return image
     
     @timeit
-    def get_lang(self, image):
+    def _get_lang(self, image: Image.Image) -> str:
         # Define candidate labels for language classification
         candidate_labels = [f"language {key}" for key in self.language_dict]
 
@@ -137,20 +140,12 @@ class OcrReader:
         # Detect the language of the image
         image = self.get_image(input_data)
         
-        src_language = self.get_lang(image)
+        src_language = self._get_lang(image)
 
         # Initialize the PaddleOCR with the detected language
-        ocr = PaddleOCR(lang=src_language, show_log=False)
+        ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True)
 
-        start = time.time()
-        # Perform OCR on the input image
-        if isinstance(input_data, str):  # If input_data is a path
-            result = ocr.ocr(input_data)
-        elif isinstance(input_data, cv2.Mat) or isinstance(input_data, Image.Image):  # If input_data is an OpenCV image or PIL image
-            result = ocr.ocr(np.array(image))
-        
-        end = time.time()
-        print('time', end - start)
+        result = ocr.ocr(np.array(image))
 
         # Combine the recognized text from the OCR result
         text = " ".join([line[1][0] for line in result[0]])
@@ -187,17 +182,14 @@ def load_image(image_path: str):
         
 # Example usage
 if __name__ == "__main__":
-    img_path = "test_images/fr_1.png"
+    img_path = "test/images/fr_1.png"
     config_path = "config/config.yaml"
     image = load_image(img_path)
 
     ocr_reader = OcrReader(config_path=config_path, 
                            translator=GoogleTranslator())
-    detected_lang = ocr_reader.get_lang(image)
-    print("Detected Language:", detected_lang)
 
     recognized_text = ocr_reader.get_text(image)
-
     print("Recognized Text:", recognized_text)
 
 

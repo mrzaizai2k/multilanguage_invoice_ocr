@@ -6,7 +6,7 @@ import os
 import cv2
 import numpy as np
 from openai import OpenAI
-from src.Utils.utils import read_config
+from src.Utils.utils import read_config, timeit
 from typing import Literal, Union
 
 from dotenv import load_dotenv
@@ -85,6 +85,7 @@ class InvoiceExtractor:
         invoice_data = response.choices[0].message.content
         return invoice_data
 
+    @timeit
     def extract_invoice(self, text, image: Union[str, np.ndarray]) -> dict:
         base64_image = self.encode_image(image)
         invoice_info = self._extract_invoice_llm(text, base64_image)

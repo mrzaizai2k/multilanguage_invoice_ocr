@@ -7,8 +7,10 @@ from datetime import datetime
 import os
 import psutil
 import yaml
-import shutil
-import subprocess
+import pymupdf
+from PIL import Image
+import cv2
+
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -78,6 +80,53 @@ def read_config(path = 'config/config.yaml'):
     with open(path, 'r') as file:
         data = yaml.safe_load(file)
     return data
+
+def pdf_to_images(pdf_file):
+    doc = pymupdf.open(stream=pdf_file.read(), filetype="pdf")
+    images = []
+    for page_index in range(len(doc)):
+        page = doc[page_index]
+        pix = page.get_pixmap()
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        images.append(img)
+    return images
+
+
+def resize_same_ratio(img: Image.Image, target_size: int = 640) -> Image.Image:
+    """
+    Resizes an image to maintain aspect ratio either by height or width.
+    
+    If the image is vertical (height > width), it resizes the image to make its height 640 pixels,
+    maintaining the aspect ratio. If the image is horizontal (width > height), it resizes the image 
+    to make its width 640 pixels, maintaining the aspect ratio.
+    
+    Args:
+        img (PIL.Image.Image): The image to be resized.
+        target_size (int, optional): The target size for the longest dimension of the image. 
+                                     Defaults to 640.
+
+    Returns:
+        PIL.Image.Image: The resized image.
+    """
+    
+    # Get the current dimensions of the image
+    width, height = img.size
+    
+    # Determine whether the image is vertical or horizontal
+    if height > width:
+        # Calculate the new width to maintain aspect ratio
+        new_width = int((width / height) * target_size)
+        new_height = target_size
+    else:
+        # Calculate the new height to maintain aspect ratio
+        new_height = int((height / width) * target_size)
+        new_width = target_size
+
+    # Resize the image
+    resized_img = img.resize((new_width, new_height))
+    
+    return resized_img
+
 
 if __name__ == "__main__":
     print("Has GPU?")
