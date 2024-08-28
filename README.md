@@ -49,7 +49,7 @@ Follow these steps to run the application:
    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
    
    # Install requirements
-   pip install -r setup.txt
+   pip install -r requirements.txt
    ```
 
 3. **Run the app:**

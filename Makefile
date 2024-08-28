@@ -1,6 +1,6 @@
 install:
 # python3 -m venv venv
-	pip install -r setup.txt
+	pip install -r requirements.txt
 
 run:
-	streamlit run src/app.py
+	streamlit run app.py
