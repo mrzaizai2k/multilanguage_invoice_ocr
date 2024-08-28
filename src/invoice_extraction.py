@@ -8,10 +8,27 @@ import numpy as np
 from openai import OpenAI
 from src.Utils.utils import read_config, timeit
 from typing import Literal, Union
+import time
 
 from dotenv import load_dotenv
 load_dotenv()
 
+def retry_on_failure(max_retries: int = 3, delay: float = 1.0):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            attempt = 0
+            while attempt < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    attempt += 1
+                    print(f"Attempt {attempt} failed: {e}")
+                    if attempt < max_retries:
+                        time.sleep(delay)
+                    else:
+                        raise
+        return wrapper
+    return decorator
 
 class InvoiceExtractor:
     def __init__(self, config_path:str = "config/config.yaml", ):
@@ -72,7 +89,7 @@ class InvoiceExtractor:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that responds in JSON format with the invoice information in English. Don't add any annotations there"},
+                {"role": "system", "content": "You are a helpful assistant that responds in JSON format with the invoice information in English. Don't add any annotations there. Remember to close any bracket. And just output the field that has value, don't return field that are empty."},
                 {"role": "user", "content": [
                     {"type": "text", "text": f"From the image of the bill and the text from OCR, extract the information. The text is: {text} \n The invoice template: \n {self.invoice_template}"},
                     {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}}
@@ -86,6 +103,7 @@ class InvoiceExtractor:
         return invoice_data
 
     @timeit
+    @retry_on_failure(max_retries=3, delay=1.0)
     def extract_invoice(self, text, image: Union[str, np.ndarray]) -> dict:
         base64_image = self.encode_image(image)
         invoice_info = self._extract_invoice_llm(text, base64_image)
@@ -101,10 +119,10 @@ if __name__ == "__main__":
     ocr_text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
 
     # Path to the invoice image
-    image_path = "test_images/fr_1.png"
+    image_path = "test/images/fr_1.png"
     image = cv2.imread(image_path)
 
     extractor = InvoiceExtractor(config_path=config_path)
     # Extract the invoice information
-    invoice_data = extractor.extract_invoice(text=ocr_text, image=image)
+    invoice_data = extractor.extract_invoice(text=ocr_text, image=image_path)
     print(invoice_data)

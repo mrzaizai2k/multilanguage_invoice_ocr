@@ -127,6 +127,47 @@ def resize_same_ratio(img: Image.Image, target_size: int = 640) -> Image.Image:
     
     return resized_img
 
+def clean_dict(d):
+    if isinstance(d, dict):
+        return {k: clean_dict(v) for k, v in d.items() if v not in [None, "", "None", "NULL"] and (not isinstance(v, (dict, list)) or clean_dict(v))}
+    elif isinstance(d, list):
+        return [clean_dict(i) for i in d if i not in [None, "", "None", "NULL"]]
+    else:
+        return d
+
+def create_html_table(data):
+    html = "<table>"
+    for row in data:
+        html += "<tr>"
+        for cell in row:
+            html += f"<td>{cell}</td>"
+        html += "</tr>"
+    html += "</table>"
+    return html
+
+def flatten_dict(d, parent_key='', sep='_'):
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        elif isinstance(v, list):
+            for i, item in enumerate(v):
+                if isinstance(item, dict):
+                    items.extend(flatten_dict(item, f"{new_key}{sep}{i}", sep=sep).items())
+                else:
+                    items.append((f"{new_key}{sep}{i}", item))
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+def rotate_image(image, angle):
+    return image.rotate(angle, expand=True)
+
+def create_thumbnail(image, size=(500, 500)):
+    thumbnail = image.copy()
+    thumbnail.thumbnail(size)
+    return thumbnail
 
 if __name__ == "__main__":
     print("Has GPU?")

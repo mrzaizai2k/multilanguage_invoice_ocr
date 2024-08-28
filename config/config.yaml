@@ -1,4 +1,5 @@
 
+key_name_dict_path: config/key_name_dict.json
 
 ocr:
   language_detector: facebook/metaclip-b32-400m
