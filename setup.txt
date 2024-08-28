@@ -10,3 +10,4 @@ transformers
 paddlepaddle-gpu
 paddleocr>=2.0.6
 scikit-learn
+pymupdf

@@ -163,4 +163,5 @@ cython_debug/
 
 *.png
 *.jpg
-test_images/
+test/
+venv/

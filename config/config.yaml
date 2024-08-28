@@ -1,0 +1,16 @@
+
+
+ocr:
+  language_detector: facebook/metaclip-b32-400m
+  language_thresh: 0.2
+  target_language: en
+  language_dict_path: config/language_dict.json
+  device: Null
+
+llm_extract:
+  invoice_template_path: config/invoice_template.txt
+  model: gpt-4o-mini
+  temperature: 1.0
+  max_tokens: 1024
+  
+
