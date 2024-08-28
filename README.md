@@ -71,5 +71,5 @@ Follow these steps to run the application:
 1. Upload one or more invoice images or PDF files using the file uploader interface.
 2. Select an image from the uploaded files to view it in the main display area.
 3. Use the rotation buttons to adjust the image for optimal OCR results.
-4. Wait for the extraction process to complete, after which you can view the extracted information in JSON format or as a table.
+4. Wait for the extraction process to complete, after which you can view the extracted information in JSON format or as a table
 
