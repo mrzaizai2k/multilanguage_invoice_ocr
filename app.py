@@ -29,7 +29,7 @@ def main():
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP&family=Noto+Sans+KR&family=Noto+Sans&display=swap');
         
         html, body, [class*="css"] {
-            font-family: 'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', sans-serif;
+            font-family: 'Noto Sans', 'Noto Sans JP', 'Noto Sans KR', 'Meiryo', 'Hiragino Kaku Gothic Pro', 'Hiragino Sans', 'Yu Gothic', 'YuGothic', sans-serif;
         }
         .clickable-image {
             cursor: pointer;

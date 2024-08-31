@@ -179,7 +179,8 @@ def load_image(image_path: str):
     except Exception as e:
         print(f'{image_path}: Error loading image - {e}')
         return None
-        
+    
+    
 # Example usage
 if __name__ == "__main__":
     img_path = "test/images/fr_1.png"
@@ -191,5 +192,3 @@ if __name__ == "__main__":
 
     recognized_text = ocr_reader.get_text(image)
     print("Recognized Text:", recognized_text)
-
-
