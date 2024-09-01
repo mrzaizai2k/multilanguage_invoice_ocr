@@ -7,10 +7,8 @@ from paddleocr import PaddleOCR
 from transformers import pipeline
 from PIL import Image
 import torch
-import cv2
 import numpy as np
 import requests
-import time
 from src.Utils.utils import timeit, read_config, resize_same_ratio
 
 class GoogleTranslator:
@@ -175,16 +173,23 @@ class OcrReader:
     
 def load_image(image_path: str):
     try:
-        return Image.open(image_path)
+        # Check if the path is a URL
+        if image_path.startswith(('http://', 'https://')):
+            image = Image.open(requests.get(image_path, stream=True).raw)
+        else:
+            image = Image.open(image_path)  # Load image from local path
+        return image
     except Exception as e:
         print(f'{image_path}: Error loading image - {e}')
         return None
     
-    
 # Example usage
 if __name__ == "__main__":
-    img_path = "test/images/fr_1.png"
+    # img_path = "test/images/fr_1.png"
     config_path = "config/config.yaml"
+    
+    img_path = "https://i.etsystatic.com/25406056/r/il/f891ca/2576207654/il_fullxfull.2576207654_l7av.jpg"
+
     image = load_image(img_path)
 
     ocr_reader = OcrReader(config_path=config_path, 
