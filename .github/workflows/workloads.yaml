@@ -32,3 +32,9 @@ jobs:
     - name: Run paddleocr test
       run: python src/ocr_reader.py
 
+    - name: Run invoice extraction test
+      run: python src/invoice_extraction.py
+
+    - name: Run streamlit app test
+      run: make run
+
