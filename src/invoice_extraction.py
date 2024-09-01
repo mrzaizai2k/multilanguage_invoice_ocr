@@ -119,7 +119,9 @@ if __name__ == "__main__":
     ocr_text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
 
     # Path to the invoice image
-    image_path = "test/images/fr_1.png"
+    
+    image_path = "fr_1.png"
+
     image = cv2.imread(image_path)
 
     extractor = InvoiceExtractor(config_path=config_path)

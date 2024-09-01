@@ -185,11 +185,9 @@ def load_image(image_path: str):
     
 # Example usage
 if __name__ == "__main__":
-    # img_path = "test/images/fr_1.png"
+    img_path = "fr_1.png"
     config_path = "config/config.yaml"
     
-    img_path = "https://i.etsystatic.com/25406056/r/il/f891ca/2576207654/il_fullxfull.2576207654_l7av.jpg"
-
     image = load_image(img_path)
 
     ocr_reader = OcrReader(config_path=config_path, 
