@@ -169,5 +169,22 @@ def create_thumbnail(image, size=(500, 500)):
     thumbnail.thumbnail(size)
     return thumbnail
 
+def retry_on_failure(max_retries: int = 3, delay: float = 1.0):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            attempt = 0
+            while attempt < max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    attempt += 1
+                    print(f"Attempt {attempt} failed: {e}")
+                    if attempt < max_retries:
+                        time.sleep(delay)
+                    else:
+                        raise
+        return wrapper
+    return decorator
+
 if __name__ == "__main__":
     print("Has GPU?")

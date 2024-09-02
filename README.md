@@ -73,3 +73,4 @@ Follow these steps to run the application:
 3. Use the rotation buttons to adjust the image for optimal OCR results.
 4. Wait for the extraction process to complete, after which you can view the extracted information in JSON format or as a table.
 
+- ollama: https://ollama.com/blog/ollama-is-now-available-as-an-official-docker-image

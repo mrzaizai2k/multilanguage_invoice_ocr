@@ -38,3 +38,21 @@ jobs:
     - name: Run streamlit app test
       run: make run
 
+    - name: Install Docker
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        sudo systemctl start docker
+        sudo systemctl enable docker
+
+    - name: Pull Ollama Docker image
+      run: docker pull ollama
+
+    - name: Run Ollama on port 11434
+      run: |
+        docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+
+    - name: Execute Ollama command
+      run: |
+        docker exec ollama_container ollama run qwen2:7b
+

@@ -13,3 +13,7 @@ scikit-learn
 pymupdf
 openai
 fastapi
+llama-index-multi-modal-llms-ollama
+llama-index
+qwen-vl-utils
+accelerate>=0.26.0
