@@ -22,4 +22,10 @@ llm_extract:
     min_pixels: 200_704 # 256*28*28
     max_pixels: 1_003_520 # 1280*28*28
     max_new_tokens: 1024
+    temperature: 0.7
+    top_p: 0.8
+    top_k: 20
 
+postprocessing:
+  model_name: llama3.1:8b
+  request_timeout: 60

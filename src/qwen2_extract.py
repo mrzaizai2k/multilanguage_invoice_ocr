@@ -6,32 +6,36 @@ from typing import Union
 from transformers import Qwen2VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
 import torch
-from PIL import Image
-import io
-import base64
-from src.invoice_extraction import BaseExtractor
+from src.invoice_extraction import BaseExtractor, InvoicePostProcessing
 from src.Utils.utils import read_config, timeit, retry_on_failure
+
 
 class Qwen2Extractor(BaseExtractor):
     def __init__(self, config_path: str = "config/config.yaml"):
         super().__init__(config_path)
+
+        self.post_processor = InvoicePostProcessing(config_path=self.config_path)
         # Load the Qwen2 model and processor
         self.config = self.config['qwen2']
-        self.model_name = self.config['model_name']
+        self._initialize_model()
+        self._load_dummy_data()
+    
+    def _initialize_model(self):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print("Device used:", self.device)
+        print(f"Device used: {self.device}")
 
         self.model = Qwen2VLForConditionalGeneration.from_pretrained(
-            self.model_name, torch_dtype=torch.bfloat16, device_map="auto"
+            self.config['model_name'],
+            torch_dtype=torch.bfloat16,
+            device_map="auto"
         )
         
         self.processor = AutoProcessor.from_pretrained(
-            self.model_name,
+            self.config['model_name'],
             min_pixels=self.config['min_pixels'],
             max_pixels=self.config['max_pixels']
         )
-        self._load_dummy_data()
-    
+
     def _load_dummy_data(self):
         """Load or generate dummy data for testing the model during initialization."""
         # Dummy text
@@ -49,13 +53,14 @@ class Qwen2Extractor(BaseExtractor):
         except Exception as e:
             print("Error during dummy extraction:", e)
 
+    @timeit
     def _extract_invoice_llm(self, text, image: Union[str, np.ndarray]):
         # Prepare the messages for Qwen2
         messages = [
             {"role": "system", "content": "You are a helpful assistant that help me with invoice"},
             {"role": "user", "content": [
                 {"type": "image", "image": image},
-                {"type": "text", "text": f"responds in JSON format with the invoice information in English. Don't add any annotations there. Remember to close any bracket. And just output the field that has value, don't return field that are empty or null. From the image of the bill and the text from OCR, extract the information. The text is: {text} \n The invoice template: \n {self.invoice_template}"}
+                {"type": "text", "text": f"From the image of the bill and the text from OCR, extract the useful information on the invoice. The text is: {text}"}
             ]}
         ]
 
@@ -73,9 +78,9 @@ class Qwen2Extractor(BaseExtractor):
 
         # Inference: Generation of the output
         generated_ids = self.model.generate(**inputs, max_new_tokens=self.config['max_new_tokens'],
-                                            temperature=self.config.get('temperature', 0.7),  # Add temperature parameter
-                                            top_p=self.config.get('top_p', 0.8),              # Add top_p parameter
-                                            top_k=self.config.get('top_k', 20),           # Add top_k parameter)
+                                            temperature=self.config['temperature'],  # Add temperature parameter
+                                            top_p=self.config['top_p'],              # Add top_p parameter
+                                            top_k=self.config['top_k'],           # Add top_k parameter)
                                             )
         generated_ids_trimmed = [
             out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
@@ -83,24 +88,30 @@ class Qwen2Extractor(BaseExtractor):
         output_text = self.processor.batch_decode(
             generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )
-        print('raw', output_text[0])
         return output_text[0]
+    
+    @timeit
+    def post_process(self, ocr_text:str, model_text:str) -> str:
+        response = self.post_processor.postprocess(invoice_template=self.invoice_template, ocr_text=ocr_text, model_text=model_text)
+        return response
 
     def extract_json(self, text: str) -> dict:
         start_index = text.find('{')
-        end_index = text.rfind('}')
+        end_index = text.rfind('}') + 1
         json_string = text[start_index:end_index]
         json_string = json_string.replace('true', 'True').replace('false', 'False').replace('null', 'None')
         result = eval(json_string)
         return result
+ 
     
     @timeit
     @retry_on_failure(max_retries=3, delay=1.0)
     def extract_invoice(self, text: str, image: Union[str, np.ndarray]) -> dict:
         base64_image = self.encode_image(image)  # Assuming encode_image is still applicable
         base64_image = f"data:image;base64,{base64_image}"
-        invoice_info = self._extract_invoice_llm(text, base64_image)
-        invoice_info = self.extract_json(invoice_info)
+        model_text = self._extract_invoice_llm(text, base64_image)
+        pre_invoice_info = self.post_process(ocr_text=text, model_text=model_text)
+        invoice_info = self.extract_json(pre_invoice_info)
         return invoice_info
 
 # Note: Integrate the Qwen2Extractor into the main script as needed.
