@@ -6,13 +6,13 @@ import streamlit as st
 from PIL import Image
 import numpy as np
 from src.ocr_reader import OcrReader
-from src.invoice_extraction import InvoiceExtractor
+from src.invoice_extraction import OpenAIExtractor
 from src.Utils.utils import *
 
 def main():
     config_path = "config/config.yaml"
     ocr_reader = OcrReader(config_path=config_path)
-    invoice_extractor = InvoiceExtractor(config_path=config_path)
+    invoice_extractor = OpenAIExtractor(config_path=config_path)
 
     config = read_config(config_path)
     with open(config['key_name_dict_path'], "r") as f:

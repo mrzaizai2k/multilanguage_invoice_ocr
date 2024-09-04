@@ -21,13 +21,6 @@ class BaseExtractor:
         with open(self.invoice_template_path, 'r') as file:
             self.invoice_template = file.read()
 
-    def extract_json(self, text: str) -> dict:
-        start_index = text.find('{')
-        end_index = text.rfind('}') + 1
-        json_string = text[start_index:end_index]
-        json_string = json_string.replace('true', 'True').replace('false', 'False').replace('null', 'None')
-        result = eval(json_string)
-        return result
 
     def encode_image(self, image_input: Union[str, np.ndarray]):
         if isinstance(image_input, str):
@@ -50,6 +43,7 @@ class BaseExtractor:
 class OpenAIExtractor(BaseExtractor):
     def __init__(self, config_path: str = "config/config.yaml"):
         super().__init__(config_path)
+        self.config = self.config['openai']
         self.model = self.config['model']
         self.temperature = self.config['temperature']
         self.max_tokens = self.config['max_tokens']
@@ -72,6 +66,14 @@ class OpenAIExtractor(BaseExtractor):
             max_tokens=self.max_tokens,
         )
         return response.choices[0].message.content
+
+    def extract_json(self, text: str) -> dict:
+        start_index = text.find('{')
+        end_index = text.rfind('}') + 1
+        json_string = text[start_index:end_index]
+        json_string = json_string.replace('true', 'True').replace('false', 'False').replace('null', 'None')
+        result = eval(json_string)
+        return result
 
     @timeit
     @retry_on_failure(max_retries=3, delay=1.0)

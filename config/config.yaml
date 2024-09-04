@@ -11,8 +11,15 @@ ocr:
 
 llm_extract:
   invoice_template_path: config/invoice_template.txt
-  model: gpt-4o-mini
-  temperature: 1.0
-  max_tokens: 1024
+
+  openai:
+    model: gpt-4o-mini
+    temperature: 1.0
+    max_tokens: 1024
   
+  qwen2:
+    model_name: Qwen/Qwen2-VL-2B-Instruct
+    min_pixels: 200_704 # 256*28*28
+    max_pixels: 1_003_520 # 1280*28*28
+    max_new_tokens: 1024
 

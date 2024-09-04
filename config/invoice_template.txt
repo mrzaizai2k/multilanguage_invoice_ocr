@@ -101,12 +101,6 @@
     "customer_bank_account_number_bic": "",
     "customer_website": "",
     "customer_email": "",
-    "payment_slip_code": "",
-    "payment_slip_reference_number": "",
-    "payment_slip_customer_number": "",
     "document_language": "",
-    "matched_keywords": ,
-    "matched_lineitems": ,
-    "matched_purchase_order_id": "",
   },
 }
