@@ -1,39 +1,42 @@
 {
-  "name": "Tümmler, Dirk",
-  "project_number": "240045",
-  "is_in_egw": true,
-  "expenses": [
-    {
-      "title": "Hotel",
-      "with_breakfast": true,
-      "price": "412,50",
-    },
-    {
-      "title": "Fuel",
-      "price": "86,24",
-    },
-    {
-      "title": "Parking fees",
-      "price": "4,",
-    },
-    {
-      "title": "Rental car",
-      "price": "156,20",
-    },
-    {
-      "title": "Toll",
-      "price": "20",
-    },
-    {
-      "title": "Train ticket",
-      "price": "24,50",
-      "payment_method": "paid for yourself"
-    },
-    {
-      "title": "Bicycle ticket",
-      "price": "9,80",
-      "payment_method": "paid for yourself"
-    }
-  ],
-  "has_employee_signature": true
+  "invoice_info": {
+    "name": "Tümmler, Dirk",
+    "project_number": "240045",
+    "is_in_egw": true,
+    "currency": "",
+    "lines": [
+      {
+        "title": "Hotel",
+        "with_breakfast": true,
+        "amount": "412,50",
+      },
+      {
+        "title": "Fuel",
+        "amount": "86,24",
+      },
+      {
+        "title": "Parking fees",
+        "amount": "4,",
+      },
+      {
+        "title": "Rental car",
+        "amount": "156,20",
+      },
+      {
+        "title": "Toll",
+        "amount": "20",
+      },
+      {
+        "title": "Train ticket",
+        "amount": "24,50",
+        "payment_method": "paid for yourself"
+      },
+      {
+        "title": "Bicycle ticket",
+        "amount": "9,80",
+        "payment_method": "paid for yourself"
+      }
+    ],
+    "has_employee_signature": true
+  }
 }

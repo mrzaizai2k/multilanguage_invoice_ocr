@@ -168,7 +168,6 @@ class OcrReader:
                 "language": src_language,
             }
 
-        
         return data
     
 def load_image(image_path: str):
@@ -185,7 +184,8 @@ def load_image(image_path: str):
     
 # Example usage
 if __name__ == "__main__":
-    img_path = "fr_1.png"
+    img_path = "test/images/007_2.png"
+    # img_path = "fr_1.png"
     config_path = "config/config.yaml"
     
     image = load_image(img_path)

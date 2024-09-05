@@ -16,11 +16,12 @@ class BaseExtractor:
     def __init__(self, config_path: str = "config/config.yaml"):
         self.config_path = config_path
         self.config = read_config(path=self.config_path)['llm_extract']
-        self.invoice_template_path = self.config['invoice_template_path']
+
+        # self.invoice_template_path = self.config['invoice_template_path']
         
-        # Load the invoice template prompt
-        with open(self.invoice_template_path, 'r') as file:
-            self.invoice_template = file.read()
+        # # Load the invoice template prompt
+        # with open(self.invoice_template_path, 'r') as file:
+        #     self.invoice_template = file.read()
 
 
     def encode_image(self, image_input: Union[str, np.ndarray]):
@@ -89,13 +90,13 @@ class OpenAIExtractor(BaseExtractor):
         from openai import OpenAI
         self.client = OpenAI(api_key=self.OPENAI_API_KEY)
 
-    def _extract_invoice_llm(self, text, base64_image):
+    def _extract_invoice_llm(self, ocr_text, base64_image:str, invoice_template:str):
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that responds in JSON format with the invoice information in English. Don't add any annotations there. Remember to close any bracket. And just output the field that has value, don't return field that are empty."},
                 {"role": "user", "content": [
-                    {"type": "text", "text": f"From the image of the bill and the text from OCR, extract the information. The text is: {text} \n The invoice template: \n {self.invoice_template}"},
+                    {"type": "text", "text": f"From the image of the bill and the text from OCR, extract the information. The ocr text is: {ocr_text} \n The invoice template: \n {invoice_template}"},
                     {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}}
                 ]}
             ],
@@ -114,9 +115,10 @@ class OpenAIExtractor(BaseExtractor):
 
     @timeit
     @retry_on_failure(max_retries=3, delay=1.0)
-    def extract_invoice(self, text, image: Union[str, np.ndarray]) -> dict:
+    def extract_invoice(self, ocr_text, image: Union[str, np.ndarray], invoice_template:str) -> dict:
         base64_image = self.encode_image(image)
-        invoice_info = self._extract_invoice_llm(text, base64_image)
+        invoice_info = self._extract_invoice_llm(ocr_text, base64_image, 
+                                                 invoice_template=invoice_template)
         invoice_info = self.extract_json(invoice_info)
         return invoice_info
 
@@ -151,12 +153,16 @@ def test_openai_invoice():
     config_path = "config/config.yaml"
     ocr_text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
     image_path = "fr_1.png"
+    invoice_template_path = "config/invoice_template.txt"
+    with open(invoice_template_path, 'r') as file:
+        invoice_template = file.read()
 
     extractor = OpenAIExtractor(config_path=config_path)
-    invoice_data = extractor.extract_invoice(text=ocr_text, image=image_path)
+    invoice_data = extractor.extract_invoice(ocr_text=ocr_text, image=image_path, 
+                                             invoice_template=invoice_template)
     print(invoice_data)
 
 if __name__ == "__main__":
 
-    # test_openai_invoice()
+    test_openai_invoice()
     test_post_processing()

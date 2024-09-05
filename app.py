@@ -1,17 +1,69 @@
 import sys
 sys.path.append("")
 
+import os
 import json
 import streamlit as st
 from PIL import Image
 import numpy as np
-from src.ocr_reader import OcrReader
+import pandas as pd
+from src.ocr_reader import OcrReader, GoogleTranslator
 from src.invoice_extraction import OpenAIExtractor
 from src.Utils.utils import *
 
+def json_to_xls(invoice_info):
+    data = invoice_info.copy()
+
+    # Flatten the data for a single sheet
+    flattened_data = []
+    for line in data['lines']:
+        flattened_row = {
+            "Name": data['name'],
+            "Project Number": data['project_number'],
+            "Customer": data['customer'],
+            "City": data['city'],
+            "Land": data['land'],
+            "Is Process Done": data['is_process_done'],
+            "Sign Date": data['sign_date'],
+            "Has Employee Signature": data['has_employee_signature'],
+            "Date": line['date'],
+            "Start Time": line['start_time'],
+            "End Time": line['end_time'],
+            "Break Time": line.get('break_time', ''),
+            "Description": line['description'],
+            "Has Customer Signature": line['has_customer_signature']
+        }
+        flattened_data.append(flattened_row)
+
+    # Convert to DataFrame
+    df = pd.DataFrame(flattened_data)
+
+    # Write to Excel file
+    df.to_excel('output.xlsx', index=False)
+    
+
+
+
+
+def get_invoice_template(ocr_result):
+    text = ocr_result['text'].lower()
+
+    if (ocr_result['ori_language'] == 'de' and "recording of external assignments" in text) or ("erfassung externer einsatze"  in text):
+        if "page 1 of 2" in text or ("seite 1 von 2" in text):
+            invoice_template_path = "config/page_1_template.txt"
+        elif "page 2 of 2" in text or ("seite 2 von 2" in text):
+            invoice_template_path = "config/page_2_template.txt"
+    else:
+        invoice_template_path = "config/invoice_template.txt"
+
+    with open(invoice_template_path, 'r') as file:
+        invoice_template = file.read()
+    print("invoice_template", invoice_template[:300])
+    return invoice_template
+
 def main():
     config_path = "config/config.yaml"
-    ocr_reader = OcrReader(config_path=config_path)
+    ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator())
     invoice_extractor = OpenAIExtractor(config_path=config_path)
 
     config = read_config(config_path)
@@ -105,8 +157,16 @@ def main():
             st.write("Extracting text and invoice information...")
             ocr_result = ocr_reader.get_text(rotate_image(original_image, st.session_state.rotation))
             extracted_text = ocr_result['text']
-            invoice_info = invoice_extractor.extract_invoice(extracted_text, np.array(rotate_image(original_image, st.session_state.rotation)))
+            print("ocr_result", ocr_result)
+            invoice_template=get_invoice_template(ocr_result)
 
+            invoice_info = invoice_extractor.extract_invoice(extracted_text, np.array(rotate_image(original_image, st.session_state.rotation)), 
+                                                             invoice_template=invoice_template)
+            try:
+                json_to_xls(invoice_info)
+            except:
+                pass
+            
             # Create tabs for JSON and Table views
             json_tab, table_tab = st.tabs(["JSON", "Table"])
 

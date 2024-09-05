@@ -1,7 +1,5 @@
 {
-  "result": "success",
-  "data": {
-    "document_type": "Invoice",
+  "invoice_info": {
     "amount": ,
     "amount_change": ,
     "amount_shipping": ,

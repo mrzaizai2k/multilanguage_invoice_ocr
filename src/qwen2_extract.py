@@ -91,8 +91,9 @@ class Qwen2Extractor(BaseExtractor):
         return output_text[0]
     
     @timeit
-    def post_process(self, ocr_text:str, model_text:str) -> str:
-        response = self.post_processor.postprocess(invoice_template=self.invoice_template, ocr_text=ocr_text, model_text=model_text)
+    def post_process(self, ocr_text:str, model_text:str, invoice_template:str) -> str:
+        response = self.post_processor.postprocess(invoice_template=invoice_template, 
+                                                   ocr_text=ocr_text, model_text=model_text)
         return response
 
     def extract_json(self, text: str) -> dict:
@@ -106,11 +107,12 @@ class Qwen2Extractor(BaseExtractor):
     
     @timeit
     @retry_on_failure(max_retries=3, delay=1.0)
-    def extract_invoice(self, text: str, image: Union[str, np.ndarray]) -> dict:
+    def extract_invoice(self, text: str, image: Union[str, np.ndarray], invoice_template:str) -> dict:
         base64_image = self.encode_image(image)  # Assuming encode_image is still applicable
         base64_image = f"data:image;base64,{base64_image}"
         model_text = self._extract_invoice_llm(text, base64_image)
-        pre_invoice_info = self.post_process(ocr_text=text, model_text=model_text)
+        pre_invoice_info = self.post_process(ocr_text=text, model_text=model_text, 
+                                             invoice_template = invoice_template)
         invoice_info = self.extract_json(pre_invoice_info)
         return invoice_info
 
@@ -121,8 +123,12 @@ if __name__ == "__main__":
     ocr_text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
     image_path = "fr_1.png"
 
+    invoice_template_path = "config/invoice_template.txt"
+    with open(invoice_template_path, 'r') as file:
+        invoice_template = file.read()
     # Test Qwen2Extractor
     qwen2_extractor = Qwen2Extractor(config_path=config_path)
-    qwen2_invoice_data = qwen2_extractor.extract_invoice(text=ocr_text, image=image_path)
+    qwen2_invoice_data = qwen2_extractor.extract_invoice(text=ocr_text, image=image_path, 
+                                                         invoice_template =invoice_template)
     print("\nQwen2 Extractor Output:")
     print(qwen2_invoice_data)

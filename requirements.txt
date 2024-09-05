@@ -17,3 +17,4 @@ llama-index-multi-modal-llms-ollama
 llama-index
 qwen-vl-utils
 llama-index-llms-ollama
+xlsxwriter

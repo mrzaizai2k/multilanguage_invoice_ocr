@@ -1,103 +1,105 @@
 {
-  "name": "Tümmler, Dirk",
-  "project_number": "240045",
-  "customer": "Magua",
-  "city": "Salzgitter",
-  "kw": "",
-  "land": "DE"
-  "lines": [
-    {
-      "date": "07.08.",
-      "start_time": "6.45",
-      "end_time": "7.30",
-      "break_time": "",
-      "description": "BS-SZ-Support",
-      "has_customer_signature": true
-    },
-    {
-      "date": "07.08.",
-      "start_time": "7.30",
-      "end_time": "16.00",
-      "break_time": "0.5",
-      "description": "",
-      "has_customer_signature": true
-    },
-    {
-      "date": "08.08.",
-      "start_time": "7.30",
-      "end_time": "7.45",
-      "break_time": "",
-      "description": "SZ-BS",
-      "has_customer_signature": true
-    },
-    {
-      "date": "08.08.",
-      "start_time": "7.45",
-      "end_time": "16.30",
-      "break_time": "0.5",
-      "description": "",
-      "has_customer_signature": true
-    },
-    {
-      "date": "09.08.",
-      "start_time": "7.00",
-      "end_time": "7.45",
-      "break_time": "",
-      "description": "Support",
-      "has_customer_signature": true
-    },
-    {
-      "date": "09.08.",
-      "start_time": "7.45",
-      "end_time": "16.30",
-      "break_time": "0.5",
-      "description": "Support",
-      "has_customer_signature": true
-    },
-    {
-      "date": "10.08.",
-      "start_time": "7.15",
-      "end_time": "8.00",
-      "break_time": "",
-      "description": "SZPBS",
-      "has_customer_signature": true
-    },
-    {
-      "date": "10.08.",
-      "start_time": "8.00",
-      "end_time": "17.00",
-      "break_time": "0.5",
-      "description": "",
-      "has_customer_signature": true
-    },
-    {
-      "date": "11.08.",
-      "start_time": "6.30",
-      "end_time": "7.15",
-      "break_time": "",
-      "description": "support",
-      "has_customer_signature": true
-    },
-    {
-      "date": "11.08.",
-      "start_time": "7.15",
-      "end_time": "16.00",
-      "break_time": "0.5",
-      "description": "support",
-      "has_customer_signature": true
-    },
-    {
-      "date": "11.08.",
-      "start_time": "16.00",
-      "end_time": "16.45",
-      "break_time": "",
-      "description": "Supports",
-      "has_customer_signature": true
-    }
-  ],
-  "is_process_done": true,
-  "is_commissioned_work": true,
-  "is_without_measuring_technology": false,
-  "sign_date": "13.08.2024",
-  "has_employee_signature": true
+  "invoice_info": {
+    "name": "Tümmler, Dirk",
+    "project_number": "240045",
+    "customer": "Magua",
+    "city": "Salzgitter",
+    "kw": "",
+    "land": "DE"
+    "lines": [
+      {
+        "date": "07.08.",
+        "start_time": "6.45",
+        "end_time": "7.30",
+        "break_time": "",
+        "description": "BS-SZ-Support",
+        "has_customer_signature": true
+      },
+      {
+        "date": "07.08.",
+        "start_time": "7.30",
+        "end_time": "16.00",
+        "break_time": "0.5",
+        "description": "",
+        "has_customer_signature": true
+      },
+      {
+        "date": "08.08.",
+        "start_time": "7.30",
+        "end_time": "7.45",
+        "break_time": "",
+        "description": "SZ-BS",
+        "has_customer_signature": true
+      },
+      {
+        "date": "08.08.",
+        "start_time": "7.45",
+        "end_time": "16.30",
+        "break_time": "0.5",
+        "description": "",
+        "has_customer_signature": true
+      },
+      {
+        "date": "09.08.",
+        "start_time": "7.00",
+        "end_time": "7.45",
+        "break_time": "",
+        "description": "Support",
+        "has_customer_signature": true
+      },
+      {
+        "date": "09.08.",
+        "start_time": "7.45",
+        "end_time": "16.30",
+        "break_time": "0.5",
+        "description": "Support",
+        "has_customer_signature": true
+      },
+      {
+        "date": "10.08.",
+        "start_time": "7.15",
+        "end_time": "8.00",
+        "break_time": "",
+        "description": "SZPBS",
+        "has_customer_signature": true
+      },
+      {
+        "date": "10.08.",
+        "start_time": "8.00",
+        "end_time": "17.00",
+        "break_time": "0.5",
+        "description": "",
+        "has_customer_signature": true
+      },
+      {
+        "date": "11.08.",
+        "start_time": "6.30",
+        "end_time": "7.15",
+        "break_time": "",
+        "description": "support",
+        "has_customer_signature": true
+      },
+      {
+        "date": "11.08.",
+        "start_time": "7.15",
+        "end_time": "16.00",
+        "break_time": "0.5",
+        "description": "support",
+        "has_customer_signature": true
+      },
+      {
+        "date": "11.08.",
+        "start_time": "16.00",
+        "end_time": "16.45",
+        "break_time": "",
+        "description": "Supports",
+        "has_customer_signature": true
+      }
+    ],
+    "is_process_done": true,
+    "is_commissioned_work": true,
+    "is_without_measuring_technology": false,
+    "sign_date": "13.08.2024",
+    "has_employee_signature": true
+  }
 }
