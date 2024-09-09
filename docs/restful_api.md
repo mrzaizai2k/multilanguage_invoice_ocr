@@ -109,48 +109,60 @@ curl -X POST "http://localhost:8000/api/v1/auth/logout" \
 
 ### 2.1 Upload Invoice Image
 
-**Description**: Allows an employee to upload an invoice image for processing. The image is stored in MongoDB, and processing is triggered.
+**Description**: Allows an employee to upload an invoice image for processing. The image, along with the `user_uuid`, is stored in MongoDB, and processing is triggered.
 
 ```shell
 curl -X POST "http://localhost:8000/api/v1/invoices/upload" \
--H "Content-Type: multipart/form-data" \
+-H "Content-Type: application/json" \
 -H "Authorization: Bearer <auth_token>" \
--F file=@<local_file> 
+-d '{
+  "img": "<base64_value>",
+  "user_uuid": "<user_uuid>"
+}'
 ```
 
-| Element       | Description  | Type   | Required | Notes                         |
-|---------------|--------------|--------|----------|-------------------------------|
-| Content-Type  | header       | string | required | multipart/form-data            |
-| Authorization | header       | string | required | Bearer <auth_token>           |
-| file          | body         | image  | required | Invoice image in base64 format |
+| Element       | Description  | Type   | Required | Notes                            |
+|---------------|--------------|--------|----------|----------------------------------|
+| Content-Type  | header       | string | required | `application/json`               |
+| Authorization | header       | string | required | Bearer `<auth_token>`            |
+| img           | body         | string | required | Invoice image in base64 format   |
+| user_uuid     | body         | string | optional | UUID of the user uploading the invoice |
 
 **Response on success**:  
 ```json
 {
-  "invoice_id": "<invoice_id>",
+  "invoice_uuid": "<invoice_uuid>",
   "message": "Upload successful"
 }
 ```
 
-| Element    | Type   | Description        |
-|------------|--------|--------------------|
-| invoice_id | UUID   | UUID of the invoice|
-| message    | string | Status message     |
+| Element      | Type   | Description            |
+|--------------|--------|------------------------|
+| invoice_uuid | UUID   | UUID of the invoice     |
+| message      | string | Status message          |
 
+### Explanation:
+- The `Content-Type` is now `application/json` since the data is sent as a JSON payload.
+- The `img` field in the body contains the base64-encoded image.
+- The `user_uuid` field in the body identifies the user uploading the invoice.
+- The response includes the `invoice_uuid` of the uploaded invoice and a confirmation message.
+
+Here’s the updated Markdown for the DELETE API with `user_uuid` included:
 
 ### 2.2 Delete Invoice Image
 
-**Description**: Deletes an invoice image from the database.
+**Description**: Deletes an invoice image from the database. The request requires the `user_uuid` to log who initiated the deletion.
 
 ```shell
-curl -X DELETE "http://localhost:8000/api/v1/invoices/<invoice_id>" \
+curl -X DELETE "http://localhost:8000/api/v1/invoices/<invoice_uuid>?user_uuid=<user_uuid>" \
 -H "Authorization: Bearer <auth_token>"
 ```
 
-| Element       | Description  | Type   | Required | Notes                        |
-|---------------|--------------|--------|----------|------------------------------|
-| Authorization | header       | string | required | Bearer <auth_token>          |
-| invoice_id    | path         | UUID   | required | UUID of the invoice to delete |
+| Element       | Description  | Type   | Required | Notes                             |
+|---------------|--------------|--------|----------|-----------------------------------|
+| Authorization | header       | string | required | Bearer `<auth_token>`             |
+| invoice_uuid  | path         | UUID   | required | UUID of the invoice to delete     |
+| user_uuid     | query        | string | optional | UUID of the user requesting the deletion |
 
 **Response on success**:  
 ```json
@@ -164,87 +176,128 @@ curl -X DELETE "http://localhost:8000/api/v1/invoices/<invoice_id>" \
 | message | string | Status message |
 
 
+### Explanation:
+- The `user_uuid` is added as a query parameter in the URL to identify the user requesting the deletion.
+- The `invoice_uuid` remains in the path to specify which invoice to delete.
+- The response confirms the successful deletion with a status message.
+
+
+Here's the Markdown for the GET API to retrieve a list of invoices with the specified parameters:
+
 ### 2.3 Get Invoice Information
 
-**Description**: Retrieves processed information for a specific invoice.
+More in `docs/invoice_info.md`
+
+**Description**: Retrieves a list of invoices from the database based on the provided filters and sorting options. The response will include the specified number of invoices per page, along with metadata about each invoice.
 
 ```shell
-curl -X GET "http://localhost:8000/api/v1/invoices/<invoice_id>" \
+curl -X GET "http://localhost:8000/api/v1/invoices?created_at=<sort_order>&created_by=<user_uuid>&invoice_type=<invoice_type>&page=<page_number>&limit=<limit>" \
 -H "Authorization: Bearer <auth_token>"
 ```
 
-| Element       | Description  | Type   | Required | Notes                        |
-|---------------|--------------|--------|----------|------------------------------|
-| Authorization | header       | string | required | Bearer <auth_token>          |
-| invoice_id    | path         | UUID   | required | UUID of the invoice          |
+| Element       | Description  | Type   | Required | Notes                                      |
+|---------------|--------------|--------|----------|--------------------------------------------|
+| Authorization | header       | string | required | Bearer `<auth_token>`                      |
+| created_at    | query        | string | optional | Sort by creation date (`asc` or `desc`)    |
+| created_by    | query        | string | optional | Filter by `user_uuid` of the invoice creator|
+| invoice_type  | query        | string | optional | Filter by type of invoice                   |
+| page          | query        | number | optional | Page number for pagination (default is 1)   |
+| limit         | query        | number | optional | Number of invoices per page (default is 10) |
 
 **Response on success**:  
 ```json
-{
-  "invoice_id": "<invoice_id>",
-  "invoice_data": {
-    "date": "2024-08-29",
-    "amount": "500.00",
-    "vendor": "Company Inc.",
-    "items": [...]
+[
+  {
+    "invoice_uuid": "string", 
+    "invoice_type": "string",  
+    "created_at": "ISODate",  
+    "created_by": "string",  
+    "last_modified_at": "ISODate",  
+    "last_modified_by": "string",  
+    "status": "string",  
+    "invoice_image_base64": "string",  
+    "ocr_info": {
+      "ori_text": "string",
+      "ori_language": "string",
+      "text": "string",
+      "language": "string"
+    },
+    "translator": "string",
+    "ocr_detector": "string",
+    "llm_extractor": "string",
+    "post_processor": "string",
+    "invoice_info": {
+      ...
+    }
+  },
+  {
+    "invoice_uuid": "string", 
+    ...
   }
-}
+]
 ```
 
-| Element     | Type   | Description           |
-|-------------|--------|-----------------------|
-| invoice_id  | UUID   | UUID of the invoice   |
-| invoice_data| object | Processed invoice data|
+| Element           | Type    | Description                                             |
+|-------------------|---------|---------------------------------------------------------|
+| invoice_uuid      | UUID    | UUID of the invoice/image                                |
+| invoice_type      | string  | Type of the invoice                                      |
+| created_at        | ISODate | Timestamp of invoice creation                            |
+| created_by        | string  | `user_uuid` of the invoice creator                       |
+| last_modified_at  | ISODate | Timestamp of last modification                           |
+| last_modified_by  | string  | `user_uuid` of the last modifier                         |
+| status            | string  | Status of the invoice (e.g., "not extracted", "completed")|
+| invoice_info      | object  | Detail in `docs/invoice_info.md`          |
+
+### Explanation:
+- The `created_at` parameter allows sorting the results by creation date in either ascending or descending order.
+- The `created_by`, `invoice_type`, `page`, and `limit` parameters filter the results and control pagination.
+- The response returns a list of invoice objects, each containing detailed metadata and processing information.
+
+Here's the updated markdown and API for modifying invoice information, incorporating the changes:
 
 ### 2.4 Modify Invoice Information
-This API allows an admin or employee to modify the extracted invoice information. The image UUID and the new invoice data must be provided.
 
-```json
-curl -X PUT "http://localhost:8000/api/v1/invoices/<invoice_id>/modify" \
+**Description**: Allows an admin or employee to modify the extracted invoice information. The invoice UUID and the new invoice data must be provided. The `user_uuid` parameter helps track who made the update. Only the `invoice_info` field is updated, containing the first 5 keys.
+
+```shell
+curl -X PUT "http://localhost:8000/api/v1/invoices/<invoice_uuid>" \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer <auth_token>" \
 -d '{
-  "uuid": "<image_uuid>",
-  "invoice_data": {
-    "total_amount": "1000.00",
+  "user_uuid": "<user_uuid>",
+  "invoice_info": {
+    "amount": 1000.00,
+    "amount_change": 50.00,
+    "amount_shipping": 20.00,
+    "currency": "USD",
     "date": "2024-08-29",
-    "vendor": "ABC Corp",
-    "items": [
-      {
-        "description": "Item 1",
-        "amount": "500.00"
-      },
-      {
-        "description": "Item 2",
-        "amount": "500.00"
-      }
-    ]
+    ...
   }
 }
 ```
 
-| Element       | Description                | Type   | Required | Notes                        |
-|---------------|----------------------------|--------|----------|------------------------------|
-| Content-Type  | Request header             | string | required | application/json             |
-| Authorization | Request header             | string | required | Bearer JWT token             |
-| uuid          | Request body               | UUID   | required | UUID of the invoice image    |
-| invoice_data  | Request body               | JSON   | required | Updated invoice information   |
-
-
+| Element       | Description                | Type   | Required | Notes                       |
+|---------------|----------------------------|--------|----------|-----------------------------|
+| Content-Type  | Request header             | string | required | application/json            |
+| Authorization | Request header             | string | required | Bearer JWT token            |
+| user_uuid     | Request body               | UUID   | optional | UUID of the user updating the invoice |
+| invoice_info  | Request body               | JSON   | required | Updated invoice_info as in `docs/invoice_info.md` |
 
 **Response body on success**:
 
 ```json
 {
-  "uuid": "image_uuid",
-  "status": "Invoice information updated."
+  "invoice_uuid": "<invoice_uuid>",
+  "message": "Invoice information updated."
 }
 ```
 
-| Element | Type   | Description                     |
-|---------|--------|---------------------------------|
-| uuid    | UUID   | UUID of the updated image       |
-| status  | string | Status of the update process    |
+| Element      | Type   | Description                    |
+|--------------|--------|--------------------------------|
+| invoice_uuid | UUID   | UUID of the updated invoice     |
+| message       | string | Message of the update process   |
+
+
 
 ## 3. Admin Dashboard
 
@@ -265,50 +318,11 @@ curl -X GET "http://localhost:8000/api/v1/admin/metrics" \
 ```json
 {
   "total_invoices": 1000,
-  "active_users": 50,
-  "system_uptime": "99.99%"
+  ...
 }
 ```
 
 | Element        | Type   | Description                  |
 |----------------|--------|------------------------------|
 | total_invoices | int    | Total number of invoices     |
-| active_users   | int    | Number of active users       |
-| system_uptime  | string | System uptime percentage     |
 
-
-### 3.2 Get All Invoices
-
-**Description**: Retrieves a list of all invoices processed in the system.
-
-```shell
-curl -X GET "http://localhost:8000/api/v1/admin/invoices" \
--H "Authorization: Bearer <admin_auth_token>"
-```
-
-| Element       | Description  | Type   | Required | Notes                        |
-|---------------|--------------|--------|----------|------------------------------|
-| Authorization | header       | string | required | Bearer <admin_auth_token>     |
-
-**Response on success**:  
-```json
-{
-  "invoices": [
-    {
-      "invoice_id": "<invoice_id>",
-      "date": "2024-08-29",
-      "amount": "500.00",
-      "vendor": "Company Inc."
-    },
-    ...
-  ]
-}
-```
-
-| Element  | Type   | Description             |
-|----------|--------|-------------------------|
-| invoices | array  | List of processed invoices|
-
----
-
-This documentation provides a clear overview of each API endpoint, its purpose, and the expected inputs and outputs, ensuring smooth development and integration processes.
