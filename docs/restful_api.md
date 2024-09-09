@@ -199,8 +199,8 @@ curl -X GET "http://localhost:8000/api/v1/invoices?created_at=<sort_order>&creat
 |---------------|--------------|--------|----------|--------------------------------------------|
 | Authorization | header       | string | required | Bearer `<auth_token>`                      |
 | created_at    | query        | string | optional | Sort by creation date (`asc` or `desc`)    |
-| created_by    | query        | string | optional | Filter by `user_uuid` of the invoice creator|
-| invoice_type  | query        | string | optional | Filter by type of invoice                   |
+| created_by    | query        | string | optional | Filter by `user_uuid` of the invoice creator (if None, take all)|
+| invoice_type  | query        | string | optional | Filter by type of invoice (if None, take all)                  |
 | page          | query        | number | optional | Page number for pagination (default is 1)   |
 | limit         | query        | number | optional | Number of invoices per page (default is 10) |
 
