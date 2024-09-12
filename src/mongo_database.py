@@ -4,9 +4,11 @@ sys.path.append("")
 import yaml
 from pymongo import MongoClient
 from typing import Optional, Dict, Any, List, Literal
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from bson import ObjectId
+import asyncio
+# from motor.motor_asyncio import AsyncIOMotorClient
 from src.Utils.utils import read_config
 
 class MongoDatabase:
@@ -95,6 +97,14 @@ class MongoDatabase:
         result = self.collection.delete_many({})
         return result.deleted_count > 0
 
+    def start_change_stream(self):
+        change_stream = change_stream = self.collection.watch([{
+                '$match': {
+                    'operationType': { '$in': ['insert'] }
+                }
+            }])
+        return change_stream
+
 
 if __name__ == "__main__":
     # Load sample JSON file
@@ -106,10 +116,15 @@ if __name__ == "__main__":
 
     # Instantiate MongoDatabase
     mongo_db = MongoDatabase(config_path='config/config.yaml')
+    # change_stream = mongo_db.client.changestream.collection.watch()
+    # from bson.json_util import dumps
+    # for change in change_stream:
+    #     print(dumps(change))
+    #     print('') # for readability only
 
-    # # Test creating a document
-    # inserted_id = mongo_db.create_document(sample_data)
-    # print(f"Inserted document ID: {inserted_id}")
+    # Test creating a document
+    inserted_id = mongo_db.create_document(sample_data)
+    print(f"Inserted document ID: {inserted_id}")
 
     # # Test retrieving the document
     # retrieved_docs = mongo_db.get_documents(filter_criteria)
@@ -140,5 +155,5 @@ if __name__ == "__main__":
     docs = mongo_db.get_documents({'created_by': '1111_1111_1111_1111'})
     print(f"Document: {len(docs)}")
 
-    doc = mongo_db.get_document_by_id(document_id="66e16b636f9bef6e75094d8a")
+    doc = mongo_db.get_document_by_id(document_id="66e2aeb0632bfcd289eeb7ee")
     print('doc', doc)

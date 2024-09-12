@@ -4,21 +4,56 @@ sys.path.append("")
 from fastapi import (FastAPI, Request, Header, 
                      status, HTTPException, Query)
 from fastapi.responses import JSONResponse
-from pymongo import ASCENDING, DESCENDING
 from typing import Optional
 from datetime import datetime, timezone
-
+from contextlib import asynccontextmanager
 from src.ocr_reader import OcrReader
 from src.invoice_extraction import OpenAIExtractor
 from src.qwen2_extract import Qwen2Extractor
 from src.mongo_database import MongoDatabase
+import threading
 from src.Utils.utils import *
 
-app = FastAPI()
 config_path='config/config.yaml'
 config = read_config(path=config_path)
 
 mongo_db = MongoDatabase(config_path=config_path)
+change_stream = None
+change_stream_thread = None
+
+def process_change_stream():
+    global change_stream
+    for change in change_stream:
+        if change['operationType'] == 'insert':
+            document_id = change['fullDocument']['_id']
+            process_new_invoice(str(document_id))
+
+def process_new_invoice(document_id: str):
+    current_time = datetime.now(timezone.utc)
+    mongo_db.update_document_by_id(document_id, {
+        "last_modified_at": current_time,
+        "status": "processing"
+    })
+    
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    global change_stream, change_stream_thread
+    change_stream = mongo_db.start_change_stream()
+    change_stream_thread = threading.Thread(target=process_change_stream)
+    change_stream_thread.start()
+    
+    yield  # This is where the FastAPI app runs
+    
+    # Shutdown
+    if change_stream:
+        change_stream.close()
+    if change_stream_thread:
+        change_stream_thread.join()
+
+app = FastAPI(lifespan=lifespan)
+
 
 @app.post("/api/v1/invoices/upload")
 async def upload_invoice(

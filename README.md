@@ -66,6 +66,28 @@ Follow these steps to run the application:
 
    Open your browser and go to `http://localhost:8501` to interact with the Invoice Information Extractor.
 
+5. **Set up Mongo Database**
+
+   You can set up mongo database by docker as this [official link](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-community-with-docker/?msockid=12d1fdc9a4da62680b18e9ffa5036390)
+
+   Donwload the [Mongo Compass](https://www.mongodb.com/try/download/compass) for GUI management
+
+   https://www.mongodb.com/developer/languages/python/python-change-streams/#how-to-set-up-a-local-cluster
+
+   run mongo
+   ```shell
+      docker run -d \
+         --name mongodb \
+         -v /data/test-change-streams:/data/db \
+         -p 27017:27017 \
+         mongo:latest \
+         mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017
+      
+      docker exec -it mongodb mongosh --eval 'config = {_id: "test-change-streams",members: [{ _id : 0, host : "localhost:27017"}]};rs.initiate(config);'
+      docker exec -it mongodb mongosh --eval "rs.status()"
+
+   ```
+
 ## Usage
 
 1. Upload one or more invoice images or PDF files using the file uploader interface.
@@ -74,3 +96,4 @@ Follow these steps to run the application:
 4. Wait for the extraction process to complete, after which you can view the extracted information in JSON format or as a table.
 
 - ollama: https://ollama.com/blog/ollama-is-now-available-as-an-official-docker-image
+
