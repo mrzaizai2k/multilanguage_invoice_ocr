@@ -10,7 +10,10 @@ import yaml
 import pymupdf
 from PIL import Image
 import cv2
-
+import re
+import base64
+import numpy as np
+import binascii
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -185,6 +188,89 @@ def retry_on_failure(max_retries: int = 3, delay: float = 1.0):
                         raise
         return wrapper
     return decorator
+
+
+def is_base64(s):
+    try:
+        # Ensure the string length is a multiple of 4
+        if len(s) % 4 != 0:
+            return False
+
+        # Attempt to decode the string
+        base64.b64decode(s, validate=True)
+        return True
+    except (binascii.Error, ValueError):
+        return False
+
+
+def valid_base64_image(data_url: str) -> str:
+    """
+    Extracts the base64 part of a data URL string that begins with 'data:image'.
+    
+    :param data_url: The data URL string containing the image data.
+    :return: The base64 encoded image string.
+    """
+    if data_url.startswith("data:image"):
+        # Find the comma and return the substring after it
+        return data_url.split(",")[1]
+    else:
+        return data_url
+
+
+
+def convert_img_to_base64(img):
+    # Encode image to base64 string
+    retval, buffer = cv2.imencode('.jpg', img)  # Adjust format as needed (e.g., '.png')
+    base64_img = base64.b64encode(buffer).decode('utf-8')
+    return base64_img
+
+
+def convert_img_path_to_base64(image_path):
+    try:
+        img = cv2.imread(image_path)
+        if img is None:
+            raise Exception(f"Failed to read image from {image_path}")
+        base64_image = convert_img_to_base64(img)
+        return base64_image
+
+    except FileNotFoundError:
+        print("The specified file was not found.")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+
+
+def bytes_to_image(image_bytes):
+    """
+    Converts a bytes object containing image data to an OpenCV image.
+
+    Args:
+        image_bytes (bytes): The bytes object representing the image data.
+
+    Returns:
+        numpy.ndarray: The OpenCV image as a NumPy array.
+
+    Raises:
+        ValueError: If the image data is invalid.
+    """
+    # Convert the bytes object to a NumPy array
+    nparr = np.frombuffer(image_bytes, np.uint8)
+
+    # Decode the image using cv2.imdecode()
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    # Check for decoding errors
+    if img is None:
+        raise ValueError("Invalid image data")
+
+    return img
+
+
+def convert_base64_to_img(base64_image:str):
+    img_data = re.sub('^data:image/.+;base64,', '', base64_image)
+    image_bytes = base64.b64decode(img_data)
+    img = bytes_to_image(image_bytes)
+    return img
+
 
 if __name__ == "__main__":
     print("Has GPU?")

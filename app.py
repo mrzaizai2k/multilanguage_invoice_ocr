@@ -42,9 +42,6 @@ def json_to_xls(invoice_info):
     df.to_excel('output.xlsx', index=False)
     
 
-
-
-
 def get_invoice_template(ocr_result):
     text = ocr_result['text'].lower()
 

@@ -181,7 +181,23 @@ def load_image(image_path: str):
     except Exception as e:
         print(f'{image_path}: Error loading image - {e}')
         return None
-    
+
+
+def get_document_type(ocr_result:dict) -> str:
+    text = ocr_result['text'].lower()
+
+    if (ocr_result['ori_language'] == 'de' and "recording of external assignments" in text) or ("erfassung externer einsatze"  in text):
+        if "page 1 of 2" in text or ("seite 1 von 2" in text):
+            document_type = "invoice 1"
+        elif "page 2 of 2" in text or ("seite 2 von 2" in text):
+            document_type = "invoice 2"
+    else:
+        document_type = "invoice 3"
+
+    return document_type
+
+
+
 # Example usage
 if __name__ == "__main__":
     img_path = "test/images/007_2.png"
@@ -195,3 +211,6 @@ if __name__ == "__main__":
 
     recognized_text = ocr_reader.get_text(image)
     print("Recognized Text:", recognized_text)
+
+    document_type = get_document_type(recognized_text)
+    print("document_type", document_type)

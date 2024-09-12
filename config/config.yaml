@@ -29,3 +29,11 @@ llm_extract:
 postprocessing:
   model_name: llama3.1:8b
   request_timeout: 60
+
+mongodb:
+  uri: "mongodb://localhost:27017/"
+  database: "invoice_db"
+  collection: "invoices"
+
+IES_host: localhost # Invoice Extraction System
+IES_port: 8041
