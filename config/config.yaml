@@ -13,7 +13,7 @@ llm_extract:
   invoice_template_path: config/invoice_template.txt
 
   openai:
-    model: gpt-4o-mini
+    model_name: gpt-4o-mini
     temperature: 1.0
     max_tokens: 1024
   
@@ -37,3 +37,10 @@ mongodb:
 
 IES_host: localhost # Invoice Extraction System
 IES_port: 8041
+
+invoice_dict:
+  invoice 1: config/page_1_template.txt
+  invoice 2: config/page_2_template.txt
+  invoice 3: config/invoice_template.txt
+  
+timezone: Europe/Berlin

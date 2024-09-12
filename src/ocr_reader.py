@@ -4,10 +4,13 @@ sys.path.append("")
 import json
 import sys
 from paddleocr import PaddleOCR
+from pytesseract import Output
+import pytesseract
 from transformers import pipeline
 from PIL import Image
 import torch
 import numpy as np
+import cv2
 import requests
 from src.Utils.utils import timeit, read_config, resize_same_ratio
 
@@ -50,6 +53,12 @@ class GoogleTranslator:
         
         return translated_text.strip(), src_language
     
+    def __getitem__(self, item):
+        if item == "translator":
+            return 'google'
+        else:
+            raise KeyError(f"No such key: {item}")
+    
 class OcrReader:
     def __init__(self,  
                  device=None, 
@@ -84,7 +93,8 @@ class OcrReader:
 
         # Load zero-shot image classification model
         self.initialize_language_detector()
-        
+
+    
     def initialize_language_detector(self):
         # Create a dummy image for model initialization
         dummy_image = Image.new("RGB", (224, 224), color=(255, 255, 255))  # White image
@@ -141,7 +151,7 @@ class OcrReader:
         src_language = self._get_lang(image)
 
         # Initialize the PaddleOCR with the detected language
-        ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True)
+        ocr = PaddleOCR(lang=src_language, show_log=True, use_angle_cls=True, cls=True)
 
         result = ocr.ocr(np.array(image))
 
@@ -170,6 +180,18 @@ class OcrReader:
 
         return data
     
+    def __getitem__(self, item):
+        if item == "ocr_detector":
+            return 'paddle_ocr'
+        elif item == "translator":
+            if self.translator:
+                return self.translator['translator']
+            else:
+                return None
+        else:
+            raise KeyError(f"No such key: {item}")
+        
+
 def load_image(image_path: str):
     try:
         # Check if the path is a URL
@@ -183,34 +205,78 @@ def load_image(image_path: str):
         return None
 
 
-def get_document_type(ocr_result:dict) -> str:
-    text = ocr_result['text'].lower()
+def rotate_bound(image, angle):
+    # grab the dimensions of the image and then determine the
+    # center
+    (h, w) = image.shape[:2]
+    (cX, cY) = (w / 2, h / 2)
 
-    if (ocr_result['ori_language'] == 'de' and "recording of external assignments" in text) or ("erfassung externer einsatze"  in text):
-        if "page 1 of 2" in text or ("seite 1 von 2" in text):
-            document_type = "invoice 1"
-        elif "page 2 of 2" in text or ("seite 2 von 2" in text):
-            document_type = "invoice 2"
-    else:
-        document_type = "invoice 3"
+    # grab the rotation matrix (applying the negative of the
+    # angle to rotate clockwise), then grab the sine and cosine
+    # (i.e., the rotation components of the matrix)
+    M = cv2.getRotationMatrix2D((cX, cY), -angle, 1.0)
+    cos = np.abs(M[0, 0])
+    sin = np.abs(M[0, 1])
 
-    return document_type
+    # compute the new bounding dimensions of the image
+    nW = int((h * sin) + (w * cos))
+    nH = int((h * cos) + (w * sin))
 
+    # adjust the rotation matrix to take into account translation
+    M[0, 2] += (nW / 2) - cX
+    M[1, 2] += (nH / 2) - cY
 
+    # perform the actual rotation and return the image
+    return cv2.warpAffine(image, M, (nW, nH))
+
+def rotate_image(img: Image.Image) -> Image.Image:
+    """
+    Rotates an image to correct its orientation based on the detected rotation angle.
+    
+    Args:
+        img (PIL.Image.Image): The image to be rotated.
+
+    Returns:
+        PIL.Image.Image: The rotated image.
+    """
+    # Resize the image while maintaining the aspect ratio
+    img_resized = resize_same_ratio(img, target_size=1080)
+
+    # Convert PIL image to OpenCV format
+    image_cv = np.array(img_resized)
+    image_cv = cv2.cvtColor(image_cv, cv2.COLOR_RGB2BGR)
+
+    # Use pytesseract to get orientation information
+    rgb = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
+    results = pytesseract.image_to_osd(rgb, output_type=Output.DICT)
+
+    rotated = rotate_bound(image_cv, angle=results["rotate"])
+    
+    # show the original image and output image after orientation
+    # correction
+    # print(results)
+    # cv2.imshow("Original", image_cv)
+    # cv2.imshow("Output", rotated)
+    # cv2.waitKey(0)
+
+    rotated_pil = Image.fromarray(cv2.cvtColor(rotated, cv2.COLOR_BGR2RGB))
+
+    return rotated_pil
 
 # Example usage
 if __name__ == "__main__":
-    img_path = "test/images/007_2.png"
-    # img_path = "fr_1.png"
-    config_path = "config/config.yaml"
+    img_path = "test/images/IMG_20240828_0011.jpg"
+    # # img_path = "fr_1.png"
+    # config_path = "config/config.yaml"
     
     image = load_image(img_path)
 
-    ocr_reader = OcrReader(config_path=config_path, 
-                           translator=GoogleTranslator())
+    # ocr_reader = OcrReader(config_path=config_path, 
+    #                        translator=GoogleTranslator())
 
-    recognized_text = ocr_reader.get_text(image)
-    print("Recognized Text:", recognized_text)
+    # recognized_text = ocr_reader.get_text(image)
+    # print("Recognized Text:", recognized_text)
 
-    document_type = get_document_type(recognized_text)
-    print("document_type", document_type)
+    # print(ocr_reader["ocr_detector"], ocr_reader["translator"])
+
+    rotate_image(image)

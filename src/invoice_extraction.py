@@ -1,168 +1,79 @@
 import sys
-sys.path.append("")
+sys.path.append("") 
+
+from src.ocr_reader import OcrReader, GoogleTranslator
+from base_extractors import OpenAIExtractor, BaseExtractor
+from src.qwen2_extract import Qwen2Extractor
+from typing import Literal
+from src.Utils.utils import timeit, read_config, convert_img_path_to_base64, get_current_time
 
 import base64
-import os
-import cv2
-import numpy as np
-from typing import Union
-from llama_index.llms.ollama import Ollama
-from src.Utils.utils import read_config, timeit, retry_on_failure
+from io import BytesIO
+from PIL import Image
 
-from dotenv import load_dotenv
-load_dotenv()
+def base64_to_pil_image(base64_img: str) -> Image.Image:
+    """
+    Convert a Base64-encoded image into a PIL Image object.
 
-class BaseExtractor:
-    def __init__(self, config_path: str = "config/config.yaml"):
-        self.config_path = config_path
-        self.config = read_config(path=self.config_path)['llm_extract']
+    :param base64_img: The Base64-encoded image string.
+    :return: A PIL Image object.
+    """
+    # Decode the Base64 string into bytes
+    image_data = base64.b64decode(base64_img)
 
-        # self.invoice_template_path = self.config['invoice_template_path']
-        
-        # # Load the invoice template prompt
-        # with open(self.invoice_template_path, 'r') as file:
-        #     self.invoice_template = file.read()
+    # Convert the bytes data into a BytesIO object
+    image_bytes = BytesIO(image_data)
 
+    # Open the image using PIL and return the Image object
+    return Image.open(image_bytes)
 
-    def encode_image(self, image_input: Union[str, np.ndarray]):
-        if isinstance(image_input, str):
-            if image_input.startswith("data:image"):
-                return image_input.split(",")[1]
-            else:
-                with open(image_input, "rb") as image_file:
-                    return base64.b64encode(image_file.read()).decode("utf-8")
-        elif isinstance(image_input, np.ndarray):
-            _, buffer = cv2.imencode('.png', image_input)
-            return base64.b64encode(buffer).decode("utf-8")
-        else:
-            raise ValueError("Unsupported image input type. Please provide a file path, base64 string, or NumPy array.")
+def get_document_type(ocr_result:dict) -> str:
+    text = ocr_result['text'].lower()
 
-    @timeit
-    @retry_on_failure(max_retries=3, delay=1.0)
-    def extract_invoice(self, text, image: Union[str, np.ndarray]) -> dict:
-        raise NotImplementedError("This method should be implemented by subclasses")
+    if (ocr_result['ori_language'] == 'de' and "recording of external assignments" in text) or ("erfassung externer einsatze"  in text):
+        if "page 1 of 2" in text or ("seite 1 von 2" in text):
+            document_type = "invoice 1"
+        elif "page 2 of 2" in text or ("seite 2 von 2" in text):
+            document_type = "invoice 2"
+    else:
+        document_type = "invoice 3"
 
-class InvoicePostProcessing:
-    def __init__(self, config_path:str):
-        self.config_path = config_path
-        self.config = read_config(self.config_path)['postprocessing']
+    return document_type
 
-        self.model_name=self.config['model_name'] 
-        self.request_timeout=self.config['request_timeout'] 
-        self.llm = Ollama(model=self.model_name, request_timeout= self.request_timeout, json_mode=True)
-        self._load_dummy_data()
+def get_document_template(document_type:str, config:dict):
+    invoice_dict=config['invoice_dict']
+    return invoice_dict[document_type]
 
-    
-    def _load_dummy_data(self):
-        # Dummy OCR text
-        try:
-            response = self.llm.complete("who are you")
-            # Print the response for verification
-            print(f"Dummy data processing output:{response}")
-        except Exception as e:
-            print(f"Error in loading dummy data: {e}")
-        
-    def postprocess(self, invoice_template:str,
-                        ocr_text: str, model_text: str) -> str:
+def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor:BaseExtractor, config:dict) -> dict:
+    result = {}
+    pil_img = base64_to_pil_image(base64_img)
+    ocr_result = ocr_reader.get_text(pil_img)
 
-        # Prepare the prompt for the LLM
-        prompt = f"""
-        You are a helpful assistant that responds in JSON format with the invoice information in English. Don't add any annotations there. Remember to close any bracket. And just output the field that has value, don't return field that are empty.
-        Use the text from the model response and the text from OCR. Describe what's in the image as the template here: 
-        {invoice_template}. 
-        The OCR text is: {ocr_text} 
-        The model response text is: {model_text}
-        """
+    invoice_type=get_document_type(ocr_result)
+    invoice_template = get_document_template(invoice_type, config=config)
 
-        # Generate the response from the LLM
-        response = self.llm.complete(prompt)
-        return response.text
-    
-class OpenAIExtractor(BaseExtractor):
-    def __init__(self, config_path: str = "config/config.yaml"):
-        super().__init__(config_path)
-        self.config = self.config['openai']
-        self.model = self.config['model']
-        self.temperature = self.config['temperature']
-        self.max_tokens = self.config['max_tokens']
+    invoice_info = invoice_extractor.extract_invoice(ocr_text=ocr_result['text'],image=base64_img, 
+                                                        invoice_template=invoice_template)
+    result['translator'] = ocr_reader['translator']
+    result['ocr_detector'] = ocr_reader['ocr_detector']
+    result['invoice_info'] = invoice_info
+    result['invoice_type'] = invoice_type
+    result['ocr_info'] = ocr_result
+    result['llm_extractor'] = invoice_extractor['llm_extractor']
+    result['post_processor'] = invoice_extractor['post_processor']
 
-        self.OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-        from openai import OpenAI
-        self.client = OpenAI(api_key=self.OPENAI_API_KEY)
+    return result
 
-    def _extract_invoice_llm(self, ocr_text, base64_image:str, invoice_template:str):
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that responds in JSON format with the invoice information in English. Don't add any annotations there. Remember to close any bracket. And just output the field that has value, don't return field that are empty."},
-                {"role": "user", "content": [
-                    {"type": "text", "text": f"From the image of the bill and the text from OCR, extract the information. The ocr text is: {ocr_text} \n The invoice template: \n {invoice_template}"},
-                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}}
-                ]}
-            ],
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-        )
-        return response.choices[0].message.content
-
-    def extract_json(self, text: str) -> dict:
-        start_index = text.find('{')
-        end_index = text.rfind('}') + 1
-        json_string = text[start_index:end_index]
-        json_string = json_string.replace('true', 'True').replace('false', 'False').replace('null', 'None')
-        result = eval(json_string)
-        return result
-
-    @timeit
-    @retry_on_failure(max_retries=3, delay=1.0)
-    def extract_invoice(self, ocr_text, image: Union[str, np.ndarray], invoice_template:str) -> dict:
-        base64_image = self.encode_image(image)
-        invoice_info = self._extract_invoice_llm(ocr_text, base64_image, 
-                                                 invoice_template=invoice_template)
-        invoice_info = self.extract_json(invoice_info)
-        return invoice_info
-
-
-def test_post_processing():
-    ocr_text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
-    model_text = """- Store name: Géant Casino
-    - Location: Annecy
-    - Date: 28/06/2008
-    - Caisse: 014
-    - Phone number: 04.50.88.20.00
-    - Opening hours: Monday to Saturday from 8:30 a.m. to 9:30 p.m.
-    - Prices for items:
-      - Glasses: 22.00€
-      - Hats: 10.00€
-    - Total amount: 32.00€
-    - CB EMV: 32.00€
-    - Loyalty card information: You had the loyalty card, you would have accumulated 11 SMILES
-    - Cashier's information: Cashier number: 000148, Time: 17:46:26, Ticket number: 000130
-    - Additional notes: Scan'Express is waiting for you!!! Thank you for your visit, see you soon"""
-
-    config_path = "config/config.yaml"
-    invoice_template_path = "config/invoice_template.txt"
-    with open(invoice_template_path, 'r') as file:
-            invoice_template = file.read()
-
-    processor = InvoicePostProcessing(config_path)
-    result_json = processor.postprocess(invoice_template, ocr_text, model_text)
-    print(result_json)
-
-def test_openai_invoice():
-    config_path = "config/config.yaml"
-    ocr_text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
-    image_path = "fr_1.png"
-    invoice_template_path = "config/invoice_template.txt"
-    with open(invoice_template_path, 'r') as file:
-        invoice_template = file.read()
-
-    extractor = OpenAIExtractor(config_path=config_path)
-    invoice_data = extractor.extract_invoice(ocr_text=ocr_text, image=image_path, 
-                                             invoice_template=invoice_template)
-    print(invoice_data)
 
 if __name__ == "__main__":
+    config_path = "config/config.yaml"
+    config = read_config(config_path)
 
-    test_openai_invoice()
-    test_post_processing()
+    ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator())
+    invoice_extractor = OpenAIExtractor(config_path=config_path)
+    img_path = "test/images/fr_1.png"
+    base64_img = convert_img_path_to_base64(img_path)
+    print(get_document_template('invoice 1', config))
+    result = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
+                                        invoice_extractor=invoice_extractor, config=config)
+    print("info", result)

@@ -8,7 +8,7 @@ from typing import Optional
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from src.ocr_reader import OcrReader
-from src.invoice_extraction import OpenAIExtractor
+from base_extractors import OpenAIExtractor
 from src.qwen2_extract import Qwen2Extractor
 from src.mongo_database import MongoDatabase
 import threading
@@ -29,7 +29,7 @@ def process_change_stream():
             process_new_invoice(str(document_id))
 
 def process_new_invoice(document_id: str):
-    current_time = datetime.now(timezone.utc)
+    current_time = get_current_time()
     mongo_db.update_document_by_id(document_id, {
         "last_modified_at": current_time,
         "status": "processing"
@@ -75,12 +75,11 @@ async def upload_invoice(
                 })
         
         # Generate invoice UUID
-        current_time = datetime.now(timezone.utc)
         img = valid_base64_image(img)       
         
         invoice_document = {
             "invoice_type": None,
-            "created_at": current_time,
+            "created_at": get_current_time(timezone=config['timezone']),
             "created_by": user_uuid,
             "last_modified_at": None,
             "last_modified_by": None,
@@ -149,11 +148,10 @@ async def modify_invoice(invoice_uuid: str, request: Request):
                     "message": "Invoice information is required",
                 })
         
-
         # Prepare update fields
         update_fields = {
             "invoice_info": invoice_info,
-            "last_modified_at": datetime.now(timezone.utc),
+            "last_modified_at": get_current_time(timezone=config['timezone']),
             "last_modified_by": user_uuid
         }
 

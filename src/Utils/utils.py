@@ -14,6 +14,8 @@ import re
 import base64
 import numpy as np
 import binascii
+import pytz
+
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -271,6 +273,15 @@ def convert_base64_to_img(base64_image:str):
     img = bytes_to_image(image_bytes)
     return img
 
+def get_current_time(timezone:str = 'Europe/Berlin'):
+    berlin_tz = pytz.timezone(timezone)
+    # Get the current time in Berlin
+    current_time = datetime.now(berlin_tz)
+    return current_time
+
 
 if __name__ == "__main__":
     print("Has GPU?")
+    
+    # Define the Berlin time zone
+    

@@ -21,3 +21,4 @@ xlsxwriter
 pyyaml 
 pymongo
 uvicorn
+pytesseract

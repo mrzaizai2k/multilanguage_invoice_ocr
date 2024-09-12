@@ -8,7 +8,7 @@ from PIL import Image
 import numpy as np
 import pandas as pd
 from src.ocr_reader import OcrReader, GoogleTranslator
-from src.invoice_extraction import OpenAIExtractor
+from base_extractors import OpenAIExtractor
 from src.Utils.utils import *
 
 def json_to_xls(invoice_info):

@@ -6,7 +6,7 @@ from typing import Union
 from transformers import Qwen2VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
 import torch
-from src.invoice_extraction import BaseExtractor, InvoicePostProcessing
+from base_extractors import BaseExtractor, InvoicePostProcessing
 from src.Utils.utils import read_config, timeit, retry_on_failure
 
 
@@ -115,6 +115,17 @@ class Qwen2Extractor(BaseExtractor):
                                              invoice_template = invoice_template)
         invoice_info = self.extract_json(pre_invoice_info)
         return invoice_info
+    
+    def __getitem__(self, item):
+        if item == "llm_extractor":
+            return self.config['model_name']
+        elif item == "post_processor":
+            if self.post_processor:
+                return self.post_processor['post_processor']
+            else:
+                return None
+        else:
+            raise KeyError(f"No such key: {item}")
 
 # Note: Integrate the Qwen2Extractor into the main script as needed.
 
@@ -132,3 +143,4 @@ if __name__ == "__main__":
                                                          invoice_template =invoice_template)
     print("\nQwen2 Extractor Output:")
     print(qwen2_invoice_data)
+    print(qwen2_extractor['post_processor'], qwen2_extractor['llm_extractor'])
