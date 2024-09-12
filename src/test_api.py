@@ -63,6 +63,7 @@ def test_delete_invoice(invoice_uuid, user_uuid):
 
 def test_get_invoices(user_uuid: Optional[str] = None, 
                       invoice_type: Optional[str] = None,
+                      invoice_uuid: Optional[str] = None,
                       created_at: Literal["asc", "desc"] = "asc",
                       page: int = 1, limit: int = 10):
 
@@ -80,7 +81,8 @@ def test_get_invoices(user_uuid: Optional[str] = None,
         params["created_by"] = user_uuid
     if invoice_type:
         params["invoice_type"] = invoice_type
-
+    if invoice_uuid:
+        params["invoice_uuid"] = invoice_uuid
 
     # Send the GET request with query parameters
     response = requests.get(url, params=params)
@@ -104,11 +106,11 @@ if __name__ == "__main__":
 
     img_path = "test/images/fr_1.png"
     user_uuid = "1111_1111_1111_1111"
-    invoice_uuid = "66e16b636f9bef6e75094d8a"
+    invoice_uuid = "66e25d4054d0cf43b5d78a73"
     invoice_info = {"amount": "1111",} 
 
-    test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
-    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc')
+    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
+    # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
 

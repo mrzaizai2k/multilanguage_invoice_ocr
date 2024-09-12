@@ -191,7 +191,7 @@ More in `docs/invoice_info.md`
 **Description**: Retrieves a list of invoices from the database based on the provided filters and sorting options. The response will include the specified number of invoices per page, along with metadata about each invoice.
 
 ```shell
-curl -X GET "http://localhost:8000/api/v1/invoices?created_at=<sort_order>&created_by=<user_uuid>&invoice_type=<invoice_type>&page=<page_number>&limit=<limit>" \
+curl -X GET "http://localhost:8000/api/v1/invoices?created_at=<sort_order>&created_by=<user_uuid>&invoice_type=<invoice_type>&page=<page_number>&limit=<limit>&invoice_uuid=<invoice_uuid>" \
 -H "Authorization: Bearer <auth_token>"
 ```
 
@@ -201,6 +201,7 @@ curl -X GET "http://localhost:8000/api/v1/invoices?created_at=<sort_order>&creat
 | created_at    | query        | string | optional | Sort by creation date (`asc` or `desc`)    |
 | created_by    | query        | string | optional | Filter by `user_uuid` of the invoice creator (if None, take all)|
 | invoice_type  | query        | string | optional | Filter by type of invoice (if None, take all)                  |
+| invoice_uuid  | query        | string | optional | Id of specific invoice                      |
 | page          | query        | number | optional | Page number for pagination (default is 1)   |
 | limit         | query        | number | optional | Number of invoices per page (default is 10) |
 

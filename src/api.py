@@ -155,6 +155,7 @@ async def get_invoices(
     created_at: Optional[str] = Query("asc", description="Sort by creation date (asc or desc)"),
     created_by: Optional[str] = Query(None, description="Filter by user_uuid of the invoice creator"),
     invoice_type: Optional[str] = Query(None, description="Filter by type of invoice"),
+    invoice_uuid: Optional[str] = Query(None, description="Filter by id of invoice"),
     page: int = Query(1, description="Page number for pagination", gt=0),
     limit: int = Query(10, description="Number of invoices per page", gt=0),
 ):
@@ -165,6 +166,8 @@ async def get_invoices(
             query["created_by"] = created_by
         if invoice_type:
             query["invoice_type"] = invoice_type
+        if invoice_uuid:
+            query["invoice_uuid"] = invoice_uuid
 
         # Fetch documents from MongoDB
         invoices = mongo_db.get_documents(query, page=page, limit=limit, sort=created_at.lower())
