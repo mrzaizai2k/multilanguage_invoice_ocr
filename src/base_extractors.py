@@ -104,29 +104,13 @@ class OpenAIExtractor(BaseExtractor):
         self.client = OpenAI(api_key=self.OPENAI_API_KEY)
 
     def _extract_invoice_llm(self, ocr_text, base64_image:str, invoice_template:str):
-        
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
+                {"role": "system", "content": "You are a helpful assistant that responds in JSON format with the invoice information in English. Don't add any annotations there. Remember to close any bracket. And just output the field that has value, don't return field that are empty. "},
                 {"role": "user", "content": [
-                    {"type": "text", "text": f"From the image of the bill and the text from OCR, extract the information. The ocr text is: {ocr_text} \n."},
+                    {"type": "text", "text": f"From the image of the bill and the text from OCR, extract the information. The ocr text is: {ocr_text} \n. Return the key names as in the template is a MUST. The invoice template: \n {invoice_template}"},
                     {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}}
-                ]}
-            ],
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-        )
-        return response.choices[0].message.content
-    
-    def postprocess(self, invoice_template:str,
-                        ocr_text: str, model_text: str) -> str:
-
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that responds in JSON format with the invoice information in English as in invoice template. Don't add any annotations there. Remember to close any bracket. And just output the field that has value, don't return field that are empty."},
-                {"role": "user", "content": [
-                    {"type": "text", "text": f"From the model text and the text from OCR, Fill in the value to the invoice template. The invoice template: \n {invoice_template} \n The ocr text is: {ocr_text} \n. The model text is {model_text}"},
                 ]}
             ],
             temperature=self.temperature,
@@ -142,13 +126,11 @@ class OpenAIExtractor(BaseExtractor):
         result = eval(json_string)
         return result
 
-    @timeit
     @retry_on_failure(max_retries=3, delay=1.0)
     def extract_invoice(self, ocr_text, image: Union[str, np.ndarray], invoice_template:str) -> dict:
         base64_image = self.encode_image(image)
         invoice_info = self._extract_invoice_llm(ocr_text, base64_image, 
                                                  invoice_template=invoice_template)
-        invoice_info = self.postprocess(ocr_text=ocr_text, model_text=invoice_info, invoice_template=invoice_template)
         invoice_info = self.extract_json(invoice_info)
         return invoice_info
     
