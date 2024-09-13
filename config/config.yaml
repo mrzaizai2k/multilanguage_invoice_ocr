@@ -7,7 +7,7 @@ ocr:
   target_language: en
   language_dict_path: config/language_dict.json
   device: Null
-  resize_size: 640
+  resize_size: 1080
 
 llm_extract:
   invoice_template_path: config/invoice_template.txt
@@ -38,9 +38,15 @@ mongodb:
 IES_host: localhost # Invoice Extraction System
 IES_port: 8041
 
-invoice_dict:
+invoice_dict: #The template answer of invoice for LLM
   invoice 1: config/page_1_template.txt
   invoice 2: config/page_2_template.txt
   invoice 3: config/invoice_template.txt
   
+invoice_txt_template:
+  invoice 1: config/invoice_1_text_template.txt
+  invoice 2: config/invoice_2_text_template.txt
+
+invoice_txt_template_thresh: 0.3
+
 timezone: Europe/Berlin

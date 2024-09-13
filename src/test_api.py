@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     root_url = f"http://{config['IES_host']}:{config['IES_port']}"
 
-    img_path = "test/images/fr_1.png"
+    img_path = "test/images/005_2.png"
     user_uuid = "1111_1111_1111_1111"
     invoice_uuid = "66e25d4054d0cf43b5d78a73"
     invoice_info = {"amount": "1111",} 

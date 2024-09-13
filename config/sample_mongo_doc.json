@@ -11,7 +11,8 @@
       "ori_text": "Original text",
       "ori_language": "en",
       "text": "Extracted text",
-      "language": "en"
+      "language": "en",
+      "angle": 90
     },
     "translator": "DeepL",
     "ocr_detector": "Tesseract",

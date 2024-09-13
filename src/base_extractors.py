@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 from typing import Union
 from llama_index.llms.ollama import Ollama
+from PIL import Image
 from src.Utils.utils import read_config, timeit, retry_on_failure, valid_base64_image
 
 from dotenv import load_dotenv
@@ -17,22 +18,31 @@ class BaseExtractor:
         self.config_path = config_path
         self.config = read_config(path=self.config_path)['llm_extract']
 
-    def encode_image(self, image_input: Union[str, np.ndarray]):
+    
+    def encode_image(self, image_input: Union[str, np.ndarray, Image.Image]) -> str:
         if isinstance(image_input, str):
-            try: # check if local path
+            try:  # Check if it's a local file path
                 with open(image_input, "rb") as image_file:
                     return base64.b64encode(image_file.read()).decode("utf-8")
-            except: # It's base64 image
+            except:  # If not, assume it's a base64 string and validate it
                 image_input = valid_base64_image(data_url=image_input)
                 return image_input
-                
+
         elif isinstance(image_input, np.ndarray):
+            # Convert NumPy array to PNG format and encode to base64
             _, buffer = cv2.imencode('.png', image_input)
             return base64.b64encode(buffer).decode("utf-8")
+        
+        elif isinstance(image_input, Image.Image):
+            # Convert PIL image to bytes, then encode to base64
+            buffer = np.array(image_input)
+            _, buffer = cv2.imencode('.png', cv2.cvtColor(buffer, cv2.COLOR_RGB2BGR))
+            return base64.b64encode(buffer).decode("utf-8")
+        
         else:
-            raise ValueError("Unsupported image input type. Please provide a file path, base64 string, or NumPy array.")
+            raise ValueError("Unsupported image input type. Please provide a file path, base64 string, NumPy array, or PIL Image.")
 
-    @timeit
+
     @retry_on_failure(max_retries=3, delay=1.0)
     def extract_invoice(self, text, image: Union[str, np.ndarray]) -> dict:
         raise NotImplementedError("This method should be implemented by subclasses")
@@ -115,7 +125,6 @@ class OpenAIExtractor(BaseExtractor):
         result = eval(json_string)
         return result
 
-    @timeit
     @retry_on_failure(max_retries=3, delay=1.0)
     def extract_invoice(self, ocr_text, image: Union[str, np.ndarray], invoice_template:str) -> dict:
         base64_image = self.encode_image(image)

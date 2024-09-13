@@ -5,14 +5,14 @@ from fastapi import (FastAPI, Request, Header,
                      status, HTTPException, Query)
 from fastapi.responses import JSONResponse
 from typing import Optional
-from datetime import datetime, timezone
 from contextlib import asynccontextmanager
-from src.ocr_reader import OcrReader
-from base_extractors import OpenAIExtractor
-from src.qwen2_extract import Qwen2Extractor
 from src.mongo_database import MongoDatabase
 import threading
+from src.ocr_reader import OcrReader, GoogleTranslator
+from src.base_extractors import OpenAIExtractor 
+from src.qwen2_extract import Qwen2Extractor
 from src.Utils.utils import *
+from src.invoice_extraction import extract_invoice_info
 
 config_path='config/config.yaml'
 config = read_config(path=config_path)
@@ -21,27 +21,30 @@ mongo_db = MongoDatabase(config_path=config_path)
 change_stream = None
 change_stream_thread = None
 
-def process_change_stream():
+ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator())
+invoice_extractor = OpenAIExtractor(config_path=config_path)
+
+def process_change_stream(ocr_reader, invoice_extractor, config):
     global change_stream
     for change in change_stream:
         if change['operationType'] == 'insert':
             document_id = change['fullDocument']['_id']
-            process_new_invoice(str(document_id))
+            document = mongo_db.get_document_by_id(document_id=str(document_id))
+            base64_img = document['invoice_image_base64']
 
-def process_new_invoice(document_id: str):
-    current_time = get_current_time()
-    mongo_db.update_document_by_id(document_id, {
-        "last_modified_at": current_time,
-        "status": "processing"
-    })
-    
+            new_data = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
+                                            invoice_extractor=invoice_extractor, config=config)
+
+            mongo_db.update_document_by_id(document_id, new_data)
+   
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     global change_stream, change_stream_thread
     change_stream = mongo_db.start_change_stream()
-    change_stream_thread = threading.Thread(target=process_change_stream)
+    change_stream_thread = threading.Thread(target=process_change_stream, 
+                                            args=(ocr_reader, invoice_extractor, config))
     change_stream_thread.start()
     
     yield  # This is where the FastAPI app runs

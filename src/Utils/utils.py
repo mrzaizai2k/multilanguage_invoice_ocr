@@ -15,6 +15,10 @@ import base64
 import numpy as np
 import binascii
 import pytz
+from pytesseract import Output
+import pytesseract
+from collections import Counter
+from io import BytesIO
 
 
 from dotenv import load_dotenv
@@ -279,6 +283,109 @@ def get_current_time(timezone:str = 'Europe/Berlin'):
     current_time = datetime.now(berlin_tz)
     return current_time
 
+def rotate_bound(image, angle):
+    # grab the dimensions of the image and then determine the
+    # center
+    (h, w) = image.shape[:2]
+    (cX, cY) = (w / 2, h / 2)
+
+    # grab the rotation matrix (applying the negative of the
+    # angle to rotate clockwise), then grab the sine and cosine
+    # (i.e., the rotation components of the matrix)
+    M = cv2.getRotationMatrix2D((cX, cY), -angle, 1.0)
+    cos = np.abs(M[0, 0])
+    sin = np.abs(M[0, 1])
+
+    # compute the new bounding dimensions of the image
+    nW = int((h * sin) + (w * cos))
+    nH = int((h * cos) + (w * sin))
+
+    # adjust the rotation matrix to take into account translation
+    M[0, 2] += (nW / 2) - cX
+    M[1, 2] += (nH / 2) - cY
+
+    # perform the actual rotation and return the image
+    return cv2.warpAffine(image, M, (nW, nH))
+
+def get_rotation_angle(img: Image.Image) -> int:
+    try:
+        """
+        Gets the rotation angle of the image using Tesseract's OSD.
+
+        Args:
+            img (PIL.Image.Image): The image to analyze.
+
+        Returns:
+            int: The rotation angle.
+        """
+        # Convert PIL image to OpenCV format
+        image_cv = np.array(img)
+        image_cv = cv2.cvtColor(image_cv, cv2.COLOR_RGB2BGR)
+        
+        # Use pytesseract to get orientation information
+        rgb = cv2.cvtColor(image_cv, cv2.COLOR_BGR2RGB)
+        results = pytesseract.image_to_osd(rgb, output_type=Output.DICT, config='--psm 0 -c min_characters_to_try=5')
+        
+        return results["rotate"]
+    except Exception as e:
+        return 0
+
+def rotate_image(img: Image.Image) -> Image.Image:
+    """
+    Rotates an image to correct its orientation based on the detected rotation angle
+    by analyzing the image at different sizes and choosing the most frequent angle.
+    
+    Args:
+        img (PIL.Image.Image): The image to be rotated.
+
+    Returns:
+        PIL.Image.Image: The rotated image.
+    """
+    
+    # Resize the image to different target sizes
+    target_sizes = [640, 1080, 2000]
+    rotation_angles = []
+
+    for size in target_sizes:
+        resized_img = resize_same_ratio(img, target_size=size)
+        rotation_angle = get_rotation_angle(resized_img)
+        rotation_angles.append(rotation_angle)
+
+    # Find the most common rotation angle
+    most_common_angle = Counter(rotation_angles).most_common(1)[0][0]
+
+    if abs(most_common_angle) in [0, 180]:
+        return img, 0
+
+    # Rotate the original image using the most common angle
+    image_cv = np.array(img)
+    image_cv = cv2.cvtColor(image_cv, cv2.COLOR_RGB2BGR)
+    rotated = rotate_bound(image_cv, angle=most_common_angle)
+    
+    # Convert the rotated image back to PIL format
+    rotated_pil = Image.fromarray(cv2.cvtColor(rotated, cv2.COLOR_BGR2RGB))
+    return rotated_pil, most_common_angle
+
+def convert_base64_to_pil_image(base64_img: str) -> Image.Image:
+    """
+    Convert a Base64-encoded image into a PIL Image object.
+
+    :param base64_img: The Base64-encoded image string.
+    :return: A PIL Image object.
+    """
+    # Decode the Base64 string into bytes
+    image_data = base64.b64decode(base64_img)
+
+    # Convert the bytes data into a BytesIO object
+    image_bytes = BytesIO(image_data)
+
+    # Open the image using PIL and return the Image object
+    return Image.open(image_bytes)
+
+def read_txt_file(file_path: str) -> str:
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return file.read()
+    
 
 if __name__ == "__main__":
     print("Has GPU?")
