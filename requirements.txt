@@ -22,4 +22,4 @@ pyyaml
 pymongo
 uvicorn
 pytesseract
-rank_bm25
+pydantic

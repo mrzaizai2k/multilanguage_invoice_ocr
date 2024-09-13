@@ -95,7 +95,8 @@ def get_document_type(ocr_result: dict, config: dict) -> str:
 
 def get_document_template(document_type:str, config:dict):
     invoice_dict=config['invoice_dict']
-    return invoice_dict[document_type]
+    invoice_template = read_txt_file(invoice_dict[document_type])
+    return invoice_template
 
 def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor:BaseExtractor, config:dict) -> dict:
     result = {}
@@ -108,6 +109,8 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor
     rotate_image = ocr_reader.get_rotated_image(pil_img)
     invoice_info = invoice_extractor.extract_invoice(ocr_text=ocr_result['text'], image=rotate_image, 
                                                         invoice_template=invoice_template)
+    
+    invoice_info = validate_invoice(invoice_info, invoice_type)
     result['translator'] = ocr_reader['translator']
     result['ocr_detector'] = ocr_reader['ocr_detector']
     result['invoice_info'] = invoice_info
@@ -115,11 +118,20 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor
     result['ocr_info'] = ocr_result
     result['llm_extractor'] = invoice_extractor['llm_extractor']
     result['post_processor'] = invoice_extractor['post_processor']
-    
+
     result["last_modified_at"] = get_current_time(timezone=config['timezone'])
     result["status"] = "completed"
 
     return result
+
+
+
+def validate_invoice(invoice_info:dict, invoice_type:str) ->dict:
+    if invoice_type == "invoice 3":
+        return invoice_info
+    
+    return invoice_info
+
 
 
 if __name__ == "__main__":
@@ -128,9 +140,10 @@ if __name__ == "__main__":
 
     ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator())
     invoice_extractor = OpenAIExtractor(config_path=config_path)
-    img_path = "test/images/page_9.png"
+    img_path = "test/images/page_6.png"
     base64_img = convert_img_path_to_base64(img_path)
     result = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
                                         invoice_extractor=invoice_extractor, config=config)
-    print("info", result)
+    print("info", result['invoice_info'])
+
 
