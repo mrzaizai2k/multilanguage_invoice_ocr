@@ -52,7 +52,6 @@
     "document_subject": "",
     "package_number": "",
     "invoice_number": "",
-    "invoice_type": "",
     "receipt_number": "",
     "shop_number": "",
     "transaction_number": "",

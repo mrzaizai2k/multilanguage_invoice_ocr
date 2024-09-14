@@ -72,9 +72,11 @@ class InvoicePostProcessing:
 
         # Prepare the prompt for the LLM
         prompt = f"""
-        You are a helpful assistant that responds in JSON format with the invoice information in English. Don't add any annotations there. 
-        Remember to close any bracket. And just output the field that has value, don't return field that are empty. return the key names as in the template is a MUST. 
-        Use the text from the model response and the text from OCR. Describe what's in the image as the template here: 
+        You are a helpful assistant that responds in JSON format with the invoice information in English. 
+        Don't add any annotations there. Remember to close any bracket. And just output the field that has value, 
+        don't return field that are empty. number, price and amount should be number, date should be convert to dd/mm/yyyy, 
+        time should be convert to HH:mm:ss, currency should be 3 chracters like VND, USD, EUR.
+        Use the text from the model response and the text from OCR. Return the key names as in the template is a MUST. Describe what's in the image as the template here: 
         {invoice_template}. 
         The OCR text is: {ocr_text} 
         The model response text is: {model_text}
@@ -107,7 +109,10 @@ class OpenAIExtractor(BaseExtractor):
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that responds in JSON format with the invoice information in English. Don't add any annotations there. Remember to close any bracket. And just output the field that has value, don't return field that are empty. "},
+                {"role": "system", "content": """You are a helpful assistant that responds in JSON format with the invoice information in English. 
+                                            Don't add any annotations there. Remember to close any bracket. And just output the field that has value, 
+                                            don't return field that are empty. number, price and amount should be number, date should be convert to dd/mm/yyyy, 
+                                            time should be convert to HH:mm:ss, currency should be 3 chracters like VND, USD, EUR"""},
                 {"role": "user", "content": [
                     {"type": "text", "text": f"From the image of the bill and the text from OCR, extract the information. The ocr text is: {ocr_text} \n. Return the key names as in the template is a MUST. The invoice template: \n {invoice_template}"},
                     {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}}

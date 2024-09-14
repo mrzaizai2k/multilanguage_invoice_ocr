@@ -107,11 +107,13 @@ class Qwen2Extractor(BaseExtractor):
     
     @timeit
     @retry_on_failure(max_retries=3, delay=1.0)
-    def extract_invoice(self, text: str, image: Union[str, np.ndarray], invoice_template:str) -> dict:
+    def extract_invoice(self, ocr_text: str, image: Union[str, np.ndarray], 
+                        invoice_template:str) -> dict:
+        
         base64_image = self.encode_image(image)  # Assuming encode_image is still applicable
         base64_image = f"data:image;base64,{base64_image}"
-        model_text = self._extract_invoice_llm(text, base64_image)
-        pre_invoice_info = self.post_process(ocr_text=text, model_text=model_text, 
+        model_text = self._extract_invoice_llm(ocr_text, base64_image)
+        pre_invoice_info = self.post_process(ocr_text=ocr_text, model_text=model_text, 
                                              invoice_template = invoice_template)
         invoice_info = self.extract_json(pre_invoice_info)
         return invoice_info
@@ -139,7 +141,7 @@ if __name__ == "__main__":
         invoice_template = file.read()
     # Test Qwen2Extractor
     qwen2_extractor = Qwen2Extractor(config_path=config_path)
-    qwen2_invoice_data = qwen2_extractor.extract_invoice(text=ocr_text, image=image_path, 
+    qwen2_invoice_data = qwen2_extractor.extract_invoice(ocr_text=ocr_text, image=image_path, 
                                                          invoice_template =invoice_template)
     print("\nQwen2 Extractor Output:")
     print(qwen2_invoice_data)

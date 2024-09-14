@@ -1,44 +1,49 @@
-```json
+payment_method has 3 values self paid, visa, invoice
+``json
 {
   "invoice_info": {
-    "name": "Tümmler, Dirk",
-    "project_number": "240045",
-    "is_in_egw": true,
+    "name": "",
+    "project_number": "",
+    "is_in_egw": True,
     "currency": "",
-    "lines": [
+    "has_employee_signature": True,
+    "sign_date": "",
+    "fixed_lines": [
       {
         "title": "Hotel",
-        "with_breakfast": true,
-        "amount": "412,50",
+        "with_breakfast": True,
+        "can_book_again": True,
+        "amount": ,
+        "payment_method": ""
       },
       {
         "title": "Fuel",
-        "amount": "86,24",
+        "amount": ,
+        "payment_method": ""
       },
       {
         "title": "Parking fees",
-        "amount": "4,",
+        "amount": ,
+        "payment_method": ""
       },
       {
         "title": "Rental car",
-        "amount": "156,20",
+        "amount": ,
+        "payment_method": ""
       },
       {
         "title": "Toll",
-        "amount": "20",
-      },
-      {
-        "title": "Train ticket",
-        "amount": "24,50",
-        "payment_method": "paid for yourself"
-      },
-      {
-        "title": "Bicycle ticket",
-        "amount": "9,80",
-        "payment_method": "paid for yourself"
+        "amount": ,
+        "payment_method": ""
       }
     ],
-    "has_employee_signature": true
+    "lines": [
+      {
+        "title": "",
+        "amount": ,
+        "payment_method": ""
+      }
+    ]
   }
 }
 ```
