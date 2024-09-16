@@ -50,3 +50,9 @@ invoice_txt_template:
 invoice_txt_template_thresh: 0.3
 
 timezone: Europe/Berlin
+
+excel:
+  excel_file_path: data/user_template.xlsm
+  sheet_name: April 24_0
+  nachname_key: 'nachname'
+  vorname_key: 'vorname'

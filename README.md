@@ -88,6 +88,17 @@ Follow these steps to run the application:
 
    ```
 
+5. **Sending Email**
+
+   https://viblo.asia/p/gui-mail-voi-python-bWrZn7Mrlxw
+
+   Set up an App Password in Gmail:
+
+   - Go to your Google Account.
+   - Select "Security" on the left-hand side.
+   - If you use 2-Step Verification, under "Signing in to Google," select "App Passwords" and create one.
+   - Use this App Password instead of your regular Gmail password in the script.
+
 ## Usage
 
 1. Upload one or more invoice images or PDF files using the file uploader interface.

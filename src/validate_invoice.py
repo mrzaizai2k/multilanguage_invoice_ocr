@@ -1,9 +1,10 @@
 import sys
 sys.path.append("") 
 import re
-from pydantic import BaseModel, Field
-from typing import List, Optional, Any
+from pydantic import BaseModel, Field, model_validator
+from typing import List, Optional, Any, Union
 from datetime import date, time, datetime
+
 
 def strip_strings(value):
         if isinstance(value, str):
@@ -128,19 +129,54 @@ def validate_invoice_1(invoice_data: dict) -> dict:
     return validate_and_normalize(invoice_data)
 
 def validate_invoice_2(invoice_data: dict) -> dict:
-
-    # Recursive function to apply normalizations and validations to the data
+    
+    # Function to normalize titles in fixed lines
+    def normalize_title(title: str) -> str:
+        title_lower = title.lower()
+        if 'hotel' in title_lower:
+            return "Hotel"
+        elif 'fuel' in title_lower or 'tank' in title_lower:
+            return "Fuel"
+        elif 'car' in title_lower or 'mietwagen' in title_lower:
+            return "Rental car"
+        elif 'toll' in title_lower or 'maut' in title_lower:
+            return "Toll"
+        elif 'park' in title_lower:
+            return "Parking fees"
+        return title
+    
+    # Function to normalize payment methods
+    def normalize_payment_method(payment_method: str) -> str:
+        payment_method_lower = payment_method.lower()
+        if 'visa' in payment_method_lower or 'credit' in payment_method_lower:
+            return "visa"
+        elif 'invoice' in payment_method_lower:
+            return "invoice"
+        elif 'self' in payment_method_lower:
+            return "self paid"
+        return ""
+    
+    # Function to apply normalizations and validations to the data
     def validate_and_normalize(data: Any, reference_year=None):
         if isinstance(data, dict):
             for key, value in data.items():
                 # Strip all string values
                 data[key] = strip_strings(value)
-                
+
+                # Normalize date fields
                 if 'date' in key:
                     data[key] = normalize_date(data[key])
 
+                # Normalize amount fields
                 if 'amount' in key:
                     data[key] = normalize_float(data[key])
+
+                # If the key is 'fixed_lines', normalize the title and payment_method
+                if key == 'fixed_lines':
+                    for line in data[key]:
+                        line['title'] = normalize_title(line['title'])
+                        if 'payment_method' in line:
+                            line['payment_method'] = normalize_payment_method(line['payment_method'])
                 
                 # Recursively normalize nested dictionaries or lists
                 if isinstance(value, dict) or isinstance(value, list):
@@ -148,7 +184,7 @@ def validate_invoice_2(invoice_data: dict) -> dict:
         
         elif isinstance(data, list):
             data = [validate_and_normalize(item, reference_year) for item in data]
-        
+
         return data
 
     # Call the validation and normalization function
@@ -183,15 +219,13 @@ class Invoice1(BaseModel):
     invoice_info: InvoiceInfo1
 
 ################################################################################
-from typing import Optional, List
-from pydantic import BaseModel, Field, model_validator
 
-class FixedLine(BaseModel):
+class FixedLine2(BaseModel):
     title: str
     amount: Optional[float] = 0.0
     payment_method: Optional[str] = ""
 
-class HotelLine(FixedLine):
+class HotelLine2(FixedLine2):
     with_breakfast: Optional[bool] = False
     can_book_again: Optional[bool] = False
 
@@ -203,43 +237,44 @@ class InvoiceInfo2(BaseModel):
     has_employee_signature: Optional[bool] = True
     sign_date: Optional[datetime] = None
     
-    fixed_lines: List[FixedLine] = Field(default_factory=lambda: [
-        HotelLine(title="Hotel", with_breakfast=False, can_book_again=False, amount=0.0, payment_method=""),
-        FixedLine(title="Fuel", amount=0.0, payment_method=""),
-        FixedLine(title="Parking fees", amount=0.0, payment_method=""),
-        FixedLine(title="Rental car", amount=0.0, payment_method=""),
-        FixedLine(title="Toll", amount=0.0, payment_method="")
+    fixed_lines: List[Union[FixedLine2, HotelLine2]] = Field(default_factory=lambda: [
+        HotelLine2(title="Hotel", with_breakfast=False, can_book_again=False, amount=0.0, payment_method=""),
+        FixedLine2(title="Fuel", amount=0.0, payment_method=""),
+        FixedLine2(title="Parking fees", amount=0.0, payment_method=""),
+        FixedLine2(title="Rental car", amount=0.0, payment_method=""),
+        FixedLine2(title="Toll", amount=0.0, payment_method="")
     ])
 
-    lines: List[FixedLine] = Field(default_factory=lambda: [FixedLine(title="", amount=0.0, payment_method="")])
+    lines: List[FixedLine2] = Field(default_factory=lambda: [FixedLine2(title="", amount=0.0, payment_method="")])
 
     @model_validator(mode='before')
+    @classmethod
     def ensure_fixed_lines(cls, values):
         fixed_lines_defaults = [
-            HotelLine(title="Hotel", with_breakfast=False, can_book_again=False, amount=0.0, payment_method=""),
-            FixedLine(title="Fuel", amount=0.0, payment_method=""),
-            FixedLine(title="Parking fees", amount=0.0, payment_method=""),
-            FixedLine(title="Rental car", amount=0.0, payment_method=""),
-            FixedLine(title="Toll", amount=0.0, payment_method="")
+            HotelLine2(title="Hotel", with_breakfast=False, can_book_again=False, amount=0.0, payment_method=""),
+            FixedLine2(title="Fuel", amount=0.0, payment_method=""),
+            FixedLine2(title="Parking fees", amount=0.0, payment_method=""),
+            FixedLine2(title="Rental car", amount=0.0, payment_method=""),
+            FixedLine2(title="Toll", amount=0.0, payment_method="")
         ]
 
-        # Convert each fixed line dictionary into a FixedLine or HotelLine instance
         if 'fixed_lines' in values:
             fixed_lines = []
             for line in values['fixed_lines']:
                 if isinstance(line, dict):
                     if line.get('title') == 'Hotel':
-                        fixed_lines.append(HotelLine(**line))
+                        fixed_lines.append(HotelLine2(**line))
                     else:
-                        fixed_lines.append(FixedLine(**line))
+                        fixed_lines.append(FixedLine2(**line))
+                elif isinstance(line, (FixedLine2, HotelLine2)):
+                    fixed_lines.append(line)
                 else:
-                    fixed_lines.append(line)  # In case it's already a Pydantic model
+                    raise ValueError(f"Unexpected type for fixed_line: {type(line)}")
 
             values['fixed_lines'] = fixed_lines
         else:
             values['fixed_lines'] = fixed_lines_defaults
 
-        # Ensure all predefined titles are present in fixed_lines
         existing_titles = {line.title for line in values['fixed_lines']}
         for default_line in fixed_lines_defaults:
             if default_line.title not in existing_titles:
@@ -247,9 +282,14 @@ class InvoiceInfo2(BaseModel):
 
         return values
 
+    class Config:
+        populate_by_name = True
+
 class Invoice2(BaseModel):
     invoice_info: InvoiceInfo2
 
+    class Config:
+        populate_by_name = True
 
 
 ################################################################################

@@ -157,6 +157,6 @@ if __name__ == "__main__":
     base64_img = convert_img_path_to_base64(img_path)
     result = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
                                         invoice_extractor=invoice_extractor, config=config)
-    print("info", result['invoice_info'])
+    print("\ninfo", result['invoice_info'])
 
 
