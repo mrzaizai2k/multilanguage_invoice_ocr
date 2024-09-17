@@ -112,7 +112,9 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor
     invoice_info = invoice_extractor.extract_invoice(ocr_text=ocr_result['text'], image=rotate_image, 
                                                         invoice_template=invoice_template)
     print(invoice_info)
-    invoice_info = validate_invoice(invoice_info, invoice_type)
+    invoice_info = validate_invoice(invoice_info=invoice_info, 
+                                    invoice_type=invoice_type, config=config)
+    
     result['translator'] = ocr_reader['translator']
     result['ocr_detector'] = ocr_reader['ocr_detector']
     result['invoice_info'] = invoice_info
@@ -128,19 +130,19 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor
 
 
 
-def validate_invoice(invoice_info:dict, invoice_type:str) ->dict:
+def validate_invoice(invoice_info:dict, invoice_type:str, config:dict) ->dict:
     
     if invoice_type == "invoice 1":
-        valid_invoice = validate_invoice_1(invoice_info)
+        valid_invoice = validate_invoice_1(invoice_data=invoice_info, config=config)
         full_invoice = Invoice1(invoice_info=valid_invoice['invoice_info'])
 
     
     elif invoice_type == "invoice 2":
-        valid_invoice = validate_invoice_2(invoice_info)
+        valid_invoice = validate_invoice_2(invoice_data=invoice_info, config=config)
         full_invoice = Invoice2(invoice_info=valid_invoice['invoice_info'])
     
     elif invoice_type == "invoice 3":
-        valid_invoice = validate_invoice_3(invoice_info)
+        valid_invoice = validate_invoice_3(invoice_data=invoice_info)
         full_invoice = Invoice3(invoice_info=valid_invoice['invoice_info'])
 
     full_invoice_dict = full_invoice.model_dump(exclude_unset=False)
@@ -153,7 +155,7 @@ if __name__ == "__main__":
 
     ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator())
     invoice_extractor = OpenAIExtractor(config_path=config_path)
-    img_path = "test/images/009_2.png"
+    img_path = "test/images/005_1.png"
     base64_img = convert_img_path_to_base64(img_path)
     result = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
                                         invoice_extractor=invoice_extractor, config=config)

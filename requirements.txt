@@ -24,3 +24,5 @@ uvicorn
 pytesseract
 pydantic
 openpyxl
+rank_bm25
+fuzzywuzzy

@@ -4,8 +4,42 @@ import re
 from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Any, Union
 from datetime import date, time, datetime
+from src.excel_export import FuzzyNameMatcher, ExcelProcessor, get_full_name
 
 
+def preprocess_name(name: str) -> str:
+    """
+    Preprocess the OCR name by removing special symbols like ,./! and converting to lowercase.
+    :param name: OCR name string.
+    :return: Preprocessed name.
+    """
+    # Remove special characters and strip whitespace
+    return re.sub(r'[^\w\s]', '', name).lower().strip()
+
+def map_name(ocr_name: str, config: dict):
+    """
+    Map OCR name to the closest match from the Excel data.
+    :param ocr_name: String from OCR output.
+    :param config: Configuration dictionary.
+    :return: Best matching full name or an empty string if no match is found.
+    """
+    # Preprocess the OCR name before matching
+    ocr_name = preprocess_name(ocr_name)
+    
+    # Initialize the processor and matcher
+    processor = ExcelProcessor(config=config)
+    user_names = processor.get_user_names()
+    
+    matcher = FuzzyNameMatcher(user_names)
+    best_idx, best_match, best_score = matcher.find_best_match(ocr_name)
+    
+    # Check if the match score is above the defined threshold
+    if best_score >= config['excel']['name_thresh']:
+        full_name = get_full_name(best_match)
+        return full_name
+    else:
+        return ""
+    
 def strip_strings(value):
         if isinstance(value, str):
             return value.strip()
@@ -98,7 +132,7 @@ def normalize_float(value):
     except (ValueError, TypeError):
         return None
     
-def validate_invoice_1(invoice_data: dict) -> dict:
+def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
 
     # Recursive function to apply normalizations and validations to the data
     def validate_and_normalize(data: Any, reference_year=None):
@@ -115,6 +149,9 @@ def validate_invoice_1(invoice_data: dict) -> dict:
 
                 if 'break_time' in key:
                     data[key] = normalize_float(data[key])
+
+                if key == 'name':
+                    data[key] = map_name(value, config)
                 
                 # Recursively normalize nested dictionaries or lists
                 if isinstance(value, dict) or isinstance(value, list):
@@ -128,7 +165,8 @@ def validate_invoice_1(invoice_data: dict) -> dict:
     # Call the validation and normalization function
     return validate_and_normalize(invoice_data)
 
-def validate_invoice_2(invoice_data: dict) -> dict:
+
+def validate_invoice_2(invoice_data: dict, config:dict) -> dict:
     
     # Function to normalize titles in fixed lines
     def normalize_title(title: str) -> str:
@@ -170,6 +208,10 @@ def validate_invoice_2(invoice_data: dict) -> dict:
                 # Normalize amount fields
                 if 'amount' in key:
                     data[key] = normalize_float(data[key])
+
+                # If the key is 'name', apply map_name to standardize it
+                if key == 'name':
+                    data[key] = map_name(value, config)
 
                 # If the key is 'fixed_lines', normalize the title and payment_method
                 if key == 'fixed_lines':
@@ -453,7 +495,7 @@ if __name__ == "__main__":
     }
     json_2 = {
         "invoice_info": {
-            "name": "Schmidt, Timo",
+            "name": "Tüümler, Dirk",
             "project_number": "V123023",
             "is_in_egw": True,
             "currency": "EUR",

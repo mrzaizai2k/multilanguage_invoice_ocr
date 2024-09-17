@@ -56,3 +56,4 @@ excel:
   sheet_name: April 24_0
   nachname_key: 'nachname'
   vorname_key: 'vorname'
+  name_thresh: 20
