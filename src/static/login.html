@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='uikit/css/uikit.min.css') }}">
+<!-- UIkit CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/css/uikit.min.css" />
+
+<!-- UIkit JS -->
+<script src="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/js/uikit.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/uikit@3.17.11/dist/js/uikit-icons.min.js"></script>
+</head>
+<body class="uk-flex uk-flex-center uk-flex-middle uk-height-viewport uk-background-muted">
+
+    <div class="uk-width-medium uk-padding-small uk-background-default uk-border-rounded">
+        <h1 class="uk-heading-small uk-margin-bottom">Login</h1>
+        <form id="login-form" class="uk-form-stacked" action="/auth-web" method="post">
+            <div class="uk-margin">
+                <label class="uk-form-label" for="username">Username:</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input" type="text" id="username" name="username" required>
+                </div>
+            </div>
+
+            <div class="uk-margin">
+                <label class="uk-form-label" for="password">Password:</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input" type="password" id="password" name="password" required>
+                </div>
+            </div>
+
+            <div class="uk-margin">
+                <button class="uk-button uk-button-primary" type="submit">Login</button>
+            </div>
+        </form>
+
+        {% if error_message %}
+            <div class="uk-alert-danger uk-margin-top" uk-alert>
+                <a class="uk-alert-close" uk-close></a>
+                <p>{{ error_message }}</p>
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

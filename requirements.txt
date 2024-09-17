@@ -26,3 +26,5 @@ pydantic
 openpyxl
 rank_bm25
 fuzzywuzzy
+ldap3
+python-multipart
