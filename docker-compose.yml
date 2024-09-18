@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    volumes:
+      - mongo_data:/data/db  # Creates a named volume for MongoDB data
+    ports:
+      - "27017:27017"
+    command: mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+    # MongoDB init replica set after starting the container
+    entrypoint: [
+      "bash", "-c",
+      "mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017 & sleep 5 && mongosh --eval 'config = {_id: \"test-change-streams\",members: [{ _id : 0, host : \"localhost:27017\"}]}; rs.initiate(config); rs.status();' && tail -f /dev/null"
+    ]
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi_app
+    env_file:
+      - .env  # Use .env for environment variables
+    ports:
+      - "8149:8149"  # Maps port 8149 to the host
+    depends_on:
+      - mongodb  # Ensure MongoDB starts before the API
+    environment:
+      MONGO_URL: mongodb://localhost:27017  # MongoDB connection
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+
+volumes:
+  mongo_data:  # Declare a named volume for MongoDB

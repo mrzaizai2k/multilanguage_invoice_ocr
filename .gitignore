@@ -167,3 +167,5 @@ venv/
 data/
 *xlsm
 *xlsx
+*.pem
+jwt-auth-frontend/

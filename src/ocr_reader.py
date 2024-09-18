@@ -8,7 +8,6 @@ from transformers import pipeline
 from PIL import Image
 import torch
 import numpy as np
-import cv2
 import requests
 from src.Utils.utils import timeit, read_config, resize_same_ratio, rotate_image
 

@@ -1,0 +1,18 @@
+# Ignore documentation and frontend files
+docs/
+jwt-auth-frontend/
+
+# Ignore Python cache files
+**/__pycache__/
+
+# Ignore the virtual environment directory
+venv/
+
+# Ignore test directories and files
+test/
+
+# Ignore sensitive files like private keys
+IES_mrzaizai2k.pem
+
+IES_mrzaizai2k.pem
+.env

@@ -1,13 +1,13 @@
 from llama_index.multi_modal_llms.ollama import OllamaMultiModal
-from pathlib import Path
-from llama_index.core import Document
+# from pathlib import Path
+# from llama_index.core import Document
 from pydantic import BaseModel
 from typing import List, Optional
 from llama_index.core.program import MultiModalLLMCompletionProgram
 from llama_index.core.output_parsers import PydanticOutputParser
-from PIL import Image
-import base64
-import io
+# from PIL import Image
+# import base64
+# import io
 from llama_index.core import SimpleDirectoryReader
 
 # Define the path to your local image

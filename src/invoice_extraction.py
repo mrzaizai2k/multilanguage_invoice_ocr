@@ -8,7 +8,7 @@ from typing import List, Optional
 
 from src.ocr_reader import OcrReader, GoogleTranslator
 from base_extractors import OpenAIExtractor, BaseExtractor
-from src.qwen2_extract import Qwen2Extractor
+# from src.qwen2_extract import Qwen2Extractor
 from src.Utils.utils import (timeit, read_config, convert_img_path_to_base64, 
                              get_current_time, convert_base64_to_pil_image, read_txt_file)
 from src.validate_invoice import (validate_invoice_3, validate_invoice_1,validate_invoice_2,

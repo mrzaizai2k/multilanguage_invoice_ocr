@@ -10,8 +10,8 @@ from src.mongo_database import MongoDatabase
 import threading
 from src.ocr_reader import OcrReader, GoogleTranslator
 from src.base_extractors import OpenAIExtractor 
-from src.qwen2_extract import Qwen2Extractor
-from src.Utils.utils import *
+# from src.qwen2_extract import Qwen2Extractor
+from src.Utils.utils import read_config, get_current_time, is_base64, valid_base64_image
 from src.invoice_extraction import extract_invoice_info
 
 config_path='config/config.yaml'
