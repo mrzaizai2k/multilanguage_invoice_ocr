@@ -21,3 +21,4 @@ ldap3
 python-multipart
 pytz
 llama_index
+llama-index-llms-ollama

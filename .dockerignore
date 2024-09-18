@@ -14,5 +14,4 @@ test/
 # Ignore sensitive files like private keys
 IES_mrzaizai2k.pem
 
-IES_mrzaizai2k.pem
 .env

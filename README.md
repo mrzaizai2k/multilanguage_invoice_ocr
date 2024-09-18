@@ -105,6 +105,10 @@ Follow these steps to run the application:
    
    https://www.forumsys.com/2022/05/10/online-ldap-test-server/
 
+- No space on aws
+https://stackoverflow.com/questions/74515846/error-could-not-install-packages-due-to-an-oserror-errno-28-no-space-left-on
+https://github.com/pypa/pip/issues/7745#issuecomment-587296318
+
 ## Usage
 
 1. Upload one or more invoice images or PDF files using the file uploader interface.
