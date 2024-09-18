@@ -32,6 +32,11 @@ jobs:
     - name: Run paddleocr test
       run: python src/ocr_reader.py
 
+    - name: Set environment variables
+      run: |
+         export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+
+
     - name: Run invoice extraction test
       run: python src/invoice_extraction.py
 
