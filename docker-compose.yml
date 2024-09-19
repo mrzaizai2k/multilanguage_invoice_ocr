@@ -14,7 +14,14 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: example
     entrypoint: [
       "bash", "-c",
-      "mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017 & sleep 5 && mongosh --eval 'config = {_id: \"test-change-streams\",members: [{ _id : 0, host : \"localhost:27017\"}]}; rs.initiate(config); rs.status();' && tail -f /dev/null"
+      "
+      mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017 & 
+      sleep 5 && 
+      if ! mongo --eval 'rs.status().ok' | grep 1; then
+        mongosh --eval 'config = {_id: \"test-change-streams\",members: [{ _id : 0, host : \"localhost:27017\"}]}; rs.initiate(config); rs.status();';
+      fi &&
+      tail -f /dev/null
+      "
     ]
 
   api:

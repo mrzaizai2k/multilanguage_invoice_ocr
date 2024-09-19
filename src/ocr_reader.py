@@ -224,8 +224,8 @@ def load_image(image_path: str):
 
 # Example usage
 if __name__ == "__main__":
-    img_path = "test/images/page_9.png"
-    # # img_path = "fr_1.png"
+    # img_path = "test/images/page_9.png"
+    img_path = "fr_1.png"
     config_path = "config/config.yaml"
     
     image = load_image(img_path)
