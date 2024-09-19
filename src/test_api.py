@@ -104,15 +104,16 @@ if __name__ == "__main__":
 
     root_url = f"http://{config['IES_host']}:{config['IES_port']}"
 
-    img_path = "test/images/005_2.png"
-    user_uuid = "1111_1111_1111_1111"
-    invoice_uuid = "66e25d4054d0cf43b5d78a73"
+    img_path = "test/images/page_7.png"
+    user_uuid = "2111_1111_1111_1111"
+    invoice_uuid = "66ec37b07e2db495ad5b514a"
     invoice_info = {"amount": "1111",} 
 
-    test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
-    # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
+    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
+    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
+
 
 
 

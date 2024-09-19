@@ -88,6 +88,12 @@ Follow these steps to run the application:
 
    ```
 
+      docker run --env-file .env \
+    -v $(pwd)/config:/app/config \
+    -v $(pwd)/src:/app/src \
+    -p 8149:8149 \
+    multilanguage_invoice_ocr-fastapi:latest
+
 5. **Sending Email**
 
    https://viblo.asia/p/gui-mail-voi-python-bWrZn7Mrlxw

@@ -26,14 +26,19 @@ llm_extract:
     top_p: 0.8
     top_k: 20
 
+# uri mongodb://localhost:27017/
+# 2024-09-19 22:44:21 uri mongodb://mongodb:27017/
+
 postprocessing:
   model_name: llama3.1:8b
   request_timeout: 60
 
 mongodb:
-  uri: "mongodb://localhost:27017/"
-  database: "invoice_db"
-  collection: "invoices"
+  # host: "mongodb::27017"
+  # port: 27017
+  uri: mongodb://mongodb:27017/
+  database: invoice_db
+  collection: invoices
 
 IES_host: '0.0.0.0' # Invoice Extraction System
 IES_port: 8149

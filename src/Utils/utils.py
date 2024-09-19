@@ -389,6 +389,7 @@ def read_txt_file(file_path: str) -> str:
 
 if __name__ == "__main__":
     print("Has GPU?")
-    
+    config = read_config("config/config.yaml")
+    print(get_current_time(timezone=config['timezone']))
     # Define the Berlin time zone
     

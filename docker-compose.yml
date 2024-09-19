@@ -8,10 +8,11 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-    command: ["mongod", "--replSet", "test-change-streams", "--logpath", "/data/db/mongodb.log", "--dbpath", "/data/db", "--bind_ip_all", "--port", "27017"]
+      - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+    # command: ["mongod", "--replSet", "test-change-streams", "--logpath", "/data/db/mongodb.log", "--dbpath", "/data/db", "--port", "27017"]
+    # command: ["mongod", "--replSet", "test-change-streams"]
     networks:
       - app-network
-
 
   fastapi:
     build:
@@ -26,6 +27,7 @@ services:
       - .env
     volumes:
       - ./config:/app/config
+      - ./src:/app/src
     networks:
       - app-network
 

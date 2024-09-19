@@ -5,7 +5,6 @@ from pymongo import MongoClient
 from typing import Optional, Dict, Any, List, Literal
 import json
 from bson import ObjectId
-# from motor.motor_asyncio import AsyncIOMotorClient
 from src.Utils.utils import read_config
 
 class MongoDatabase:
@@ -15,7 +14,10 @@ class MongoDatabase:
         self.config = read_config(path=self.config_path)
 
         # Initialize MongoDB connection
-        self.client = MongoClient(self.config['mongodb']['uri'])
+        print("uri", str(self.config['mongodb']['uri']))
+        self.client = MongoClient(str(self.config['mongodb']['uri']))
+        # self.client = MongoClient(host = str(self.config['mongodb']['uri'])) 
+        print("Mongo info", self.client.server_info() )
         self.db = self.client[self.config['mongodb']['database']]
         self.collection = self.db[self.config['mongodb']['collection']]
 
