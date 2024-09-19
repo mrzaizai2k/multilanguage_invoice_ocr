@@ -35,8 +35,8 @@ mongodb:
   database: "invoice_db"
   collection: "invoices"
 
-IES_host: localhost # Invoice Extraction System
-IES_port: 8041
+IES_host: '0.0.0.0' # Invoice Extraction System
+IES_port: 8149
 
 invoice_dict: #The template answer of invoice for LLM
   invoice 1: config/page_1_template.txt
@@ -52,7 +52,7 @@ invoice_txt_template_thresh: 0.3
 timezone: Europe/Berlin
 
 excel:
-  excel_file_path: data/user_template.xlsm
+  excel_file_path: config/user_template.xlsm
   sheet_name: April 24_0
   nachname_key: 'nachname'
   vorname_key: 'vorname'

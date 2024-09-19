@@ -58,4 +58,4 @@ jobs:
         docker exec mongodb mongosh --eval 'config = {_id: "test-change-streams",members: [{ _id : 0, host : "localhost:27017"}]};rs.initiate(config);'
 
         # Run the API server
-        python src/api.py
+        # python src/api.py
