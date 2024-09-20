@@ -74,6 +74,11 @@ Follow these steps to run the application:
 
    https://www.mongodb.com/developer/languages/python/python-change-streams/#how-to-set-up-a-local-cluster
 
+   create network
+   ```shell
+      docker network create app-network
+   ```
+
    run mongo
    ```shell
       docker run -d \
@@ -83,6 +88,8 @@ Follow these steps to run the application:
          --network app-network \
          mongo:latest \
          mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017
+
+      docker exec -it mongodb mongosh --eval "rs.initiate()"
       
       docker exec -it mongodb mongosh --eval "rs.reconfig({_id: 'test-change-streams', members: [{ _id : 0, host : 'mongodb:27017'}]}, {force: true})"
 
@@ -93,7 +100,10 @@ Follow these steps to run the application:
    run app
 
    ```shell
-      docker run --env-file .env \
+
+   docker build -t multilanguage_invoice_ocr-fastapi .
+
+   docker run --env-file .env \
     -v $(pwd)/config:/app/config \
     -v $(pwd)/src:/app/src \
     -p 8149:8149 \
