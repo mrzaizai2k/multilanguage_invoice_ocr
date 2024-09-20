@@ -11,18 +11,27 @@ services:
     networks:
       - app-network
     command: mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017
+    healthcheck:
+      test: mongosh --eval "printjson(rs.status())" | grep -q '"ok" : 1'
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongodb-setup:
     image: mongo:latest
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - app-network
     command: >
-      mongosh --host mongodb:27017 --eval "rs.reconfig({_id: 'test-change-streams', members: [{ _id : 0, host : 'mongodb:27017'}]}, {force: true})"
+      bash -c "
+      mongosh --host mongodb:27017 --eval 'rs.initiate()' &&
+      sleep 5 &&
+      mongosh --host mongodb:27017 --eval 'rs.reconfig({_id: \"test-change-streams\", members: [{ _id : 0, host : \"mongodb:27017\"}]}, {force: true})'
+      "
 
   fastapi-app:
-    # image: multilanguage_invoice_ocr-fastapi:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -35,8 +44,8 @@ services:
     networks:
       - app-network
     depends_on:
-      - mongodb
-      - mongodb-setup
+      mongodb-setup:
+        condition: service_completed_successfully
 
 networks:
   app-network:
