@@ -11,11 +11,7 @@ services:
     networks:
       - app-network
     command: mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017
-    healthcheck:
-      test: mongosh --eval "printjson(rs.status())" | grep -q '"ok" : 1'
-      interval: 10s
-      timeout: 5s
-      retries: 5
+
 
   mongodb-setup:
     image: mongo:latest
