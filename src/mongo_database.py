@@ -14,9 +14,14 @@ class MongoDatabase:
 
         # Initialize MongoDB connection
         print("Mongo uri", str(self.config['mongodb']['uri']))
-        self.client = MongoClient(str(self.config['mongodb']['uri']))
+        try:
+            self.client = MongoClient(str(self.config['mongodb']['uri']))
+            print("Mongo version", self.client.server_info()['version'])
+        except:
+            self.client = MongoClient("mongodb://mongodb:27017/")
+            print("Mongo version", self.client.server_info()['version'])
+
         # self.client = MongoClient(host = str(self.config['mongodb']['uri'])) 
-        print("Mongo version", self.client.server_info()['version'])
         self.db = self.client[self.config['mongodb']['database']]
         self.collection = self.db[self.config['mongodb']['collection']]
 
