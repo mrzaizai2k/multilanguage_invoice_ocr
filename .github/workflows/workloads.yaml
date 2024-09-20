@@ -40,7 +40,7 @@ jobs:
       run: python src/invoice_extraction.py
 
 
-    - name: Set up Docker and MongoDB
+    - name: run test MongoDB
       run: |
 
         # Run MongoDB container
@@ -55,7 +55,10 @@ jobs:
         sleep 30
 
         # Initialize MongoDB replica set
-        docker exec mongodb mongosh --eval 'config = {_id: "test-change-streams",members: [{ _id : 0, host : "localhost:27017"}]};rs.initiate(config);'
 
-        # Run the API server
-        # python src/api.py
+        docker exec -it mongodb mongosh --eval "rs.status()"
+
+        docker exec mongodb mongosh --eval """config = {_id: "test-change-streams",members: [{ _id : 0, host : "localhost:27017"}]};rs.initiate(config);"""
+
+        # Run the mongodb 
+        python src/mongo_database.py

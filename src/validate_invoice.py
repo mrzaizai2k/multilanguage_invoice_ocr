@@ -3,7 +3,7 @@ sys.path.append("")
 import re
 from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Any, Union
-from datetime import date, time, datetime
+from datetime import date, datetime
 from src.excel_export import FuzzyNameMatcher, ExcelProcessor, get_full_name
 from src.Utils.utils import read_config
 
@@ -60,11 +60,13 @@ def normalize_date(value):
 # Normalize time by converting it from string to time object
 def normalize_time(value):
     try:
-        if len(value) == 5:  # Format HH:mm
-            value += ":00" 
-        return datetime.strptime(value, '%H:%M:%S').time()
-    except ValueError:
-        return None
+        parts = value.split(":")
+        if len(parts) == 2:  # If time is in HH:mm format
+            value += ":00"   # Add seconds
+        return value
+    except Exception:
+        return ""  # Return an empty string if splitting fails
+
         
  # Normalize currency to uppercase three-letter code
 def normalize_currency(value):
@@ -240,8 +242,8 @@ def validate_invoice_2(invoice_data: dict, config:dict) -> dict:
 
 class Line1(BaseModel):
     date: Optional[datetime] = None  # Can be a date or string in your case
-    start_time: Optional[time] = None
-    end_time: Optional[time] = None
+    start_time: Optional[str] = ""
+    end_time: Optional[str] = ""
     break_time: Optional[float] = None
     description: Optional[str] = ""
     has_customer_signature: Optional[bool] = False
@@ -370,9 +372,8 @@ class InvoiceInfo3(BaseModel):
     vatamount: Optional[float] = None
     amountexvat: Optional[float] = None
     currency: Optional[str] = ""
-    date: Optional[datetime] = None
     purchasedate: Optional[datetime] = None
-    purchasetime: Optional[time] = None
+    purchasetime: Optional[str] = ""
     vatitems: List[VatItem3] = Field(default_factory=lambda: [VatItem3()])
     vat_context: Optional[str] = ""
     lines: List[Line3] = Field(default_factory=lambda: [Line3()])
@@ -435,8 +436,7 @@ if __name__ == "__main__":
         'invoice_info': {
             'amount': 32.27832,
             'currency': 'EUR',
-            'date': date(2008, 6, 28),
-            'purchasetime': time(17, 46, 26),
+            'purchasetime': "17:46:26",
             'purchasedate': date(2008, 6, 28),
             'lines': [
                 {
@@ -475,16 +475,16 @@ if __name__ == "__main__":
             "lines": [
                 {
                     "date": date(2008, 6, 28),
-                    "start_time": time(17, 46, 26),
-                    "end_time": time(17, 46, 26),
+                    "start_time": "17:46:26",
+                    "end_time": "17:46:26",
                     "break_time": 0.5,
                     "description": "support",
                     "has_customer_signature": True
                 },
                 {
                     "date":  date(2008, 6, 28),
-                    "start_time": time(17, 46, 26),
-                    "end_time": time(17, 46, 26),
+                    "start_time": "17:46:26",
+                    "end_time": "17:46:26",
                     "break_time": 0.0,
                     "description": "Supports",
                     "has_customer_signature": True
@@ -553,7 +553,7 @@ if __name__ == "__main__":
             'lines': [
                 {
                     'date': '07/08/2024',
-                    'start_time': '06:45:00',
+                    'start_time': '06:45',
                     'end_time': '07:30',
                     'break_time': '0.0',
                     'description': 'BS-SZ-Support',

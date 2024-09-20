@@ -386,6 +386,19 @@ def read_txt_file(file_path: str) -> str:
     with open(file_path, 'r', encoding='utf-8') as file:
         return file.read()
     
+def convert_datetime_to_iso(data):
+    """
+    Find the datetime value and convert to JSON format to send
+    """
+    if isinstance(data, dict):  # If the current level is a dictionary
+        for key, value in data.items():
+            if isinstance(value, datetime):  # Check if the value is a datetime
+                data[key] = value.isoformat()  # Convert to ISO format
+            elif isinstance(value, dict) or isinstance(value, list):  # If value is dict or list, recurse
+                convert_datetime_to_iso(value)
+    elif isinstance(data, list):  # If the current level is a list
+        for item in data:
+            convert_datetime_to_iso(item)
 
 if __name__ == "__main__":
     print("Has GPU?")

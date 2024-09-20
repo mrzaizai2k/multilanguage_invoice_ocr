@@ -111,7 +111,6 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor
     rotate_image = ocr_reader.get_rotated_image(pil_img)
     invoice_info = invoice_extractor.extract_invoice(ocr_text=ocr_result['text'], image=rotate_image, 
                                                         invoice_template=invoice_template)
-    print(invoice_info)
     invoice_info = validate_invoice(invoice_info=invoice_info, 
                                     invoice_type=invoice_type, config=config)
     
@@ -125,6 +124,8 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor
 
     result["last_modified_at"] = get_current_time(timezone=config['timezone'])
     result["status"] = "completed"
+
+    print("\ninvoice_info", invoice_info)
 
     return result
 
@@ -156,10 +157,12 @@ if __name__ == "__main__":
     ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator())
     invoice_extractor = OpenAIExtractor(config_path=config_path)
     img_path = "fr_1.png"
+    # img_path = "test/images/009_1.png"
     base64_img = convert_img_path_to_base64(img_path)
     result = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
                                         invoice_extractor=invoice_extractor, config=config)
     print("\ninfo", result['invoice_info'])
+
 
 
 

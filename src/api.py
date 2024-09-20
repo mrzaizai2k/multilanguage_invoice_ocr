@@ -11,7 +11,8 @@ import threading
 from src.ocr_reader import OcrReader, GoogleTranslator
 from src.base_extractors import OpenAIExtractor 
 # from src.qwen2_extract import Qwen2Extractor
-from src.Utils.utils import read_config, get_current_time, is_base64, valid_base64_image
+from src.Utils.utils import (read_config, get_current_time, is_base64, 
+                             valid_base64_image, convert_datetime_to_iso)
 from src.invoice_extraction import extract_invoice_info
 
 config_path='config/config.yaml'
@@ -57,6 +58,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+@app.get("/")
+async def hello():
+    return {"message": "Hello, world!"}
 
 @app.post("/api/v1/invoices/upload")
 async def upload_invoice(
@@ -186,6 +190,8 @@ async def modify_invoice(invoice_uuid: str, request: Request):
                 "message": str(e)
             })
 
+
+
 @app.get("/api/v1/invoices")
 async def get_invoices(
     created_at: Optional[str] = Query("asc", description="Sort by creation date (asc or desc)"),
@@ -205,16 +211,22 @@ async def get_invoices(
         if invoice_uuid:
             query["invoice_uuid"] = invoice_uuid
 
+        print("query", query)
         # Fetch documents from MongoDB
-        invoices = mongo_db.get_documents(query, page=page, limit=limit, sort=created_at.lower())
+        invoices = mongo_db.get_documents(filters = query, page=page, limit=limit, sort=created_at.lower())
+        print("len",len(invoices))
         
+        if not invoices:
+            return JSONResponse(
+            status_code=200,
+            content=[]
+        )
 
         for invoice in invoices:
             invoice["_id"] = str(invoice["_id"])
-            if "created_at" in invoice:
-                invoice["created_at"] = invoice["created_at"].isoformat()  # Convert datetime to ISO format
+            convert_datetime_to_iso(invoice)
 
-        print("len",len(invoices))
+
         print("invoice",invoices[0]['created_at'])
 
         # Return the invoices in the expected format

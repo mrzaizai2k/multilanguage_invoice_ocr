@@ -36,7 +36,6 @@ This is the sample document saved in MongoDB for `invoice_type` == "invoice 3".
       "vatamount": "number",
       "amountexvat": "number",
       "currency": "string",
-      "date": "ISODate",
       "purchasedate": "ISODate",
       "purchasetime": "string", 
       "vatitems": [

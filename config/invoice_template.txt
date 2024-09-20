@@ -7,7 +7,6 @@
     "vatamount": ,
     "amountexvat": ,
     "currency": "",
-    "date": "",
     "purchasedate": "",
     "purchasetime": "",
     "vatitems": [

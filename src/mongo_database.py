@@ -3,9 +3,8 @@ sys.path.append("")
 
 from pymongo import MongoClient
 from typing import Optional, Dict, Any, List, Literal
-import json
-from bson import ObjectId
-from src.Utils.utils import read_config
+from bson import ObjectId, json_util
+from src.Utils.utils import read_config, get_current_time
 
 class MongoDatabase:
     def __init__(self, config_path: str):
@@ -14,10 +13,10 @@ class MongoDatabase:
         self.config = read_config(path=self.config_path)
 
         # Initialize MongoDB connection
-        print("uri", str(self.config['mongodb']['uri']))
+        print("Mongo uri", str(self.config['mongodb']['uri']))
         self.client = MongoClient(str(self.config['mongodb']['uri']))
         # self.client = MongoClient(host = str(self.config['mongodb']['uri'])) 
-        print("Mongo info", self.client.server_info() )
+        print("Mongo version", self.client.server_info()['version'])
         self.db = self.client[self.config['mongodb']['database']]
         self.collection = self.db[self.config['mongodb']['collection']]
 
@@ -107,52 +106,88 @@ class MongoDatabase:
 
 if __name__ == "__main__":
     # Load sample JSON file
-    with open('config/sample_mongo_doc.json', 'r') as f:
-        sample_data = json.load(f)
+    # with open('config/sample_mongo_doc.json', 'r') as f:
+    #     sample_data = json.load(f)
 
-    # Define filter criteria (example: using `user_uuid`)
-    filter_criteria = {"created_by": sample_data["created_by"]}
+    from src.validate_invoice import Invoice1
+    from datetime import date, time
+    json_1 = {
+        "invoice_info": {
+            "name": "Tümmler, Dirk",
+            "project_number": "V240045",
+            "customer": "Magua",
+            "city": "Salzgitter",
+            "kw": "",
+            "land": "DE",
+            "lines": [
+                {
+                    "date": date(2008, 6, 28),
+                    "start_time": "17:46:26",
+                    "end_time": "17:46:26",
+                    "break_time": 0.5,
+                    "description": "support",
+                    "has_customer_signature": True
+                },
+                {
+                    "date":  date(2008, 6, 28),
+                    "start_time": "17:46:26",
+                    "end_time": "17:46:26",
+                    "break_time": 0.0,
+                    "description": "Supports",
+                    "has_customer_signature": True
+                }
+            ],
+            "is_process_done": True,
+            "is_commissioned_work": True,
+            "is_without_measuring_technology": False,
+            "sign_date": date(2008, 6, 28),
+            "has_employee_signature": True
+        }
+    }
+
+
+    invoice = Invoice1(invoice_info=json_1['invoice_info'])
+    sample_data = invoice.model_dump(exclude_unset=False)
 
     # Instantiate MongoDatabase
     mongo_db = MongoDatabase(config_path='config/config.yaml')
-    # change_stream = mongo_db.client.changestream.collection.watch()
-    # from bson.json_util import dumps
-    # for change in change_stream:
-    #     print(dumps(change))
-    #     print('') # for readability only
 
     # Test creating a document
     inserted_id = mongo_db.create_document(sample_data)
     print(f"Inserted document ID: {inserted_id}")
 
-    # # Test retrieving the document
-    # retrieved_docs = mongo_db.get_documents(filter_criteria)
-    # print(f"Retrieved Document: {retrieved_docs}")
-
-    # # Test deleting the document
-    # delete = mongo_db.delete_document_by_id("66e01492dec2de3b4942ad33")
-    # print(f"Delete Success: {delete}")
-
-    # mongo_db.delete_all_documents()
-
     docs = mongo_db.get_all_document_ids()
     # Get the total number of documents in the collection
     print("Documents ids:", docs)
 
+    # # Test retrieving the document
+    # Define filter criteria (example: using `user_uuid`)
+    filter_criteria = {"created_by": "1111_1111_1111_1111"}
+    retrieved_docs = mongo_db.get_documents(filter_criteria)
+    print(f"Retrieved Document: {len(retrieved_docs)}")
+
+
     # print("Number of documents:", len(docs))
 
-    # document_id = docs[0]
-    # update_fields = {
-    #     'invoice_info': {'item': 'Laptop', 'amount': 1200},
-    #     'created_at': datetime.now().isoformat()
-    # }
+    document_id = docs[0]
 
-    # update_success = mongo_db.update_document_by_id(document_id, update_fields)
-    # print(f"Update Success: {update_success}")
+    update_fields = {
+        'invoice_info': {'item': 'Laptop', 'amount': 1200},
+        'created_at': get_current_time()
+    }
+
+    update_success = mongo_db.update_document_by_id(document_id, update_fields)
+    print(f"Update Success: {update_success}")
 
     # Retrieve and print the updated document to verify changes
-    docs = mongo_db.get_documents({'created_by': '1111_1111_1111_1111'})
+    docs = mongo_db.get_documents({'created_by': '2111_1111_1111_1111'})
     print(f"Document: {len(docs)}")
 
-    doc = mongo_db.get_document_by_id(document_id="66e2aeb0632bfcd289eeb7ee")
+    doc = mongo_db.get_document_by_id(document_id=document_id)['created_at']
     print('doc', doc)
+
+    # Test deleting the document
+    delete = mongo_db.delete_document_by_id(document_id=document_id)
+    print(f"Delete Success: {delete}")
+
+    # mongo_db.delete_all_documents()
