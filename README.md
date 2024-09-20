@@ -90,12 +90,16 @@ Follow these steps to run the application:
 
    ```
 
+   run app
+
+   ```shell
       docker run --env-file .env \
     -v $(pwd)/config:/app/config \
     -v $(pwd)/src:/app/src \
     -p 8149:8149 \
     --network app-network \
     multilanguage_invoice_ocr-fastapi:latest
+    ```
 
 5. **Sending Email**
 

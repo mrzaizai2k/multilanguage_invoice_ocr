@@ -22,10 +22,10 @@ services:
       mongosh --host mongodb:27017 --eval "rs.reconfig({_id: 'test-change-streams', members: [{ _id : 0, host : 'mongodb:27017'}]}, {force: true})"
 
   fastapi-app:
-    image: multilanguage_invoice_ocr-fastapi:latest
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+    # image: multilanguage_invoice_ocr-fastapi:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     env_file: .env
     volumes:
       - ./config:/app/config
