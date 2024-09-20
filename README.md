@@ -80,10 +80,12 @@ Follow these steps to run the application:
          --name mongodb \
          -v /data/test-change-streams:/data/db \
          -p 27017:27017 \
+         --network app-network \
          mongo:latest \
          mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017
       
-      docker exec -it mongodb mongosh --eval 'config = {_id: "test-change-streams",members: [{ _id : 0, host : "localhost:27017"}]};rs.initiate(config);'
+      docker exec -it mongodb mongosh --eval "rs.reconfig({_id: 'test-change-streams', members: [{ _id : 0, host : 'mongodb:27017'}]}, {force: true})"
+
       docker exec -it mongodb mongosh --eval "rs.status()"
 
    ```
@@ -92,6 +94,7 @@ Follow these steps to run the application:
     -v $(pwd)/config:/app/config \
     -v $(pwd)/src:/app/src \
     -p 8149:8149 \
+    --network app-network \
     multilanguage_invoice_ocr-fastapi:latest
 
 5. **Sending Email**

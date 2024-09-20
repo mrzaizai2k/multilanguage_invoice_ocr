@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Any, Union
 from datetime import date, time, datetime
 from src.excel_export import FuzzyNameMatcher, ExcelProcessor, get_full_name
+from src.Utils.utils import read_config
 
 
 def preprocess_name(name: str) -> str:
@@ -59,6 +60,8 @@ def normalize_date(value):
 # Normalize time by converting it from string to time object
 def normalize_time(value):
     try:
+        if len(value) == 5:  # Format HH:mm
+            value += ":00" 
         return datetime.strptime(value, '%H:%M:%S').time()
     except ValueError:
         return None
@@ -425,7 +428,8 @@ class Invoice3(BaseModel):
 #######################################################################
 
 if __name__ == "__main__":
-
+    config_path = "config/config.yaml"
+    config = read_config(config_path)
     # Example usage
     json_3 = {
         'invoice_info': {
@@ -550,7 +554,7 @@ if __name__ == "__main__":
                 {
                     'date': '07/08/2024',
                     'start_time': '06:45:00',
-                    'end_time': '07:30:00',
+                    'end_time': '07:30',
                     'break_time': '0.0',
                     'description': 'BS-SZ-Support',
                     'has_customer_signature': True
@@ -588,5 +592,5 @@ if __name__ == "__main__":
         }
     }
 
-    data = validate_invoice_1(data1)
+    data = validate_invoice_1(data1, config=config)
     print("\ndata1", data)
