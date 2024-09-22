@@ -168,3 +168,5 @@ data/
 *xlsx
 *.pem
 jwt-auth-frontend/node_modules/
+front_end/node_modules/
+*.Identifier
