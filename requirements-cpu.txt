@@ -22,3 +22,4 @@ python-multipart
 pytz
 llama_index
 llama-index-llms-ollama
+python-jose

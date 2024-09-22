@@ -102,8 +102,8 @@ if __name__ == "__main__":
     config_path='config/config.yaml'
     config = read_config(path=config_path)
 
-    # root_url = f"http://{config['IES_host']}:{config['IES_port']}"
-    root_url = f"http://46.137.228.37" # aws
+    root_url = f"http://{config['IES_host']}:{config['IES_port']}"
+    # root_url = f"http://46.137.228.37" # aws
 
     img_path = "test/images/page_3.png"
     user_uuid = "2111_1111_1111_1111"

@@ -61,3 +61,8 @@ excel:
   nachname_key: 'nachname'
   vorname_key: 'vorname'
   name_thresh: 20
+
+ldap:
+  ldap_server: ldap.forumsys.com
+  ldap_port: 389
+  base_dn: dc=example,dc=com

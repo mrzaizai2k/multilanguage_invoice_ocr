@@ -1,6 +1,7 @@
 import sys
 sys.path.append("") 
 
+import os
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -8,13 +9,19 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from ldap3 import Server, Connection, ALL
-from src.Utils.utils import timeit
+from src.Utils.utils import timeit, read_config
+
+from dotenv import load_dotenv
+load_dotenv()
 
 
-# JWT configuration
-SECRET_KEY = "your-secret-key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+config_path = "config/config.yaml"
+config = read_config(path = config_path)
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+ALGORITHM = os.getenv('ALGORITHM')
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
+
 
 app = FastAPI()
 
@@ -41,10 +48,11 @@ class Token(BaseModel):
     token_type: str
 
 @timeit
-def LDAP_AUTH(username: str, password: str):
-    ldap_server = "ldap.forumsys.com"
-    ldap_port = 389
-    base_dn = "dc=example,dc=com"
+def ldap_authen(username: str, password: str, config:dict):
+    config = config['ldap']
+    ldap_server = config['ldap_server']
+    ldap_port = config['ldap_port']
+    base_dn = config['base_dn']
 
     try:
         server = Server(ldap_server, port=ldap_port, get_info=ALL)
@@ -97,7 +105,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    is_valid, is_admin, username = LDAP_AUTH(form_data.username, form_data.password)
+    is_valid, is_admin, username = ldap_authen(username = form_data.username, 
+                                             password=form_data.password, 
+                                             config=config)
     if is_valid:
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(

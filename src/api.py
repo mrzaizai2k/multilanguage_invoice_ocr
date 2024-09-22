@@ -1,9 +1,13 @@
 import sys
 sys.path.append("") 
 
-from fastapi import (FastAPI, Request, Header, 
+import os
+from fastapi import (FastAPI, Request, Header, Depends,
                      status, HTTPException, Query)
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from datetime import timedelta
 from typing import Optional
 from contextlib import asynccontextmanager
 from src.mongo_database import MongoDatabase
@@ -11,12 +15,19 @@ import threading
 from src.ocr_reader import OcrReader, GoogleTranslator
 from src.base_extractors import OpenAIExtractor 
 # from src.qwen2_extract import Qwen2Extractor
+
+from src.ldap_authen import (User, get_current_user, ldap_authen, 
+                             Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
                              valid_base64_image, convert_datetime_to_iso)
 from src.invoice_extraction import extract_invoice_info
 
 config_path='config/config.yaml'
 config = read_config(path=config_path)
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+ALGORITHM = os.getenv('ALGORITHM')
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
 mongo_db = MongoDatabase(config_path=config_path)
 change_stream = None
@@ -58,9 +69,38 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Replace with your React app's URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
 @app.get("/")
 async def hello():
     return {"message": "Hello, world!"}
+
+@app.post("/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    is_valid, is_admin, username = ldap_authen(username = form_data.username, 
+                                             password=form_data.password, 
+                                             config=config)
+    if is_valid:
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": username, "is_admin": is_admin}, expires_delta=access_token_expires
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+    else:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+
+@app.get("/users/me")
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 @app.post("/api/v1/invoices/upload")
 async def upload_invoice(
