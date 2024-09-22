@@ -1,3 +1,6 @@
+import sys
+sys.path.append("") 
+
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -5,6 +8,8 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from ldap3 import Server, Connection, ALL
+from src.Utils.utils import timeit
+
 
 # JWT configuration
 SECRET_KEY = "your-secret-key"
@@ -35,6 +40,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+@timeit
 def LDAP_AUTH(username: str, password: str):
     ldap_server = "ldap.forumsys.com"
     ldap_port = 389
@@ -56,6 +62,7 @@ def LDAP_AUTH(username: str, password: str):
         print(f"LDAP authentication error: {str(e)}")
         return False, False, None
 
+@timeit
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     if expires_delta:
@@ -73,12 +80,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        import time
+        start =time.time()
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         is_admin: bool = payload.get("is_admin")
         if username is None:
             raise credentials_exception
         token_data = User(username=username, is_admin=is_admin)
+        end =time.time()
+        print("get current user", end-start)
+
     except JWTError:
         raise credentials_exception
     return token_data

@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Navbar, ProtectedRoute } from './components/Utils';
-import Login from './components/Login';
-import Protected from './components/Protected';
-import UserDashboard from './components/UserDashboard';
-import AdminDashboard from './components/AdminDashboard';
+import { ProtectedRoute } from './components/Utils';
+
+// Lazy loading components
+const Login = lazy(() => import('./components/Login/Login'));
+const Protected = lazy(() => import('./components/Protected'));
+const UserDashboard = lazy(() => import('./components/UserDashboard/UserDashboard'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard/AdminDashboard'));
 
 function App() {
   return (
     <Router>
-      <div>
-        <Navbar />
+      <Suspense fallback={<div>Loading...</div>}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route
@@ -25,7 +26,7 @@ function App() {
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
-      </div>
+      </Suspense>
     </Router>
   );
 }
