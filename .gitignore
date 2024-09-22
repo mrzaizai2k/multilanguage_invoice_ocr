@@ -167,4 +167,4 @@ venv/
 data/
 *xlsx
 *.pem
-jwt-auth-frontend/
+jwt-auth-frontend/node_modules/
