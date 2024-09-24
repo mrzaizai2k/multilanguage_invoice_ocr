@@ -4,23 +4,35 @@ import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import axios from 'axios';
 import './AddInvoice.css';
+import { API_URL } from '../../services/api';
 
 // Initialize PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
+
 function AddInvoice() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [images, setImages] = useState([]);
+  const [dragging, setDragging] = useState(false);  // State to manage drag visual feedback
+
+  const imageToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = error => reject(error);
+    });
+  };
 
   const convertPdfToImages = async (file) => {
     const images = [];
     const data = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument(data).promise;
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     for (let i = 0; i < pdf.numPages; i++) {
       const page = await pdf.getPage(i + 1);
       const viewport = page.getViewport({ scale: 1 });
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext('2d');
       canvas.height = viewport.height;
       canvas.width = viewport.width;
       await page.render({ canvasContext: context, viewport: viewport }).promise;
@@ -30,8 +42,7 @@ function AddInvoice() {
     return images;
   };
 
-  const handleFileChange = useCallback(async (event) => {
-    const files = Array.from(event.target.files);
+  const handleFileChange = useCallback(async (files) => {
     const newImages = [];
     const newFiles = [];
 
@@ -66,23 +77,24 @@ function AddInvoice() {
 
   const handleUpload = async () => {
     if (!selectedFiles.length) {
-      alert("Please select a file to upload.");
+      alert('Please select a file to upload.');
       return;
     }
 
     for (const file of selectedFiles) {
-      const formData = new FormData();
-      formData.append('file', file);
-
       try {
-        await axios.post('/api/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        const base64Image = await imageToBase64(file);
+        const payload = {
+          img: base64Image,
+          user_uuid: 'your-user-uuid-here' // Replace with actual user UUID
+        };
+
+        const response = await axios.post(`${API_URL}/api/v1/invoices/upload`, payload);
+        console.log('Upload response:', response.data);
         alert('File uploaded successfully');
       } catch (error) {
-        console.error("Error uploading file:", error);
+        console.error('Error uploading file:', error);
+        alert('Error uploading file');
       }
     }
   };
@@ -92,16 +104,39 @@ function AddInvoice() {
     setSelectedFiles(prevFiles => prevFiles.filter((_, index) => images[index] !== imageToDelete));
   };
 
+  // Handle drag events
+  const handleDragOver = (e) => {
+    e.preventDefault();  // Prevent default to allow drop
+    setDragging(true);   // Set drag feedback
+  };
+
+  const handleDragLeave = () => {
+    setDragging(false);  // Remove drag feedback
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setDragging(false);  // Remove drag feedback
+
+    const files = Array.from(e.dataTransfer.files);
+    await handleFileChange(files);
+  };
+
   return (
     <div className="add-invoice">
-      <div className="drop-zone">
+      <div
+        className={`drop-zone ${dragging ? 'dragging' : ''}`}  // Add drag feedback
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div className="icon">↑</div>
         <p>Drag and drop your files here or</p>
-        <input 
-          type="file" 
-          accept=".jpg,.png,.pdf" 
+        <input
+          type="file"
+          accept=".jpg,.png,.pdf"
           multiple
-          onChange={handleFileChange} 
+          onChange={(e) => handleFileChange(Array.from(e.target.files))}
         />
         <button className="browse-btn" onClick={handleUpload}>
           Upload Files
