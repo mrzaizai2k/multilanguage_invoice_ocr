@@ -84,3 +84,25 @@
   .add-invoice .file-types span {
     color: #666;
   }
+
+ 
+  h2 {
+    color: #0099ff;
+    font-size: 24px;
+    margin-bottom: 30px;
+  }
+
+
+.user-info p {
+  margin: 20px 0;
+  font-size: 20px;
+  color: #555;
+}
+
+.user-info p strong {
+  color: #333;
+}
+
+.user-info p:first-child {
+  margin-top: 0;
+}

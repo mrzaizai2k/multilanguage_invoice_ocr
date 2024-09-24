@@ -106,7 +106,7 @@ if __name__ == "__main__":
     # root_url = f"http://46.137.228.37" # aws
 
     img_path = "test/images/007_1.png"
-    user_uuid = "2111_1111_1111_1111"
+    user_uuid = "gauss"
     invoice_uuid = "66ed92711cb41ac8180283e0"
     invoice_info = {"amount": "1111",} 
 

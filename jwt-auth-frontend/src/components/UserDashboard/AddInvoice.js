@@ -10,7 +10,7 @@ import { API_URL } from '../../services/api';
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 
-function AddInvoice() {
+function AddInvoice({ username }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [images, setImages] = useState([]);
   const [dragging, setDragging] = useState(false);  // State to manage drag visual feedback
@@ -86,7 +86,7 @@ function AddInvoice() {
         const base64Image = await imageToBase64(file);
         const payload = {
           img: base64Image,
-          user_uuid: 'your-user-uuid-here' // Replace with actual user UUID
+          user_uuid: username // Replace with actual user UUID
         };
 
         const response = await axios.post(`${API_URL}/api/v1/invoices/upload`, payload);
