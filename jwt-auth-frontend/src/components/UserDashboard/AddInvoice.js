@@ -1,71 +1,76 @@
 import React, { useState, useCallback } from 'react';
-import { Document, Page } from 'react-pdf';
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import { pdfjs } from 'react-pdf';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import axios from 'axios';
 import './AddInvoice.css';
 
+// Initialize PDF.js
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
 function AddInvoice() {
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [pdfPages, setPdfPages] = useState([]);
   const [images, setImages] = useState([]);
-  const [rotation, setRotation] = useState(0);
 
-  // Handle file selection for multiple files
-  const handleFileChange = useCallback((event) => {
-    const files = Array.from(event.target.files); // Handle multiple files
-    const newImages = [];
-    files.forEach((file) => {
-      if (file.type === 'application/pdf') {
-        const reader = new FileReader();
-        reader.onload = function () {
-          const pdfData = new Uint8Array(reader.result);
-          processPdf(pdfData);
-        };
-        reader.readAsArrayBuffer(file);
-      } else if (file.type.startsWith('image/')) {
-        newImages.push(URL.createObjectURL(file));
-      }
-    });
-    setImages((prevImages) => [...prevImages, ...newImages]); // Add new images to the list
-    setSelectedFiles((prevFiles) => [...prevFiles, ...files]); // Store files for upload
-  }, []);
-
-  // Function to process PDF and extract pages as images
-  const processPdf = async (pdfData) => {
-    const pdf = await window.pdfjsLib.getDocument({ data: pdfData }).promise;
-    const numPages = pdf.numPages;
-    const pages = [];
-    for (let i = 1; i <= numPages; i++) {
-      const page = await pdf.getPage(i);
+  const convertPdfToImages = async (file) => {
+    const images = [];
+    const data = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument(data).promise;
+    const canvas = document.createElement("canvas");
+    for (let i = 0; i < pdf.numPages; i++) {
+      const page = await pdf.getPage(i + 1);
       const viewport = page.getViewport({ scale: 1 });
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext("2d");
       canvas.height = viewport.height;
       canvas.width = viewport.width;
-
       await page.render({ canvasContext: context, viewport: viewport }).promise;
-      pages.push(canvas.toDataURL('image/png'));
+      images.push(canvas.toDataURL());
     }
-    setPdfPages((prevPages) => [...prevPages, ...pages]);
+    canvas.remove();
+    return images;
   };
 
-  // Rotate selected image
-  const rotateImage = () => {
-    setRotation((prevRotation) => (prevRotation + 90) % 360);
+  const handleFileChange = useCallback(async (event) => {
+    const files = Array.from(event.target.files);
+    const newImages = [];
+    const newFiles = [];
+
+    for (const file of files) {
+      if (file.type === 'application/pdf') {
+        const pdfImages = await convertPdfToImages(file);
+        newImages.push(...pdfImages);
+        newFiles.push(...pdfImages.map(img => {
+          const blob = dataURItoBlob(img);
+          return new File([blob], `${file.name}-page-${newImages.length}.png`, { type: 'image/png' });
+        }));
+      } else if (file.type.startsWith('image/')) {
+        newImages.push(URL.createObjectURL(file));
+        newFiles.push(file);
+      }
+    }
+
+    setImages(prevImages => [...prevImages, ...newImages]);
+    setSelectedFiles(prevFiles => [...prevFiles, ...newFiles]);
+  }, []);
+
+  const dataURItoBlob = (dataURI) => {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
   };
 
-  // Upload each image to the server
   const handleUpload = async () => {
-    if (!images.length && !pdfPages.length) {
+    if (!selectedFiles.length) {
       alert("Please select a file to upload.");
       return;
     }
 
-    const filesToUpload = images.length ? images : pdfPages;
-
-    for (const file of filesToUpload) {
+    for (const file of selectedFiles) {
       const formData = new FormData();
       formData.append('file', file);
 
@@ -82,10 +87,9 @@ function AddInvoice() {
     }
   };
 
-  // Delete image from the preview
   const deleteImage = (imageToDelete) => {
-    setImages((prevImages) => prevImages.filter((image) => image !== imageToDelete));
-    setPdfPages((prevPages) => prevPages.filter((page) => page !== imageToDelete));
+    setImages(prevImages => prevImages.filter(image => image !== imageToDelete));
+    setSelectedFiles(prevFiles => prevFiles.filter((_, index) => images[index] !== imageToDelete));
   };
 
   return (
@@ -96,7 +100,7 @@ function AddInvoice() {
         <input 
           type="file" 
           accept=".jpg,.png,.pdf" 
-          multiple // Allow multiple file selection
+          multiple
           onChange={handleFileChange} 
         />
         <button className="browse-btn" onClick={handleUpload}>
@@ -109,7 +113,6 @@ function AddInvoice() {
         </div>
       </div>
 
-      {/* Show thumbnails of images */}
       <div className="thumbnail-container">
         <PhotoProvider
           toolbarRender={({ rotate, onRotate }) => {
@@ -127,31 +130,18 @@ function AddInvoice() {
             );
           }}
         >
-          {pdfPages.length > 0
-            ? pdfPages.map((page, index) => (
-                <div key={index} className="thumbnail-wrapper">
-                  <PhotoView src={page}>
-                    <img
-                      src={page}
-                      alt={`PDF page ${index + 1}`}
-                      className="thumbnail"
-                    />
-                  </PhotoView>
-                  <button onClick={() => deleteImage(page)} className="delete-btn">❌</button>
-                </div>
-              ))
-            : images.map((image, index) => (
-                <div key={index} className="thumbnail-wrapper">
-                  <PhotoView src={image}>
-                    <img
-                      src={image}
-                      alt={`Selected file`}
-                      className="thumbnail"
-                    />
-                  </PhotoView>
-                  <button onClick={() => deleteImage(image)} className="delete-btn">❌</button>
-                </div>
-              ))}
+          {images.map((image, index) => (
+            <div key={index} className="thumbnail-wrapper">
+              <PhotoView src={image}>
+                <img
+                  src={image}
+                  alt={`Selected file ${index + 1}`}
+                  className="thumbnail"
+                />
+              </PhotoView>
+              <button onClick={() => deleteImage(image)} className="delete-btn">❌</button>
+            </div>
+          ))}
         </PhotoProvider>
       </div>
     </div>
