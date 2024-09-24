@@ -34,8 +34,8 @@ postprocessing:
 mongodb:
   # host: "mongodb::27017"
   # port: 27017
-  uri: mongodb://mongodb:27017/
-  # uri: mongodb://localhost:27017/
+  # uri: mongodb://mongodb:27017/
+  uri: mongodb://localhost:27017/
   database: invoice_db
   collection: invoices
 
