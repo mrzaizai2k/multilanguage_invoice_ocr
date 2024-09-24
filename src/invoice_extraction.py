@@ -156,12 +156,13 @@ if __name__ == "__main__":
 
     ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator())
     invoice_extractor = OpenAIExtractor(config_path=config_path)
-    img_path = "fr_1.png"
-    # img_path = "test/images/009_1.png"
+    # img_path = "fr_1.png"
+    img_path = "test/images/007_2.png"
     base64_img = convert_img_path_to_base64(img_path)
     result = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
                                         invoice_extractor=invoice_extractor, config=config)
     print("\ninfo", result['invoice_info'])
+    print("\nresult", result)
 
 
 

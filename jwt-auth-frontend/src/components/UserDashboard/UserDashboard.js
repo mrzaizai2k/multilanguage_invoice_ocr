@@ -1,26 +1,28 @@
 import React, { useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UserDashboard.css';
+import AddInvoice from './AddInvoice'; // Import the AddInvoice component
 
 // Memoized components
 const MemoizedUserInfo = memo(UserInfo);
 const MemoizedInvoiceList = memo(InvoiceList);
-const MemoizedAddInvoice = memo(AddInvoice);
+const MemoizedAddInvoice = memo(AddInvoice); // Memoize AddInvoice component
 
 function UserDashboard() {
   const [activeTab, setActiveTab] = useState('userInfo');
   const navigate = useNavigate();
 
-  // Use useCallback to memoize these functions
+  // Memoize the tab change handler
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab);
   }, []);
 
+  // Memoize the logout handler
   const handleLogout = useCallback(() => {
     navigate('/login');
   }, [navigate]);
 
-  // Memoize the tab content
+  // Memoize the content displayed based on the active tab
   const tabContent = React.useMemo(() => {
     switch (activeTab) {
       case 'userInfo':
@@ -89,6 +91,7 @@ const SidebarButton = memo(({ active, onClick, icon, text, className = '' }) => 
   </button>
 ));
 
+// Mock UserInfo component
 function UserInfo({ userData }) {
   if (!userData) return <p>Loading...</p>;
 
@@ -101,46 +104,51 @@ function UserInfo({ userData }) {
   );
 }
 
+// Mock InvoiceList component
 function InvoiceList() {
   return <h2>Invoice List</h2>;
 }
 
-function AddInvoice() {
-  const [selectedFile, setSelectedFile] = useState(null);
-
-  const handleFileChange = useCallback((event) => {
-    setSelectedFile(event.target.files[0]);
-  }, []);
-
-  const handleUpload = useCallback(async () => {
-    if (!selectedFile) {
-      alert("Please select a file to upload.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-
-    // Upload logic here
-  }, [selectedFile]);
-
-  return (
-    <div className="add-invoice">
-      <div className="drop-zone">
-        <div className="icon">↑</div>
-        <p>Drag and drop your image here or</p>
-        <input type="file" accept=".jpg,.png,.pdf" onChange={handleFileChange} />
-        <button className="browse-btn" onClick={handleUpload}>
-          Upload File
-        </button>
-        <div className="file-types">
-          <span>JPG</span>
-          <span>PNG</span>
-          <span>PDF</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default UserDashboard;
+
+
+
+// function AddInvoice() {
+//   const [selectedFile, setSelectedFile] = useState(null);
+
+//   const handleFileChange = useCallback((event) => {
+//     setSelectedFile(event.target.files[0]);
+//   }, []);
+
+//   const handleUpload = useCallback(async () => {
+//     if (!selectedFile) {
+//       alert("Please select a file to upload.");
+//       return;
+//     }
+
+//     const formData = new FormData();
+//     formData.append('file', selectedFile);
+
+//     // Upload logic here
+//   }, [selectedFile]);
+
+//   return (
+//     <div className="add-invoice">
+//       <div className="drop-zone">
+//         <div className="icon">↑</div>
+//         <p>Drag and drop your image here or</p>
+//         <input type="file" accept=".jpg,.png,.pdf" onChange={handleFileChange} />
+//         <button className="browse-btn" onClick={handleUpload}>
+//           Upload File
+//         </button>
+//         <div className="file-types">
+//           <span>JPG</span>
+//           <span>PNG</span>
+//           <span>PDF</span>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default UserDashboard;
