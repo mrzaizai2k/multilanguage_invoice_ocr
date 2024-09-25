@@ -123,7 +123,7 @@ This is the sample document saved in MongoDB for `invoice_type` == "invoice 3".
 
 This is the sample document saved in MongoDB for `invoice_type` == "invoice 1".
 
-```json
+```json 
 {
   "invoice_info": {
     "name": "",

@@ -13,12 +13,13 @@ class MongoDatabase:
         self.config = read_config(path=self.config_path)
 
         # Initialize MongoDB connection
-        print("Mongo uri", str(self.config['mongodb']['uri']))
         try:
-            self.client = MongoClient(str(self.config['mongodb']['uri']), directConnection=True)
+            print("Mongo uri", str(self.config['mongodb']['uri']))
+            self.client = MongoClient(str(self.config['mongodb']['uri']), connect=True)
             print("Mongo version", self.client.server_info()['version'])
         except:
-            self.client = MongoClient("mongodb://mongodb:27017/", directConnection=True)
+            print("Mongo uri", "mongodb://mongodb:27017/")
+            self.client = MongoClient("mongodb://mongodb:27017/", connect=True )
             print("Mongo version", self.client.server_info()['version'])
 
         # self.client = MongoClient(host = str(self.config['mongodb']['uri'])) 

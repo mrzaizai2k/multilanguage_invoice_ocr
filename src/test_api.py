@@ -110,9 +110,9 @@ if __name__ == "__main__":
     invoice_uuid = "66ed92711cb41ac8180283e0"
     invoice_info = {"amount": "1111",} 
 
-    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
+    test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc')
+    # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc')
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
 
