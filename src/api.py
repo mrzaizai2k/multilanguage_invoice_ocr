@@ -21,15 +21,19 @@ from src.ldap_authen import (User, get_current_user, ldap_authen,
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
                              valid_base64_image, convert_datetime_to_iso)
 from src.invoice_extraction import extract_invoice_info
+from src.Utils.logger import create_logger
 
 config_path='config/config.yaml'
 config = read_config(path=config_path)
+
+logger = create_logger(config_path=config_path)
+logger.info(msg = "Loading config")
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
-mongo_db = MongoDatabase(config_path=config_path)
+mongo_db = MongoDatabase(config_path=config_path, logger=logger)
 change_stream = None
 change_stream_thread = None
 
@@ -45,7 +49,8 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
             base64_img = document['invoice_image_base64']
 
             new_data = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
-                                            invoice_extractor=invoice_extractor, config=config)
+                                            invoice_extractor=invoice_extractor, config=config, 
+                                            logger=logger)
 
             mongo_db.update_document_by_id(document_id, new_data)
    
@@ -115,12 +120,14 @@ async def upload_invoice(
         user_uuid = body.get("user_uuid")
         
         if not img or not is_base64(img):
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={
+            msg = {
                     "status": "error",
                     "message": "Base64 image is required",
-                })
+                }
+            logger.debug(msg=msg)
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=msg)
         
         # Generate invoice UUID
         img = valid_base64_image(img)       
@@ -137,47 +144,53 @@ async def upload_invoice(
         }
         
         invoice_uuid = mongo_db.create_document(invoice_document)
-        print('result save mongo', invoice_uuid)
         mongo_db.update_document_by_id(invoice_uuid, {"invoice_uuid": invoice_uuid})
 
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED,
-            content={
+        msg={
                 "invoice_uuid": invoice_uuid,
                 "message": "Upload successful"
             }
+        logger.debug(msg=msg)
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content=msg
         )
 
     except Exception as e:
         # Handle errors
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
+        msg = {
                 "status": "error",
                 "message": str(e)
-            })
+        }
+        logger.debug(msg=msg)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=msg)
     
 
 @app.delete("/api/v1/invoices/{invoice_uuid}")
 async def delete_invoice(invoice_uuid: str):
     try:
         mongo_db.delete_document_by_id(invoice_uuid)
-
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
+        msg = {
                 "message": "Invoice deleted successfully"
             }
+        logger.debug(msg=msg)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=msg
         )
     
     except Exception as e:
         # Handle errors
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
+        msg = {
                 "status": "error",
                 "message": str(e)
-            })
+            }
+        logger.debug(msg=msg)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=msg)
     
 
 @app.put("/api/v1/invoices/{invoice_uuid}")
@@ -189,12 +202,14 @@ async def modify_invoice(invoice_uuid: str, request: Request):
         invoice_info = body.get("invoice_info")
         
         if not invoice_info:
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                content={
+            msg = {
                     "status": "error",
                     "message": "Invoice information is required",
-                })
+                }
+            logger.debug(msg=msg)
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=msg)
         
         # Prepare update fields
         update_fields = {
@@ -207,29 +222,34 @@ async def modify_invoice(invoice_uuid: str, request: Request):
         try:
             mongo_db.update_document_by_id(invoice_uuid, update_fields)
         except:
-            return JSONResponse(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content={
+            msg = {
                     "status": "error",
                     "message": "Failed to update the invoice",
-                })
+                }
+            logger.debug(msg = msg)
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content=msg)
 
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
+        msg = {
                 "invoice_uuid": invoice_uuid,
                 "message": "Invoice information updated."
             }
+        logger.debug(msg=msg)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=msg
         )
 
     except Exception as e:
         # Handle errors
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
+        msg = {
                 "status": "error",
                 "message": str(e)
-            })
+            }
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=msg)
 
 
 
@@ -254,10 +274,14 @@ async def get_invoices(
 
         print("query", query)
         # Fetch documents from MongoDB
+        logger.debug(msg=f"query:{query}")
         invoices = mongo_db.get_documents(filters = query, page=page, limit=limit, sort=created_at.lower())
         print("len",len(invoices))
+        logger.debug(msg=f"Number of docs:{len(invoices)}")
         
         if not invoices:
+            msg = "There are no invoices meet requirements"
+            logger.debug(msg=msg)
             return JSONResponse(
             status_code=200,
             content=[]
@@ -278,7 +302,13 @@ async def get_invoices(
 
     except Exception as e:
         # Handle errors
-        raise HTTPException(status_code=500, detail=str(e))
+        msg = {
+                "status": "error",
+                "message": str(e)
+            }
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=msg)
         
 
 if __name__ == "__main__":

@@ -90,6 +90,8 @@ def test_get_invoices(user_uuid: Optional[str] = None,
     # Print the response for debugging (optional)
     print(response.status_code)
     print("len",len(response.json()))
+    for invoice in response.json():
+        print(invoice['invoice_info'])
 
     # Check the status code and print appropriate messages
     if response.status_code == 200:
@@ -105,16 +107,17 @@ if __name__ == "__main__":
     root_url = f"http://{config['IES_host']}:{config['IES_port']}"
     # root_url = f"http://46.137.228.37" # aws
 
-    img_path = "test/images/007_1.png"
+    img_path = "test/images/007_2.png"
     user_uuid = "gauss"
+    # user_uuid = "2111_1111_1111_1111"
     invoice_uuid = "66ed92711cb41ac8180283e0"
     invoice_info = {"amount": "1111",} 
 
     test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc')
-    # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
-    # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
+    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc')
+    test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
+    test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
 
 
 

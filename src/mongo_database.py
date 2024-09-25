@@ -2,29 +2,36 @@ import sys
 sys.path.append("")
 
 from pymongo import MongoClient
-from typing import Optional, Dict, Any, List, Literal
-from bson import ObjectId, json_util
+from typing import  Dict, Any, List, Literal
+from bson import ObjectId
 from src.Utils.utils import read_config, get_current_time
 
 class MongoDatabase:
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: str, logger = None):
         # Load the YAML configuration file using the provided utility function
         self.config_path = config_path
         self.config = read_config(path=self.config_path)
-
-        # Initialize MongoDB connection
         try:
-            print("Mongo uri", str(self.config['mongodb']['uri']))
+            print(f"mongo URI: {str(self.config['mongodb']['uri'])}")
             self.client = MongoClient(str(self.config['mongodb']['uri']), connect=True)
-            print("Mongo version", self.client.server_info()['version'])
-        except:
-            print("Mongo uri", "mongodb://mongodb:27017/")
-            self.client = MongoClient("mongodb://mongodb:27017/", connect=True )
-            print("Mongo version", self.client.server_info()['version'])
+            print(f"Connected to MongoDB. Version: {self.client.server_info()['version']}")
+        except Exception as e:
+            try:
+                print(f"mongo URI: {str(self.config['mongodb']['uri'])}")
+                self.client = MongoClient("mongodb://mongodb:27017/", connect=True)
+                print(f"Connected to fallback MongoDB. Version: {self.client.server_info()['version']}")
+            except Exception as e:
+                print(f"Failed to connect to fallback MongoDB. Error: {str(e)}")
+                raise
 
         # self.client = MongoClient(host = str(self.config['mongodb']['uri'])) 
         self.db = self.client[self.config['mongodb']['database']]
         self.collection = self.db[self.config['mongodb']['collection']]
+
+        if logger:
+            self.logger=logger
+            self.logger.info(f"Using database: {self.config['mongodb']['database']}, collection: {self.config['mongodb']['collection']}")
+
 
     def create_document(self, data: Dict[str, Any]) -> str:
         # Insert a new document and return the automatically generated document ID

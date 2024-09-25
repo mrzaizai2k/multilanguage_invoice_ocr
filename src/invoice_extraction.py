@@ -14,7 +14,6 @@ from src.Utils.utils import (timeit, read_config, convert_img_path_to_base64,
 from src.validate_invoice import (validate_invoice_3, validate_invoice_1,validate_invoice_2,
                                     Invoice3, Invoice2, Invoice1)
 
-
 def preprocess_text(text: str) -> str:
     # Remove special characters and digits
     text = re.sub(r'[^a-zA-Z\s]', '', text)
@@ -100,7 +99,8 @@ def get_document_template(document_type:str, config:dict):
     invoice_template = read_txt_file(invoice_dict[document_type])
     return invoice_template
 
-def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor:BaseExtractor, config:dict) -> dict:
+def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, 
+                         invoice_extractor:BaseExtractor, config:dict, logger = None) -> dict:
     result = {}
     pil_img = convert_base64_to_pil_image(base64_img)
     ocr_result = ocr_reader.get_text(pil_img)
@@ -126,6 +126,8 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, invoice_extractor
     result["status"] = "completed"
 
     print("\ninvoice_info", invoice_info)
+    if logger:
+        logger.debug(f"Final invoice info: {invoice_info}")
 
     return result
 

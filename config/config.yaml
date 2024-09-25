@@ -35,7 +35,7 @@ mongodb:
   # host: "mongodb::27017"
   # port: 27017
   # uri: mongodb://mongodb:27017/
-  uri: mongodb://localhost:27017/
+  uri: "mongodb://localhost:27017/"
   database: invoice_db
   collection: invoices
 
@@ -66,3 +66,18 @@ ldap:
   ldap_server: ldap.forumsys.com
   ldap_port: 389
   base_dn: dc=example,dc=com
+
+logging:  
+  backupCount: 100 # delete log after 100 days
+  logfile: logs/fvs.log
+  when: midnight #rotate after a day
+  libraries:
+    PIL: WARNING
+    pytesseract: WARNING
+    pymongo: WARNING
+    urllib3: WARNING
+    requests: WARNING
+    openai: WARNING
+    httpx: WARNING
+    uvicorn: WARNING
+    httpcore: WARNING
