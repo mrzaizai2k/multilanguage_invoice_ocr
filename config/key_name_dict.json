@@ -83,6 +83,27 @@
     "barcodes": "Barcodes",
     "hash": "Hash",
     "hash_duplicate": "Hash Duplicate",
-    "raw_text": "Raw Text"
+    "raw_text": "Raw Text",
+    "name": "Name",
+    "project_number": "Project Number",
+    "customer": "Customer",
+    "city": "City",
+    "land": "Land",
+    "start_time": "Start Time",
+    "end_time": "End Time",
+    "break_time": "Break Time",
+    "description": "Description",
+    "has_customer_signature": "Has Customer Signature ?",
+    "is_process_done": "Is Process Completed ?",
+    "is_commissioned_work": "Is Commissioned Work ?",
+    "is_without_measuring_technology": "Is Without Measuring Technology  ?",
+    "sign_date": "Signature Date",
+    "has_employee_signature": "Is Employee Signature",
+    "is_in_egw": "Is In EGW ?",
+    "fixed_lines": "Fixed Line Items",
+    "title": "Title",
+    "with_breakfast": "Is with Breakfast ?",
+    "can_book_again": "Can Book Again ?",
+    "payment_method": "Payment Method"
   }
   
