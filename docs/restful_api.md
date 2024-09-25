@@ -202,6 +202,7 @@ curl -X GET "http://localhost:8000/api/v1/invoices?created_at=<sort_order>&creat
 | created_by    | query        | string | optional | Filter by `user_uuid` of the invoice creator (if None, take all)|
 | invoice_type  | query        | string | optional | Filter by type of invoice (if None, take all)                  |
 | invoice_uuid  | query        | string | optional | Id of specific invoice                      |
+| status        | query        | string | optional | "not extracted", "completed". Default is None to take both |
 | page          | query        | number | optional | Page number for pagination (default is 1)   |
 | limit         | query        | number | optional | Number of invoices per page (default is 10) |
 

@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import timedelta
-from typing import Optional
+from typing import Optional, Literal
 from contextlib import asynccontextmanager
 from src.mongo_database import MongoDatabase
 import threading
@@ -264,13 +264,13 @@ async def modify_invoice(invoice_uuid: str, request: Request):
             content=msg)
 
 
-
 @app.get("/api/v1/invoices")
 async def get_invoices(
     created_at: Optional[str] = Query("asc", description="Sort by creation date (asc or desc)"),
     created_by: Optional[str] = Query(None, description="Filter by user_uuid of the invoice creator"),
     invoice_type: Optional[str] = Query(None, description="Filter by type of invoice"),
     invoice_uuid: Optional[str] = Query(None, description="Filter by id of invoice"),
+    status: Optional[Literal['not extracted', 'completed']] = Query(None, description="Filter by invoice status"),
     page: int = Query(1, description="Page number for pagination", gt=0),
     limit: int = Query(10, description="Number of invoices per page", gt=0),
 ):
@@ -283,28 +283,28 @@ async def get_invoices(
             query["invoice_type"] = invoice_type
         if invoice_uuid:
             query["invoice_uuid"] = invoice_uuid
+        if status:
+            query["status"] = status
 
-        print("query", query)
-        # Fetch documents from MongoDB
         logger.debug(msg=f"query:{query}")
-        invoices = mongo_db.get_documents(filters = query, page=page, limit=limit, sort=created_at.lower())
-        print("len",len(invoices))
+        
+        # Fetch documents from MongoDB
+        invoices = mongo_db.get_documents(filters=query, page=page, limit=limit, sort=created_at.lower())
         logger.debug(msg=f"Number of docs:{len(invoices)}")
         
         if not invoices:
-            msg = "There are no invoices meet requirements"
+            msg = "There are no invoices that meet requirements"
             logger.debug(msg=msg)
             return JSONResponse(
-            status_code=200,
-            content=[]
-        )
+                status_code=200,
+                content=[]
+            )
 
         for invoice in invoices:
             invoice["_id"] = str(invoice["_id"])
             convert_datetime_to_iso(invoice)
 
-
-        print("invoice",invoices[0]['created_at'])
+        logger.debug(msg=f"Sample invoice created_at: {invoices[0]['created_at']}")
 
         # Return the invoices in the expected format
         return JSONResponse(
@@ -315,13 +315,13 @@ async def get_invoices(
     except Exception as e:
         # Handle errors
         msg = {
-                "status": "error",
-                "message": str(e)
-            }
+            "status": "error",
+            "message": str(e)
+        }
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=msg)
-        
+            content=msg
+        )
 
 if __name__ == "__main__":
     import uvicorn
