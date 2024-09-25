@@ -116,7 +116,7 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader,
     
     result['translator'] = ocr_reader['translator']
     result['ocr_detector'] = ocr_reader['ocr_detector']
-    result['invoice_info'] = invoice_info
+    result['invoice_info'] = invoice_info["invoice_info"]
     result['invoice_type'] = invoice_type
     result['ocr_info'] = ocr_result
     result['llm_extractor'] = invoice_extractor['llm_extractor']
