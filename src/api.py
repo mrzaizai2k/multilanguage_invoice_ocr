@@ -90,23 +90,35 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 async def hello():
     return {"message": "Hello, world!"}
 
+
 @app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    is_valid, is_admin, username = ldap_authen(username = form_data.username, 
-                                             password=form_data.password, 
-                                             config=config)
-    if is_valid:
-        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
-            data={"sub": username, "is_admin": is_admin}, expires_delta=access_token_expires
-        )
-        return {"access_token": access_token, "token_type": "bearer"}
-    else:
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):    
+    try:
+        is_valid, is_admin, username = ldap_authen(username=form_data.username, 
+                                                   password=form_data.password, 
+                                                   config=config)
+        if is_valid:
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = create_access_token(
+                data={"sub": username, "is_admin": is_admin}, expires_delta=access_token_expires
+            )
+            logger.debug(f"Login successful for username: {username} (is_admin: {is_admin})")
+            return {"access_token": access_token, "token_type": "bearer"}
+        else:
+            logger.debug(f"Login failed for username: {form_data.username} - Incorrect username or password")
+            raise HTTPException(status_code=401, detail="Incorrect username or password")
+    except Exception as e:
+        logger.debug(f"Error during login for username: {form_data.username} - {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/users/me")
 async def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
+    logger.info(f"Fetching user info for username: {current_user.username}")
+    try:
+        return current_user
+    except Exception as e:
+        logger.error(f"Error fetching user info for username: {current_user.username} - {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/v1/invoices/upload")
 async def upload_invoice(

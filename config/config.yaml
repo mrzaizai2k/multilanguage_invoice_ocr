@@ -81,3 +81,4 @@ logging:
     httpx: WARNING
     uvicorn: WARNING
     httpcore: WARNING
+    multipart: WARNING

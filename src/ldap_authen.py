@@ -47,7 +47,6 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-@timeit
 def ldap_authen(username: str, password: str, config:dict):
     config = config['ldap']
     ldap_server = config['ldap_server']
@@ -70,7 +69,6 @@ def ldap_authen(username: str, password: str, config:dict):
         print(f"LDAP authentication error: {str(e)}")
         return False, False, None
 
-@timeit
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     if expires_delta:
@@ -88,16 +86,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        import time
-        start =time.time()
+
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         is_admin: bool = payload.get("is_admin")
         if username is None:
             raise credentials_exception
         token_data = User(username=username, is_admin=is_admin)
-        end =time.time()
-        print("get current user", end-start)
 
     except JWTError:
         raise credentials_exception
