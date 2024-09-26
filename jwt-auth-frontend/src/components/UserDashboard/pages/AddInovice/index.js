@@ -3,17 +3,21 @@ import { pdfjs } from 'react-pdf';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import axios from 'axios';
+import { notification, Spin } from 'antd';  // Import Spin from antd
 import './AddInvoice.css';
-import { API_URL } from '../../services/api';
+import { API_URL } from '../../../../services/api';
+import { BsFiletypeJpg, BsFiletypePdf, BsFiletypePng, BsTrash3Fill, BsUpload  } from "react-icons/bs";
+import { MdAddToPhotos, MdOutlineZoomOutMap } from "react-icons/md";
 
 // Initialize PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-
 
 function AddInvoice({ username }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [images, setImages] = useState([]);
   const [dragging, setDragging] = useState(false);  // State to manage drag visual feedback
+  const [loadingAddFile, setLoadingAddFile] = useState(false);  // State for loading spinner when adding files
+  const [loadingUpload, setLoadingUpload] = useState(false);  // State for loading spinner when uploading
 
   const imageToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -43,6 +47,7 @@ function AddInvoice({ username }) {
   };
 
   const handleFileChange = useCallback(async (files) => {
+    setLoadingAddFile(true);  // Set loading for adding files
     const newImages = [];
     const newFiles = [];
 
@@ -62,6 +67,7 @@ function AddInvoice({ username }) {
 
     setImages(prevImages => [...prevImages, ...newImages]);
     setSelectedFiles(prevFiles => [...prevFiles, ...newFiles]);
+    setLoadingAddFile(false);  // Turn off loading after file added
   }, []);
 
   const dataURItoBlob = (dataURI) => {
@@ -74,28 +80,42 @@ function AddInvoice({ username }) {
     }
     return new Blob([ab], { type: mimeString });
   };
-
+  console.log(selectedFiles);
+  
   const handleUpload = async () => {
     if (!selectedFiles.length) {
-      alert('Please select a file to upload.');
+      notification.warning({
+        message: 'No Files Selected',
+        description: 'Please select a file to upload.',
+      });
       return;
     }
 
-    for (const file of selectedFiles) {
-      try {
+    setLoadingUpload(true);  // Set loading for uploading
+
+    try {
+      for (const file of selectedFiles) {
         const base64Image = await imageToBase64(file);
         const payload = {
           img: base64Image,
-          user_uuid: username // Replace with actual user UUID
+          user_uuid: username
         };
+        console.log(payload);
 
-        const response = await axios.post(`${API_URL}/api/v1/invoices/upload`, payload);
-        console.log('Upload response:', response.data);
-        alert('File uploaded successfully');
-      } catch (error) {
-        console.error('Error uploading file:', error);
-        alert('Error uploading file');
+        await axios.post(`${API_URL}/api/v1/invoices/upload`, payload);
       }
+
+      notification.success({
+        message: 'Upload Successful',
+        description: 'All files uploaded successfully!',
+      });
+    } catch (error) {
+      notification.error({
+        message: 'Upload Failed',
+        description: 'Error uploading file:' + error,
+      });
+    } finally {
+      setLoadingUpload(false);  // Turn off loading after upload
     }
   };
 
@@ -124,33 +144,17 @@ function AddInvoice({ username }) {
 
   return (
     <div className="add-invoice">
-      <div
-        className={`drop-zone ${dragging ? 'dragging' : ''}`}  // Add drag feedback
+      <div className={`drop-zone ${dragging ? 'dragging' : ''}`}  // Add drag feedback
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className="icon">↑</div>
-        <p>Drag and drop your files here or</p>
-        <input
-          type="file"
-          accept=".jpg,.png,.pdf"
-          multiple
-          onChange={(e) => handleFileChange(Array.from(e.target.files))}
-        />
-        <button className="browse-btn" onClick={handleUpload}>
-          Upload Files
-        </button>
-        <div className="file-types">
-          <span>JPG</span>
-          <span>PNG</span>
-          <span>PDF</span>
-        </div>
-      </div>
-
-      <div className="thumbnail-container">
-        <PhotoProvider
-          toolbarRender={({ rotate, onRotate }) => {
+        {loadingAddFile ? (
+          <div className="loading-spinner">
+            <Spin size="large" />
+          </div>
+        ) : images.length > 0 ? (<>
+          <PhotoProvider toolbarRender={({ rotate, onRotate }) => {
             return (
               <svg
                 className="PhotoView-Slider__toolbarIcon"
@@ -163,22 +167,61 @@ function AddInvoice({ username }) {
                 <path d="M565.5 202.5l75-75v225h-225l103.5-103.5c-34.5-34.5-82.5-57-135-57-106.5 0-192 85.5-192 192s85.5 192 192 192c84 0 156-52.5 181.5-127.5h66c-28.5 111-127.5 192-247.5 192-141 0-255-114-255-255s114-255 255-255c70.5 0 135 28.5 181.5 72z" />
               </svg>
             );
-          }}
-        >
-          {images.map((image, index) => (
-            <div key={index} className="thumbnail-wrapper">
-              <PhotoView src={image}>
-                <img
-                  src={image}
-                  alt={`Selected file ${index + 1}`}
-                  className="thumbnail"
-                />
-              </PhotoView>
-              <button onClick={() => deleteImage(image)} className="delete-btn">❌</button>
+          }}>
+            <div className="thumbnail__list">
+              {images.map((image, index) => (
+                <div className="thumbnail__item" key={index}>
+                  <img src={image} alt={`Selected file ${index + 1}`} />
+                  <div className="thumbnail__item-overlay">
+                    <PhotoView src={image}>
+                      <button className="zoom-btn">
+                        <MdOutlineZoomOutMap />
+                      </button>
+                    </PhotoView>
+                    <button className="delete-btn" onClick={() => deleteImage(image)}>
+                      <BsTrash3Fill />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <div className="thumbnail__item-addmore">
+                <input id='file2' type="file" accept=".jpg,.png,.pdf" multiple onChange={(e) => handleFileChange(Array.from(e.target.files))} hidden />
+                <label htmlFor='file2' className="add-more-file">
+                  <h3>Add more files</h3>
+                  <MdAddToPhotos />
+                </label>
+              </div>
             </div>
-          ))}
-        </PhotoProvider>
+          </PhotoProvider>
+        </>) : (<>
+          <div className="icon-upload"><BsUpload /></div>
+          <p>Drag and drop your image here</p>
+          <span className='or'>or</span>
+          <label htmlFor='file' className="browse-btn">Browse File</label>
+          <input id='file' type="file" accept=".jpg,.png,.pdf" multiple onChange={(e) => handleFileChange(Array.from(e.target.files))} hidden />
+          <div className="file-types">
+            <BsFiletypeJpg />
+            <BsFiletypePng />
+            <BsFiletypePdf />
+          </div>
+        </>)}
+
       </div>
+      {images.length > 0 && (
+        <button className="upload-btn" onClick={handleUpload} disabled={loadingUpload}>
+          {loadingUpload ? (
+            <>
+              <Spin size="small" />
+              <span style={{ marginLeft: '8px' }}>Uploading...</span>
+            </>
+          ) : (
+            <>
+              <BsUpload style={{fontSize: "20px", marginRight: '8px'}}/>
+              <span>Upload</span>
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 }

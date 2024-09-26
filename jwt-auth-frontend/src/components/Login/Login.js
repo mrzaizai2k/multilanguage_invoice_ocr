@@ -3,16 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_URL } from '../../services/api';
 import './Login.css';
+import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
+import { Spin } from 'antd';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); // New state for loading
   const [showPassword, setShowPassword] = useState(false); // New state for password visibility
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Set loading to true when the form is submitted
+    setError(''); // Clear any previous errors
     try {
       const response = await axios.post(`${API_URL}/token`, 
         `username=${username}&password=${password}`,
@@ -22,6 +27,8 @@ function Login() {
       navigate('/protected');
     } catch (error) {
       setError('Invalid credentials');
+    } finally {
+      setLoading(false); // Set loading to false once the request is finished
     }
   };
 
@@ -35,7 +42,7 @@ function Login() {
       <div className="login-box">
         <div className="login-header">
           <div className="logo">
-            <svg viewBox="0 0 24 24" width="24" height="24">
+            <svg viewBox="0 0 24 24" width="45" height="45">
               <path d="M3 3h18v18H3z" fill="#0099ff"/>
               <path d="M7 7h10v2H7zm0 4h10v2H7zm0 4h7v2H7z" fill="white"/>
             </svg>
@@ -67,11 +74,13 @@ function Login() {
                 required
               />
               <span className="password-toggle" onClick={togglePasswordVisibility}>
-                {showPassword ? '🙈' : '👁️'} {/* Change icon based on visibility */}
+                {showPassword ? <BsEyeFill /> : <BsEyeSlashFill />} {/* Change icon based on visibility */}
               </span>
             </div>
           </div>
-          <button type="submit" className="login-button">Log in</button>
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? <Spin/> : 'Log in'}
+          </button>
         </form>
         {error && <div className="error-message">{error}</div>}
       </div>

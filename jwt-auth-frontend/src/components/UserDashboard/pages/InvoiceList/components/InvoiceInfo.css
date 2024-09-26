@@ -1,0 +1,182 @@
+.invoice__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.invoice__overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.invoice__overlay-content {
+  position: fixed;
+  width: 470px;
+  height: 100%;
+  padding: 10px 15px;
+  background: #fff;
+  z-index: 999;
+  right: 0;
+  top: 0;
+  transform: translateX(100%); /* Hidden off-screen */
+  transition: transform 0.4s ease; /* Smooth transition */
+  overflow-y: auto;
+  box-shadow: 0 0 15px rgba(5, 0, 0, 0.1);
+}
+
+.invoice__overlay-content.active {
+  transform: translateX(0);
+}
+
+.invoice__overlay-header > h2 {
+  padding-top: 10px;
+  color: #1F3326;
+  text-align: center;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.close-btn {
+  position: fixed;
+  top: 7px;
+  right: 7px;
+  background: none;
+  outline: none;
+  border: none;
+  font-size: 36px;
+  cursor: pointer;
+  transition: all 0.2 ease-in-out;
+}
+
+.close-btn:hover {
+  color: #0099ff;
+  transform: scale(1.1);
+}
+
+.invoice__overlay-detail {
+  height: 500px;
+  overflow: auto;
+}
+
+.invoice__overlay-btn {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.invoice__overlay-btn button svg {
+  margin-right: 5px;
+  font-size: 16px;
+}
+
+.invoice__overlay-btn button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 0 20px;
+  padding: 15px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  outline: none;
+  background: #1193D4;
+  transition: all 0.3s ease-in-out;
+}
+
+.invoice__overlay-label {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.invoice__overlay-label button {
+  display: flex;
+  align-items: center;
+  background: none;
+  outline: none;
+  color: #1193D4;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.invoice__overlay-label button:hover {
+  color: #0a70a3;
+}
+
+.invoice__overlay-label button svg {
+  margin-right: 5px;
+  font-weight: 600;
+}
+
+.invoice__overlay-btn button:hover {
+  background: #0a70a3;
+}
+
+.invoice__overlay-btn button:nth-child(2) {
+  background: #D43030;
+  transition: all 0.3s ease-in-out;
+}
+.invoice__overlay-btn button:nth-child(2):hover {
+  background: #ad1d1d;
+}
+.invoice__overlay-input {
+  display: flex;
+  /* justify-content: space-between; */
+  align-items: center;
+  margin-bottom: 10px;
+}
+.invoice__overlay-input label {
+  width: 140px;
+  word-wrap: break-word;
+}
+.invoice__overlay-input input{
+  width: 60%;
+  padding: 10px;
+  border: 1px solid #cdcdcd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.invoice__overlay-input input[type="checkbox"] {
+  width: 13px;  
+}
+
+.invoice__overlay-group-item {
+  padding: 10px 10px 10px 0;
+  border: 1px solid #cdcdcd;
+  border-radius: 5px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.invoice__overlay-group-input {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.invoice__overlay-group-input label {
+  width: 150px;
+}
+
+.ant-modal-confirm-body svg {
+  font-size: 30px;
+  margin-right: 10px;
+  color: #1193D4;
+}

@@ -1,3 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* Reset css */
+html {
+	box-sizing: border-box;
+	scroll-behavior: smooth;
+  font-family: "Public Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+*,
+*:before,
+*:after {
+	box-sizing: border-box;
+}
+
+input,
+textarea,
+select,
+button {
+	outline: none;
+	word-wrap: normal;
+}
+
+input {
+	line-height: normal;
+}
+
+label,
+button {
+	cursor: pointer;
+}
+
+a {
+	text-decoration: none;
+}
+
+img {
+	display: block;
+	max-width: 100%;
+}
+
+::-webkit-scrollbar {
+	width: 2px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #1193D4;
+	border-radius: 100rem;
+}
+
 /* Example styles */
 .uk-container {
   max-width: 600px;
