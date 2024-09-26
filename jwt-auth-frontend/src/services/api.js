@@ -30,8 +30,8 @@ export const getInvoiceDetail = async (invoiceId) => {
     return result;
 };
 
-export const deleteInvoice = async (invoiceId) => {
-    const result = await axios.delete(`${API_URL}/api/v1/invoices/${invoiceId}`);
+export const createInvoice = async (newInvoice) => {
+    const result = await axios.post(`${API_URL}/api/v1/invoices/upload`, newInvoice);
     return result;
 };
 
@@ -40,7 +40,7 @@ export const updateInvoice = async (invoiceId, updatedInvoice) => {
     return result;
 };
 
-export const createInvoice = async (newInvoice) => {
-    const result = await axios.post(`${API_URL}/api/v1/invoices/upload`, newInvoice);
+export const deleteInvoice = async (invoiceId) => {
+    const result = await axios.delete(`${API_URL}/api/v1/invoices/${invoiceId}`);
     return result;
 };
