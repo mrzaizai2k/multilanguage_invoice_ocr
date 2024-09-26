@@ -289,15 +289,19 @@ async def get_invoices(
         logger.debug(msg=f"query:{query}")
         
         # Fetch documents from MongoDB
-        invoices = mongo_db.get_documents(filters=query, page=page, limit=limit, sort=created_at.lower())
+        invoices, total_matching_docs = mongo_db.get_documents(filters=query, page=page, limit=limit, sort=created_at.lower())
         logger.debug(msg=f"Number of docs:{len(invoices)}")
+        logger.debug(msg=f"Number of docs matching filters:{total_matching_docs}")
         
         if not invoices:
             msg = "There are no invoices that meet requirements"
             logger.debug(msg=msg)
             return JSONResponse(
                 status_code=200,
-                content=[]
+                content={
+                    "invoices": [],
+                    "total": 0
+                }
             )
 
         for invoice in invoices:
@@ -309,7 +313,10 @@ async def get_invoices(
         # Return the invoices in the expected format
         return JSONResponse(
             status_code=200,
-            content=invoices
+            content={
+                    "invoices": invoices,
+                    "total": total_matching_docs
+                }
         )
 
     except Exception as e:

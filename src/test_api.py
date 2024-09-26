@@ -92,8 +92,10 @@ def test_get_invoices(user_uuid: Optional[str] = None,
     
     # Print the response for debugging (optional)
     print(f"Status code: {response.status_code}")
-    invoices = response.json()
+    invoices = response.json()["invoices"]
     print(f"Number of invoices: {len(invoices)}")
+    print(f"Number of matching docs: {response.json()['total']}")
+
     
     if invoices:
         for invoice in invoices:
@@ -120,9 +122,9 @@ if __name__ == "__main__":
     invoice_uuid = "66f3d0eb898e7aaf3dd6e00b"
     invoice_info = {"amount": "1111",} 
 
-    test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
+    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', status="not extracted")
+    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', status="completed")
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
 
