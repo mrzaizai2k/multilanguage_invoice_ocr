@@ -42,14 +42,24 @@
   background-color: #0099ff;
   color: white;
 }
+.sidebar button:hover .icon {
+  color: white;
+}
 
 .sidebar button .icon {
+  color: #6F6B7D;
   margin-right: 10px;
   font-size: 22px;
+}
+.sidebar button {
+  color: #6F6B7D;
 }
 
 .sidebar button.active {
   background-color: #0099ff;
+  color: white;
+}
+.sidebar button.active .icon{
   color: white;
 }
 

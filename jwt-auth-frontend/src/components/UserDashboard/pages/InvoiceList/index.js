@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import { MdInfo, MdOutlineZoomOutMap } from "react-icons/md";
 import { BsTrash3Fill, BsEye } from "react-icons/bs";
-import InvoiceInfo from "./components/InvoiceInfo";
+import InvoiceInfo from "./components/InvoiceInfo/InvoiceInfo";
 import "./InvoiceList.css";
 import { message, Modal, Pagination, Skeleton } from 'antd';
+import { deleteInvoice, getInvoices } from '../../../../services/api';
+import { Helmet } from 'react-helmet';
 
 const { confirm } = Modal;
 
@@ -24,26 +26,10 @@ function InvoiceList() {
     useEffect(() => {
         const fetchApi = async () => {
             setLoading(true);
+            const response = await getInvoices(filterDate, filterType, currentPage, pageSize)
 
-            const sortOrder = filterDate === "asc" ? "asc" : filterDate === "desc" ? "desc" : "";
-
-            const invoiceType = filterType !== "" ? filterType : "";
-
-            try {
-                const response = await axios.get('http://46.137.228.37/api/v1/invoices', {
-                    params: {
-                        status: 'completed',
-                        created_at: sortOrder,
-                        invoice_type: invoiceType,
-                        page: currentPage,
-                        limit: pageSize
-                    }
-                });
-                setInvoices(response.data.invoices);
-                setTotalItems(response.data.total);
-            } catch (error) {
-                console.error("Failed to fetch invoices", error);
-            }
+            setInvoices(response.data.invoices);
+            setTotalItems(response.data.total);
             setLoading(false);
         };
         fetchApi();
@@ -78,8 +64,8 @@ function InvoiceList() {
             cancelText: 'No',
             onOk: async () => {
                 try {
-                    await axios.delete(`http://46.137.228.37/api/v1/invoices/${invoiceId}`);
-                    setInvoices((prevInvoices) => 
+                    await deleteInvoice(invoiceId)
+                    setInvoices((prevInvoices) =>
                         prevInvoices.filter(invoice => invoice._id !== invoiceId)
                     );
                     messageApi.open({
@@ -115,6 +101,11 @@ function InvoiceList() {
     return (
         <>
             {contextHolder}
+
+            <Helmet>
+                <title>Invoice List</title>
+            </Helmet>
+
             <div className="invoice__header">
                 <h2 className="invoice__title">Invoice List</h2>
                 <div className="invoice__filter">

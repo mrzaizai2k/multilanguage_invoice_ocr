@@ -2,16 +2,12 @@ import { useEffect, useState } from "react";
 import { BsXCircle, BsX, BsPencilSquare, BsTrash3Fill } from "react-icons/bs";
 import { MdOutlineSave, MdInfo } from "react-icons/md";
 import "./InvoiceInfo.css";
-import axios from "axios";
 import { message, Skeleton, Modal } from 'antd';
-// import renderFieldInvoice1 from "./RenderInput/Invoice1";
-// import renderFieldInvoice2 from "./RenderInput/Invoice2";
-// import renderFieldInvoice3 from "./RenderInput/Invoice3";
-import renderFields from "./RenderInput";
-import ModifyFieldsInovice1 from "./RenderInputModify/Invoice1";
-import ModifyFieldsInovice2 from "./RenderInputModify/Invoice2";
-import ModifyFieldsInovice3 from "./RenderInputModify/Invoice3";
-// import InvoiceModifyFields from "./RenderInputModify";
+import renderFields from "../RenderInput";
+import ModifyFieldsInovice1 from "../RenderInputModify/Invoice1";
+import ModifyFieldsInovice2 from "../RenderInputModify/Invoice2";
+import ModifyFieldsInovice3 from "../RenderInputModify/Invoice3";
+import { deleteInvoice, getInvoiceDetail, updateInvoice } from "../../../../../../services/api";
 
 const { confirm } = Modal;
 
@@ -34,14 +30,14 @@ function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
 
     const saveModifiedInvoice = async () => {
         try {
-            await axios.put(`http://46.137.228.37/api/v1/invoices/${modifiedInvoice._id}`, modifiedInvoice);
-            setInvoiceDetails(modifiedInvoice);
-            closeModifyMode();
+            await updateInvoice(modifiedInvoice._id, modifiedInvoice)
             messageApi.open({
                 type: "success",
                 content: "Invoice updated successfully!",
                 duration: 5,
             });
+            setInvoiceDetails(modifiedInvoice);
+            closeModifyMode();
         } catch (error) {
             console.error('Error saving modified invoice:', error);
             messageApi.open({
@@ -62,7 +58,8 @@ function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
             cancelText: 'No',
             onOk: async () => {
                 try {
-                    await axios.delete(`http://46.137.228.37/api/v1/invoices/${invoiceDetails._id}`);
+                    await deleteInvoice(invoiceDetails._id)
+
                     setInvoiceOpen(false);
                     onClose();
                     onInvoiceDeleted(invoiceDetails._id);
@@ -78,7 +75,7 @@ function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
 
     useEffect(() => {
         const fetchApi = async () => {
-            const response = await axios.get(`http://46.137.228.37/api/v1/invoices?invoice_uuid=${invoiceId}`);
+            const response = await getInvoiceDetail(invoiceId)
             setInvoiceDetails(response.data.invoices[0]);
         };
         fetchApi();
@@ -131,17 +128,18 @@ function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
                                             info={modifiedInvoice?.invoice_info || {}}
                                             onChange={handleChange} />
                                     )}
-                                    {/* <InvoiceModifyFields
-                                        info={modifiedInvoice?.invoice_info || {}}
-                                        onChange={handleChange}
-                                    /> */}
                                 </>
                             ) : (
                                 renderFields(invoiceDetails.invoice_info || { })
                             )}
                         </div>
                     ) : (
-                        <Skeleton active={true} />
+                        <>
+                            <Skeleton active={true} />
+                            <br/>
+                            <Skeleton active={true} />
+                        </>
+                        
                     )}
 
                     <div className="invoice__overlay-btn">

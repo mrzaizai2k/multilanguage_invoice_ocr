@@ -2,12 +2,12 @@ import React, { useState, useCallback } from 'react';
 import { pdfjs } from 'react-pdf';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
-import axios from 'axios';
 import { notification, Spin } from 'antd';  // Import Spin from antd
 import './AddInvoice.css';
-import { API_URL } from '../../../../services/api';
-import { BsFiletypeJpg, BsFiletypePdf, BsFiletypePng, BsTrash3Fill, BsUpload  } from "react-icons/bs";
+import { createInvoice } from '../../../../services/api';
+import { BsFiletypeJpg, BsFiletypePdf, BsFiletypePng, BsTrash3Fill, BsUpload } from "react-icons/bs";
 import { MdAddToPhotos, MdOutlineZoomOutMap } from "react-icons/md";
+import { Helmet } from 'react-helmet';
 
 // Initialize PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -80,8 +80,7 @@ function AddInvoice({ username }) {
     }
     return new Blob([ab], { type: mimeString });
   };
-  console.log(selectedFiles);
-  
+
   const handleUpload = async () => {
     if (!selectedFiles.length) {
       notification.warning({
@@ -91,7 +90,7 @@ function AddInvoice({ username }) {
       return;
     }
 
-    setLoadingUpload(true);  // Set loading for uploading
+    setLoadingUpload(true);
 
     try {
       for (const file of selectedFiles) {
@@ -100,15 +99,15 @@ function AddInvoice({ username }) {
           img: base64Image,
           user_uuid: username
         };
-        console.log(payload);
-
-        await axios.post(`${API_URL}/api/v1/invoices/upload`, payload);
+        await createInvoice(payload);
       }
 
       notification.success({
         message: 'Upload Successful',
         description: 'All files uploaded successfully!',
       });
+      setSelectedFiles([]);
+      setImages([]);
     } catch (error) {
       notification.error({
         message: 'Upload Failed',
@@ -143,86 +142,92 @@ function AddInvoice({ username }) {
   };
 
   return (
-    <div className="add-invoice">
-      <div className={`drop-zone ${dragging ? 'dragging' : ''}`}  // Add drag feedback
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        {loadingAddFile ? (
-          <div className="loading-spinner">
-            <Spin size="large" />
-          </div>
-        ) : images.length > 0 ? (<>
-          <PhotoProvider toolbarRender={({ rotate, onRotate }) => {
-            return (
-              <svg
-                className="PhotoView-Slider__toolbarIcon"
-                onClick={() => onRotate(rotate + 90)}
-                width="44"
-                height="44"
-                viewBox="0 0 768 768"
-                fill="white"
-              >
-                <path d="M565.5 202.5l75-75v225h-225l103.5-103.5c-34.5-34.5-82.5-57-135-57-106.5 0-192 85.5-192 192s85.5 192 192 192c84 0 156-52.5 181.5-127.5h66c-28.5 111-127.5 192-247.5 192-141 0-255-114-255-255s114-255 255-255c70.5 0 135 28.5 181.5 72z" />
-              </svg>
-            );
-          }}>
-            <div className="thumbnail__list">
-              {images.map((image, index) => (
-                <div className="thumbnail__item" key={index}>
-                  <img src={image} alt={`Selected file ${index + 1}`} />
-                  <div className="thumbnail__item-overlay">
-                    <PhotoView src={image}>
-                      <button className="zoom-btn">
-                        <MdOutlineZoomOutMap />
-                      </button>
-                    </PhotoView>
-                    <button className="delete-btn" onClick={() => deleteImage(image)}>
-                      <BsTrash3Fill />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <div className="thumbnail__item-addmore">
-                <input id='file2' type="file" accept=".jpg,.png,.pdf" multiple onChange={(e) => handleFileChange(Array.from(e.target.files))} hidden />
-                <label htmlFor='file2' className="add-more-file">
-                  <h3>Add more files</h3>
-                  <MdAddToPhotos />
-                </label>
-              </div>
-            </div>
-          </PhotoProvider>
-        </>) : (<>
-          <div className="icon-upload"><BsUpload /></div>
-          <p>Drag and drop your image here</p>
-          <span className='or'>or</span>
-          <label htmlFor='file' className="browse-btn">Browse File</label>
-          <input id='file' type="file" accept=".jpg,.png,.pdf" multiple onChange={(e) => handleFileChange(Array.from(e.target.files))} hidden />
-          <div className="file-types">
-            <BsFiletypeJpg />
-            <BsFiletypePng />
-            <BsFiletypePdf />
-          </div>
-        </>)}
+    <>
+      <Helmet>
+        <title>Add Invoice</title>
+      </Helmet>
 
+      <div className="add-invoice">
+        <div className={`drop-zone ${dragging ? 'dragging' : ''}`}  // Add drag feedback
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {loadingAddFile ? (
+            <div className="loading-spinner">
+              <Spin size="large" />
+            </div>
+          ) : images.length > 0 ? (<>
+            <PhotoProvider toolbarRender={({ rotate, onRotate }) => {
+              return (
+                <svg
+                  className="PhotoView-Slider__toolbarIcon"
+                  onClick={() => onRotate(rotate + 90)}
+                  width="44"
+                  height="44"
+                  viewBox="0 0 768 768"
+                  fill="white"
+                >
+                  <path d="M565.5 202.5l75-75v225h-225l103.5-103.5c-34.5-34.5-82.5-57-135-57-106.5 0-192 85.5-192 192s85.5 192 192 192c84 0 156-52.5 181.5-127.5h66c-28.5 111-127.5 192-247.5 192-141 0-255-114-255-255s114-255 255-255c70.5 0 135 28.5 181.5 72z" />
+                </svg>
+              );
+            }}>
+              <div className="thumbnail__list">
+                {images.map((image, index) => (
+                  <div className="thumbnail__item" key={index}>
+                    <img src={image} alt={`Selected file ${index + 1}`} />
+                    <div className="thumbnail__item-overlay">
+                      <PhotoView src={image}>
+                        <button className="zoom-btn">
+                          <MdOutlineZoomOutMap />
+                        </button>
+                      </PhotoView>
+                      <button className="delete-btn" onClick={() => deleteImage(image)}>
+                        <BsTrash3Fill />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <div className="thumbnail__item-addmore">
+                  <input id='file2' type="file" accept=".jpg,.png,.pdf" multiple onChange={(e) => handleFileChange(Array.from(e.target.files))} hidden />
+                  <label htmlFor='file2' className="add-more-file">
+                    <h3>Add more files</h3>
+                    <MdAddToPhotos />
+                  </label>
+                </div>
+              </div>
+            </PhotoProvider>
+          </>) : (<>
+            <div className="icon-upload"><BsUpload /></div>
+            <p>Drag and drop your image here</p>
+            <span className='or'>or</span>
+            <label htmlFor='file' className="browse-btn">Browse File</label>
+            <input id='file' type="file" accept=".jpg,.png,.pdf" multiple onChange={(e) => handleFileChange(Array.from(e.target.files))} hidden />
+            <div className="file-types">
+              <BsFiletypeJpg />
+              <BsFiletypePng />
+              <BsFiletypePdf />
+            </div>
+          </>)}
+
+        </div>
+        {images.length > 0 && (
+          <button className="upload-btn" onClick={handleUpload} disabled={loadingUpload}>
+            {loadingUpload ? (
+              <>
+                <Spin size="small" />
+                <span style={{ marginLeft: '8px' }}>Uploading...</span>
+              </>
+            ) : (
+              <>
+                <BsUpload style={{ fontSize: "20px", marginRight: '8px' }} />
+                <span>Upload</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
-      {images.length > 0 && (
-        <button className="upload-btn" onClick={handleUpload} disabled={loadingUpload}>
-          {loadingUpload ? (
-            <>
-              <Spin size="small" />
-              <span style={{ marginLeft: '8px' }}>Uploading...</span>
-            </>
-          ) : (
-            <>
-              <BsUpload style={{fontSize: "20px", marginRight: '8px'}}/>
-              <span>Upload</span>
-            </>
-          )}
-        </button>
-      )}
-    </div>
+    </>
   );
 }
 
