@@ -208,35 +208,39 @@ curl -X GET "http://localhost:8000/api/v1/invoices?created_at=<sort_order>&creat
 
 **Response on success**:  
 ```json
-[
-  {
-    "invoice_uuid": "string", 
-    "invoice_type": "string",  
-    "created_at": "ISODate",  
-    "created_by": "string",  
-    "last_modified_at": "ISODate",  
-    "last_modified_by": "string",  
-    "status": "string",  
-    "invoice_image_base64": "string",  
-    "ocr_info": {
-      "ori_text": "string",
-      "ori_language": "string",
-      "text": "string",
-      "language": "string"
-    },
-    "translator": "string",
-    "ocr_detector": "string",
-    "llm_extractor": "string",
-    "post_processor": "string",
-    "invoice_info": {
-      ...
-    }
-  },
-  {
-    "invoice_uuid": "string", 
-    ...
-  }
-]
+{
+  "total": "number of docs matching filter",
+  "invoices":
+    [
+      {
+        "invoice_uuid": "string", 
+        "invoice_type": "string",  
+        "created_at": "ISODate",  
+        "created_by": "string",  
+        "last_modified_at": "ISODate",  
+        "last_modified_by": "string",  
+        "status": "string",  
+        "invoice_image_base64": "string",  
+        "ocr_info": {
+          "ori_text": "string",
+          "ori_language": "string",
+          "text": "string",
+          "language": "string"
+        },
+        "translator": "string",
+        "ocr_detector": "string",
+        "llm_extractor": "string",
+        "post_processor": "string",
+        "invoice_info": {
+          ...
+        }
+      },
+      {
+        "invoice_uuid": "string", 
+        ...
+      }
+    ]
+}
 ```
 
 | Element           | Type    | Description                                             |
