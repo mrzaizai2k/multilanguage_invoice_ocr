@@ -2,7 +2,7 @@ import sys
 sys.path.append("")
 
 from pymongo import MongoClient
-from typing import  Dict, Any, List, Literal
+from typing import  Dict, Any, List, Literal, Tuple
 from bson import ObjectId
 from src.Utils.utils import read_config, get_current_time
 
@@ -39,17 +39,23 @@ class MongoDatabase:
         return str(result.inserted_id)
 
 
+    
     def get_documents(self, filters: Dict[str, Any], page: int = 1, limit: int = 10, 
-                      sort:Literal['asc', 'desc']='asc') -> List[Dict[str, Any]]:
-        # Apply filters and pagination to get documents
-        if sort == 'asc':
-            sort_idx = 1
-        else:
-            sort_idx = -1
+                    sort: Literal['asc', 'desc'] = 'asc') -> Tuple[List[Dict[str, Any]], int]:
+        # Determine sort direction
+        sort_idx = 1 if sort == 'asc' else -1
 
+        # Calculate skip value for pagination
         skip = (page - 1) * limit
+
+        # Get total count of documents matching the filters
+        total_count = self.collection.count_documents(filters)
+
+        # Apply filters, sorting, and pagination to get documents
         documents = self.collection.find(filters).sort("created_at", sort_idx).skip(skip).limit(limit)
-        return list(documents)
+
+        # Convert cursor to list and return along with total count
+        return list(documents), total_count
 
     
     def get_document_by_id(self, document_id: str) -> Dict[str, Any]:
@@ -175,9 +181,11 @@ if __name__ == "__main__":
 
     # # Test retrieving the document
     # Define filter criteria (example: using `user_uuid`)
-    filter_criteria = {"created_by": "1111_1111_1111_1111"}
-    retrieved_docs = mongo_db.get_documents(filter_criteria)
+    filter_criteria = {"created_by": "1111_1111_1111_1111",
+                       "status": "completed"}
+    retrieved_docs, total_count = mongo_db.get_documents(filter_criteria)
     print(f"Retrieved Document: {len(retrieved_docs)}")
+    print(f"total_count: {total_count}")
 
 
     # print("Number of documents:", len(docs))
@@ -193,7 +201,7 @@ if __name__ == "__main__":
     print(f"Update Success: {update_success}")
 
     # Retrieve and print the updated document to verify changes
-    docs = mongo_db.get_documents({'created_by': '2111_1111_1111_1111'})
+    docs = mongo_db.get_documents(filter_criteria)
     print(f"Document: {len(docs)}")
 
     doc = mongo_db.get_document_by_id(document_id=document_id)['created_at']

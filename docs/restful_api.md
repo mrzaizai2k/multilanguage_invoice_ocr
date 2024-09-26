@@ -202,40 +202,45 @@ curl -X GET "http://localhost:8000/api/v1/invoices?created_at=<sort_order>&creat
 | created_by    | query        | string | optional | Filter by `user_uuid` of the invoice creator (if None, take all)|
 | invoice_type  | query        | string | optional | Filter by type of invoice (if None, take all)                  |
 | invoice_uuid  | query        | string | optional | Id of specific invoice                      |
+| status        | query        | string | optional | "not extracted", "completed". Default is None to take both |
 | page          | query        | number | optional | Page number for pagination (default is 1)   |
 | limit         | query        | number | optional | Number of invoices per page (default is 10) |
 
 **Response on success**:  
 ```json
-[
-  {
-    "invoice_uuid": "string", 
-    "invoice_type": "string",  
-    "created_at": "ISODate",  
-    "created_by": "string",  
-    "last_modified_at": "ISODate",  
-    "last_modified_by": "string",  
-    "status": "string",  
-    "invoice_image_base64": "string",  
-    "ocr_info": {
-      "ori_text": "string",
-      "ori_language": "string",
-      "text": "string",
-      "language": "string"
-    },
-    "translator": "string",
-    "ocr_detector": "string",
-    "llm_extractor": "string",
-    "post_processor": "string",
-    "invoice_info": {
-      ...
-    }
-  },
-  {
-    "invoice_uuid": "string", 
-    ...
-  }
-]
+{
+  "total": "number of docs matching filter",
+  "invoices":
+    [
+      {
+        "invoice_uuid": "string", 
+        "invoice_type": "string",  
+        "created_at": "ISODate",  
+        "created_by": "string",  
+        "last_modified_at": "ISODate",  
+        "last_modified_by": "string",  
+        "status": "string",  
+        "invoice_image_base64": "string",  
+        "ocr_info": {
+          "ori_text": "string",
+          "ori_language": "string",
+          "text": "string",
+          "language": "string"
+        },
+        "translator": "string",
+        "ocr_detector": "string",
+        "llm_extractor": "string",
+        "post_processor": "string",
+        "invoice_info": {
+          ...
+        }
+      },
+      {
+        "invoice_uuid": "string", 
+        ...
+      }
+    ]
+}
 ```
 
 | Element           | Type    | Description                                             |

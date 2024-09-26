@@ -64,6 +64,7 @@ def test_delete_invoice(invoice_uuid, user_uuid):
 def test_get_invoices(user_uuid: Optional[str] = None, 
                       invoice_type: Optional[str] = None,
                       invoice_uuid: Optional[str] = None,
+                      status: Optional[Literal['not extracted', 'completed']] = None,
                       created_at: Literal["asc", "desc"] = "asc",
                       page: int = 1, limit: int = 10):
 
@@ -83,15 +84,22 @@ def test_get_invoices(user_uuid: Optional[str] = None,
         params["invoice_type"] = invoice_type
     if invoice_uuid:
         params["invoice_uuid"] = invoice_uuid
+    if status:
+        params["status"] = status
 
     # Send the GET request with query parameters
     response = requests.get(url, params=params)
     
     # Print the response for debugging (optional)
-    print(response.status_code)
-    print("len",len(response.json()))
-    for invoice in response.json():
-        print(invoice['invoice_info'])
+    print(f"Status code: {response.status_code}")
+    invoices = response.json()["invoices"]
+    print(f"Number of invoices: {len(invoices)}")
+    print(f"Number of matching docs: {response.json()['total']}")
+
+    
+    if invoices:
+        for invoice in invoices:
+            print(f"Invoice status: {invoice.get('status', 'N/A')}")
 
     # Check the status code and print appropriate messages
     if response.status_code == 200:
@@ -99,6 +107,7 @@ def test_get_invoices(user_uuid: Optional[str] = None,
     else:
         print(f"Failed to fetch invoices. Status code: {response.status_code}")
 
+    return response
 
 if __name__ == "__main__":
     config_path='config/config.yaml'
@@ -110,14 +119,14 @@ if __name__ == "__main__":
     img_path = "test/images/007_2.png"
     user_uuid = "gauss"
     # user_uuid = "2111_1111_1111_1111"
-    invoice_uuid = "66ed92711cb41ac8180283e0"
+    invoice_uuid = "66f3d0eb898e7aaf3dd6e00b"
     invoice_info = {"amount": "1111",} 
 
-    test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
+    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc')
-    test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
-    test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
+    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', status="completed")
+    # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
+    # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
 
 
 
