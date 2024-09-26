@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './UserDashboard.css';
 import { API_URL } from '../../services/api';
-import AddInvoice from './AddInvoice'; // Import the AddInvoice component
+import { MdUploadFile, MdLogout, MdOutlinePersonOutline } from "react-icons/md";
+import { BsFileEarmarkRichtext } from "react-icons/bs";
+import InvoiceList from './pages/InvoiceList';
+import AddInvoice from './pages/AddInovice';
+import UserInfo from './pages/UserInfo';
 
 // Memoized components
 const MemoizedUserInfo = memo(UserInfo);
@@ -79,25 +83,25 @@ const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
     <SidebarButton 
       active={activeTab === 'userInfo'} 
       onClick={() => onTabChange('userInfo')}
-      icon="👤"
+      icon={<MdOutlinePersonOutline  />}
       text="User Info"
     />
     <SidebarButton 
       active={activeTab === 'invoice'} 
       onClick={() => onTabChange('invoice')}
-      icon="📄"
+      icon={<BsFileEarmarkRichtext />}
       text="Invoice"
     />
     <SidebarButton 
       active={activeTab === 'addInvoice'} 
       onClick={() => onTabChange('addInvoice')}
-      icon="➕"
+      icon={<MdUploadFile />}
       text="Add Invoice"
     />
     <SidebarButton 
       className="logout"
       onClick={onLogout}
-      icon="🚪"
+      icon={<MdLogout />}
       text="Logout"
     />
   </div>
@@ -112,23 +116,5 @@ const SidebarButton = memo(({ active, onClick, icon, text, className = '' }) => 
     <span className="icon">{icon}</span> {text}
   </button>
 ));
-
-// UserInfo component that uses the user data
-function UserInfo({ userData }) {
-  if (!userData) return <p>Loading...</p>;
-
-  return (
-    <div className="user-info">
-      <h2>User Information</h2>
-      <p><strong>Username:</strong> {userData.username}</p> {/* Using sub as username */}
-      <p><strong>Role:</strong> {userData.is_admin ? 'Admin' : 'User'}</p>
-    </div>
-  );
-}
-
-// Mock InvoiceList component
-function InvoiceList() {
-  return <h2>Invoice List</h2>;
-}
 
 export default UserDashboard;

@@ -1,17 +1,21 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './components/Utils';
+import { Spin } from 'antd';
 
 // Lazy loading components
 const Login = lazy(() => import('./components/Login/Login'));
 const Protected = lazy(() => import('./components/Protected'));
-const UserDashboard = lazy(() => import('./components/UserDashboard/UserDashboard'));
-const AdminDashboard = lazy(() => import('./components/AdminDashboard/AdminDashboard'));
+const UserDashboard = lazy(() => import('./components/UserDashboard'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 
 function App() {
   return (
     <Router>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", height: "100vh" }}>
+        <h1 style={{color: "#0099ff"}}>Invoice Extract System</h1><br/>
+        <Spin tip="Loading..." size="large" />
+      </div>}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route

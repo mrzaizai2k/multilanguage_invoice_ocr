@@ -13,7 +13,8 @@
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
+    height: 460px;
 }
 
 .login-header {
@@ -56,7 +57,7 @@ label {
 }
 
 input {
-    width: 93%;
+    width: 100%;
     padding: 0.75rem;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -78,6 +79,9 @@ input {
     margin-top: 1rem;
 }
 
+.login-button .ant-spin .ant-spin-dot-holder {
+    color: #fff;
+}
 
 input::placeholder {
     color: #999;
@@ -90,12 +94,16 @@ input::placeholder {
 .password-toggle {
     position: absolute;
     right: 15px;
-    top: 50%;
+    top: 57%;
     transform: translateY(-50%);
     cursor: pointer;
     color: #999;
+    font-size: 20px;
 }
 
+.password-toggle span {
+    font-size: 22px;
+}
 
 .login-button:hover {
     background-color: #0077cc;
