@@ -8,6 +8,7 @@ import { BsFileEarmarkRichtext } from "react-icons/bs";
 import InvoiceList from './pages/InvoiceList';
 import AddInvoice from './pages/AddInovice';
 import UserInfo from './pages/UserInfo';
+import { Helmet } from 'react-helmet';
 
 // Memoized components
 const MemoizedUserInfo = memo(UserInfo);
@@ -63,16 +64,22 @@ function UserDashboard() {
   }, [activeTab, userData]);
 
   return (
-    <div className="dashboard">
-      <Sidebar 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange} 
-        onLogout={handleLogout} 
-      />
-      <div className="content">
-        {tabContent}
+    <>
+      <Helmet>
+        <title>Invoice Extract System - UserInfo</title>
+      </Helmet>
+
+      <div className="dashboard">
+        <Sidebar
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          onLogout={handleLogout}
+        />
+        <div className="content">
+          {tabContent}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -80,25 +87,25 @@ function UserDashboard() {
 const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
   <div className="sidebar">
     <h1>Invoice Extract System</h1>
-    <SidebarButton 
-      active={activeTab === 'userInfo'} 
+    <SidebarButton
+      active={activeTab === 'userInfo'}
       onClick={() => onTabChange('userInfo')}
-      icon={<MdOutlinePersonOutline  />}
+      icon={<MdOutlinePersonOutline />}
       text="User Info"
     />
-    <SidebarButton 
-      active={activeTab === 'invoice'} 
+    <SidebarButton
+      active={activeTab === 'invoice'}
       onClick={() => onTabChange('invoice')}
       icon={<BsFileEarmarkRichtext />}
       text="Invoice"
     />
-    <SidebarButton 
-      active={activeTab === 'addInvoice'} 
+    <SidebarButton
+      active={activeTab === 'addInvoice'}
       onClick={() => onTabChange('addInvoice')}
       icon={<MdUploadFile />}
       text="Add Invoice"
     />
-    <SidebarButton 
+    <SidebarButton
       className="logout"
       onClick={onLogout}
       icon={<MdLogout />}
@@ -109,8 +116,8 @@ const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
 
 // Reusable SidebarButton component
 const SidebarButton = memo(({ active, onClick, icon, text, className = '' }) => (
-  <button 
-    className={`${active ? 'active' : ''} ${className}`} 
+  <button
+    className={`${active ? 'active' : ''} ${className}`}
     onClick={onClick}
   >
     <span className="icon">{icon}</span> {text}
