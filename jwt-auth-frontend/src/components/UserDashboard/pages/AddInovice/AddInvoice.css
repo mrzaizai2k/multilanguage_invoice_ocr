@@ -55,13 +55,12 @@
 .icon-upload {
   margin-top: 50px;
   display: inline-block;
-  width: 71.13px;
-  height: 65.138px;
-  flex-shrink: 0;
+  width: 70px;
+  height: 65px;
   border-radius: 10px;
   background: #D9D9D9;
   font-size: 40px;
-  padding-top: 10px;
+  padding-top: 13px;
   color: #6F6B7D;
 }
 
@@ -77,6 +76,12 @@
   font-size: 24px;
   font-style: normal;
   font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.browse-btn:hover {
+  background-color: #1193d4;
+  color: #fff;
 }
 
 .add-invoice .file-types {
