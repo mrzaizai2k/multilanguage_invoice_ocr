@@ -7,7 +7,6 @@ function UserInfo({ userData }) {
         </div>
     )
 
-
     return (
         <div className="user-info">
             <h2>User Information</h2>

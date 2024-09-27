@@ -85,7 +85,7 @@ function UserDashboard() {
 
 const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
   <div className="sidebar">
-    <h1>Invoice Extract System</h1>
+    <h1 style={{cursor: "default"}}>Invoice Extract System</h1>
     <div className="menu__list">
       <SidebarButton
         active={activeTab === 'userInfo'}
