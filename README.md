@@ -97,7 +97,7 @@ Follow these steps to run the application:
 
    ```
 
-   run app
+   run backend
 
    ```shell
 
@@ -110,6 +110,25 @@ Follow these steps to run the application:
     --network app-network \
     multilanguage_invoice_ocr-fastapi:latest
     ```
+   run front end
+   ```shell
+
+   cd jwt-auth-frontend/
+
+   docker build -t jwt-auth-frontend .
+   
+   docker run -d \
+   --name jwt-frontend-container \
+   --network app-network \
+   -p 3000:3000 \
+   -v $(pwd)/src:/app/src \
+   jwt-auth-frontend
+
+   ```
+   set up NGINX
+   
+   https://dev.to/theinfosecguy/how-to-deploy-a-fastapi-application-using-docker-on-aws-4m61
+
 
 5. **Sending Email**
 
