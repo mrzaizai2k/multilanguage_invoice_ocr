@@ -22,7 +22,7 @@ function ModifyFieldsInovice1({ info, keyPath = [], onChange }) {
     
         const updatedLines = [newItem, ...currentLines];
     
-        handleInputChange([...keyPath, 'invoice_info', 'lines'], updatedLines);
+        handleInputChange([...keyPath, 'lines'], updatedLines);
     };
 
     const renderInputModify = (keyPath, value) => {
