@@ -137,7 +137,7 @@ function InvoiceList() {
                 {loading ? (
                     <>
                         {Array.from({ length: 7 }).map((_, index) => (
-                            <Skeleton.Image key={index} active={true} style={{ width: "175px", height: "230px", margin: "15px" }} />
+                            <Skeleton.Image key={index} active={true} style={{ width: "180px", height: "230px", margin: "15px" }} />
                         ))}
                     </>
                 ) : (
