@@ -9,7 +9,7 @@ function ModifyFieldsInovice2({ info, keyPath = [], onChange }) {
     };
 
     const addNewLine = () => {
-        const currentLines = Array.isArray(info?.invoice_info?.lines) ? info.invoice_info.lines : [];
+        const currentLines = Array.isArray(info?.lines) ? info.lines : [];
 
         const newItem = {
             title: '',
@@ -18,7 +18,7 @@ function ModifyFieldsInovice2({ info, keyPath = [], onChange }) {
         };
 
         const updatedLines = [...currentLines, newItem];
-        handleInputChange([...keyPath, 'invoice_info', 'lines'], updatedLines);
+        handleInputChange([...keyPath, 'lines'], updatedLines);
     };
 
     const renderInputModify = (keyPath, value) => {

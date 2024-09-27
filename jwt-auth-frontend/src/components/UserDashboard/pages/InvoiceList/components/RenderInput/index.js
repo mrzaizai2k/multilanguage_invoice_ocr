@@ -14,6 +14,10 @@ const renderFields = (info) => {
                 <input key={key} type="checkbox" defaultChecked={value} disabled />
             );
         }
+        if (value instanceof Date) {
+            const formattedDate = value.toISOString().split('T')[0]; // Định dạng thành YYYY-MM-DD
+            return <input key={key} type="date" defaultValue={formattedDate} disabled />;
+        }
         return null;
     };
 
