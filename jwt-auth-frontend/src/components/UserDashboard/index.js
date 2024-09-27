@@ -83,28 +83,29 @@ function UserDashboard() {
   );
 }
 
-// Separate Sidebar component
 const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
   <div className="sidebar">
     <h1>Invoice Extract System</h1>
-    <SidebarButton
-      active={activeTab === 'userInfo'}
-      onClick={() => onTabChange('userInfo')}
-      icon={<MdOutlinePersonOutline />}
-      text="User Info"
-    />
-    <SidebarButton
-      active={activeTab === 'invoice'}
-      onClick={() => onTabChange('invoice')}
-      icon={<BsFileEarmarkRichtext />}
-      text="Invoice"
-    />
-    <SidebarButton
-      active={activeTab === 'addInvoice'}
-      onClick={() => onTabChange('addInvoice')}
-      icon={<MdUploadFile />}
-      text="Add Invoice"
-    />
+    <div className="menu__list">
+      <SidebarButton
+        active={activeTab === 'userInfo'}
+        onClick={() => onTabChange('userInfo')}
+        icon={<MdOutlinePersonOutline />}
+        text="User Info"
+      />
+      <SidebarButton
+        active={activeTab === 'invoice'}
+        onClick={() => onTabChange('invoice')}
+        icon={<BsFileEarmarkRichtext />}
+        text="Invoice"
+      />
+      <SidebarButton
+        active={activeTab === 'addInvoice'}
+        onClick={() => onTabChange('addInvoice')}
+        icon={<MdUploadFile />}
+        text="Add Invoice"
+      />
+    </div>
     <SidebarButton
       className="logout"
       onClick={onLogout}

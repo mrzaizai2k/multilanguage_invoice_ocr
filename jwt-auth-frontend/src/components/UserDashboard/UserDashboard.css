@@ -1,9 +1,12 @@
 .dashboard {
-  display: flex;
-  height: 100vh;
+  height: 100%;
 }
 
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
   width: 20%;
   background-color: #f8f9fa;
   padding: 10px;
@@ -21,7 +24,12 @@
   padding-bottom: 20px;
   margin-bottom: 20px;
 }
-
+.menu__list {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: auto;
+}
 .sidebar button {
   padding: 15px;
   border: none;
@@ -63,13 +71,30 @@
   color: white;
 }
 
-.sidebar .logout {
-  margin-top: auto;
-  color: #666;
+.logout {
+  margin-top: auto !important;
+  color: #666 !important;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  background-color: transparent;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
+  transition: all 0.2s ease-in-out;
+}
+
+.logout:hover {
+  background-color: #0099ff;
+  color: white !important;
 }
 
 .content {
-  width: 80%;
+  margin-left: 20%;
   padding: 20px;
   background-color: #fff;
 }
