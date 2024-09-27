@@ -123,6 +123,11 @@ h2 {
   text-align: center;
 }
 
+.user-info h2 {
+  margin-top: 15px;
+  margin-bottom: 60px;
+}
+
 .user-info p {
   margin: 20px 0 0 30px;
   font-size: 20px;
