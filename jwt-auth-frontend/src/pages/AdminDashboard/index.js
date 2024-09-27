@@ -1,24 +1,23 @@
 import React, { useState, useCallback, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './UserDashboard.css';
+import './AdminDashboard.css';
 import { API_URL } from '../../services/api';
 import { MdUploadFile, MdLogout, MdOutlinePersonOutline } from "react-icons/md";
 import { BsFileEarmarkRichtext } from "react-icons/bs";
-import InvoiceList from './pages/InvoiceList';
-import AddInvoice from './pages/AddInovice';
-import UserInfo from './pages/UserInfo';
 import { Helmet } from 'react-helmet';
+import AddInvoice from '../../components/AddInovice';
+import UserInfo from '../../components/UserInfo';
+import InvoiceList from './InvoiceList';
 
 // Memoized components
 const MemoizedUserInfo = memo(UserInfo);
 const MemoizedInvoiceList = memo(InvoiceList);
-const MemoizedAddInvoice = memo(AddInvoice); // Memoize AddInvoice component
+const MemoizedAddInvoice = memo(AddInvoice);
 
-
-function UserDashboard() {
+function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('userInfo');
-  const [userData, setUserData] = useState(null); // State for user data
+  const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
 
   // Fetch user data on component mount
@@ -53,9 +52,9 @@ function UserDashboard() {
   const tabContent = React.useMemo(() => {
     switch (activeTab) {
       case 'userInfo':
-        return <MemoizedUserInfo userData={userData} />;
+        return <MemoizedUserInfo userData={userData} title="Admin Information"/>;
       case 'invoice':
-        return <MemoizedInvoiceList />;
+        return <MemoizedInvoiceList userData={userData?.username}/>;
       case 'addInvoice':
         return <MemoizedAddInvoice username={userData?.username} />;
       default:
@@ -66,7 +65,7 @@ function UserDashboard() {
   return (
     <>
       <Helmet>
-        <title>Invoice Extract System - UserInfo</title>
+        <title>Invoice Extract System - AdminInfo</title>
       </Helmet>
 
       <div className="dashboard">
@@ -91,7 +90,7 @@ const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
         active={activeTab === 'userInfo'}
         onClick={() => onTabChange('userInfo')}
         icon={<MdOutlinePersonOutline />}
-        text="User Info"
+        text="Admin Info"
       />
       <SidebarButton
         active={activeTab === 'invoice'}
@@ -125,4 +124,4 @@ const SidebarButton = memo(({ active, onClick, icon, text, className = '' }) => 
   </button>
 ));
 
-export default UserDashboard;
+export default AdminDashboard;

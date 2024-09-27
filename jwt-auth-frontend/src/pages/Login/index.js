@@ -20,6 +20,7 @@ function Login() {
     setError('');
     try {
       const response = await login(username, password);
+      console.log(response);
       localStorage.setItem('token', response.data.access_token);
       navigate('/protected');
     } catch (error) {

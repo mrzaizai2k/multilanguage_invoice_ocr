@@ -4,7 +4,7 @@ import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
 import { notification, Spin } from 'antd';  // Import Spin from antd
 import './AddInvoice.css';
-import { createInvoice } from '../../../../services/api';
+import { createInvoice } from '../../services/api';
 import { BsFiletypeJpg, BsFiletypePdf, BsFiletypePng, BsTrash3Fill, BsUpload } from "react-icons/bs";
 import { MdAddToPhotos, MdOutlineZoomOutMap } from "react-icons/md";
 import { Helmet } from 'react-helmet';

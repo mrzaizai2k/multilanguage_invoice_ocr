@@ -4,10 +4,10 @@ import { ProtectedRoute } from './components/Utils';
 import { Spin } from 'antd';
 
 // Lazy loading components
-const Login = lazy(() => import('./components/Login/Login'));
+const Login = lazy(() => import('./pages/Login'));
 const Protected = lazy(() => import('./components/Protected'));
-const UserDashboard = lazy(() => import('./components/UserDashboard'));
-const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const UserDashboard = lazy(() => import('./pages/UserDashboard'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 function App() {
   return (

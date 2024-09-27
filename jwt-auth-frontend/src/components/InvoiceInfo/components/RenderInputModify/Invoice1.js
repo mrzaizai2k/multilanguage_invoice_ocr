@@ -1,23 +1,27 @@
 import React from 'react';
-import fieldLabels from "../../../../../../config/fieldLabels";
+import fieldLabels from "../../../../config/fieldLabels";
 import { BsPlusSquare } from 'react-icons/bs';
 
-function ModifyFieldsInovice2({ info, keyPath = [], onChange }) {
-
+function ModifyFieldsInovice1({ info, keyPath = [], onChange }) {
+    
     const handleInputChange = (keyPath, value) => {
         onChange(keyPath, value);
     };
 
     const addNewLine = () => {
-        const currentLines = Array.isArray(info?.lines) ? info.lines : [];
-
+        const currentLines = Array.isArray(info?.invoice_info?.lines) ? info.invoice_info.lines : [];
+    
         const newItem = {
-            title: '',
-            amount: '',
-            payment_method: ''
+            date: '',
+            start_time: '',
+            end_time: '',
+            break_time: '',
+            description: '',
+            has_customer_signature: false
         };
-
-        const updatedLines = [...currentLines, newItem];
+    
+        const updatedLines = [newItem, ...currentLines];
+    
         handleInputChange([...keyPath, 'lines'], updatedLines);
     };
 
@@ -83,7 +87,7 @@ function ModifyFieldsInovice2({ info, keyPath = [], onChange }) {
                                 </button>
                             )}
                         </div>
-                        {value.slice().reverse().map((item, index) => (
+                        {value.map((item, index) => (
                             <div className="invoice__overlay-group-item" key={`${newKeyPath.join('.')}.${index}`}>
                                 {typeof item === 'object' && item !== null
                                     ? renderFieldsModify(item, [...newKeyPath, index])
@@ -106,4 +110,4 @@ function ModifyFieldsInovice2({ info, keyPath = [], onChange }) {
     return <>{renderFieldsModify(info, keyPath)}</>;
 }
 
-export default ModifyFieldsInovice2;
+export default ModifyFieldsInovice1;

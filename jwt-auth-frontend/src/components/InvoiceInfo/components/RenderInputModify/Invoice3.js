@@ -1,5 +1,5 @@
 import React from 'react';
-import fieldLabels from "../../../../../../config/fieldLabels";
+import fieldLabels from "../../../../config/fieldLabels";
 import { BsPlusSquare } from 'react-icons/bs';
 
 function ModifyFieldsInovice3({ info, keyPath = [], onChange }) {

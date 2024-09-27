@@ -1,5 +1,5 @@
 import React from "react";
-import fieldLabels from "../../../../../../config/fieldLabels";
+import fieldLabels from "../../../../config/fieldLabels";
 
 const renderFields = (info) => {
     const renderInput = (key, value) => {

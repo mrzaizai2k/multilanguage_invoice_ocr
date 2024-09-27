@@ -3,15 +3,15 @@ import { BsXCircle, BsX, BsPencilSquare, BsTrash3Fill } from "react-icons/bs";
 import { MdOutlineSave, MdInfo } from "react-icons/md";
 import "./InvoiceInfo.css";
 import { message, Skeleton, Modal } from 'antd';
-import renderFields from "../RenderInput";
-import ModifyFieldsInovice1 from "../RenderInputModify/Invoice1";
-import ModifyFieldsInovice2 from "../RenderInputModify/Invoice2";
-import ModifyFieldsInovice3 from "../RenderInputModify/Invoice3";
-import { deleteInvoice, getInvoiceDetail, updateInvoice } from "../../../../../../services/api";
+import { deleteInvoice, getInvoiceDetail, updateInvoice } from "../../services/api";
+import ModifyFieldsInovice1 from "./components/RenderInputModify/Invoice1";
+import ModifyFieldsInovice2 from "./components/RenderInputModify/Invoice2";
+import ModifyFieldsInovice3 from "./components/RenderInputModify/Invoice3";
+import renderFields from "./components/RenderInput";
 
 const { confirm } = Modal;
 
-function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
+function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
     const [invoiceDetails, setInvoiceDetails] = useState(null);
     const [isInvoiceOpen, setInvoiceOpen] = useState(false);
     const [isModifyMode, setIsModifyMode] = useState(false);
@@ -59,7 +59,7 @@ function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
             cancelText: 'No',
             onOk: async () => {
                 try {
-                    await deleteInvoice(invoiceDetails._id)
+                    await deleteInvoice(invoiceDetails._id, userData)
 
                     setInvoiceOpen(false);
                     onClose();
