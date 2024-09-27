@@ -13,8 +13,9 @@ const { confirm } = Modal;
 
 function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
     const [invoiceDetails, setInvoiceDetails] = useState(null);
-    const [isInvoiceOpen, setInvoiceOpen] = useState(true);
+    const [isInvoiceOpen, setInvoiceOpen] = useState(false);
     const [isModifyMode, setIsModifyMode] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
     const [modifiedInvoice, setModifiedInvoice] = useState(null);
     const [messageApi, contextHolder] = message.useMessage();
 
@@ -74,6 +75,7 @@ function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
     };
 
     useEffect(() => {
+        setInvoiceOpen(true);
         const fetchApi = async () => {
             const response = await getInvoiceDetail(invoiceId)
             setInvoiceDetails(response.data.invoices[0]);
@@ -82,8 +84,12 @@ function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
     }, [invoiceId]);
 
     const closeInvoice = () => {
-        setInvoiceOpen(false);
-        onClose();
+        setIsClosing(true);        
+        setTimeout(() => {            
+            setInvoiceOpen(false);            
+            setIsClosing(false);            
+            onClose();        
+        }, 100);
     };
 
     const handleChange = (keyPath, value) => {
@@ -103,7 +109,7 @@ function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
             {contextHolder}
             <div className="invoice__info">
                 <div className={`invoice__overlay ${isInvoiceOpen ? "active" : ""}`} onClick={closeInvoice}></div>
-                <div className={`invoice__overlay-content ${isInvoiceOpen ? "active" : ""}`}>
+                <div className={`invoice__overlay-content ${isInvoiceOpen ? "active" : ""} ${isClosing ? "closing" : ""}`}>
                     <div className="invoice__overlay-header">
                         <h2>Invoice Information</h2>
                         <button className="close-btn" onClick={closeInvoice}>
@@ -139,7 +145,6 @@ function InvoiceInfo({ invoiceId, onClose, onInvoiceDeleted }) {
                             <br/>
                             <Skeleton active={true} />
                         </>
-                        
                     )}
 
                     <div className="invoice__overlay-btn">
