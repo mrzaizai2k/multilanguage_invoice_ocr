@@ -45,7 +45,7 @@ function UserDashboard() {
 
   // Memoize the logout handler
   const handleLogout = useCallback(() => {
-    localStorage.removeItem('token'); // Clear token on logout
+    localStorage.removeItem('token');
     navigate('/login');
   }, [navigate]);
 
