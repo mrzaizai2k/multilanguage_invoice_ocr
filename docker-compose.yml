@@ -40,6 +40,19 @@ services:
       - mongodb
       - mongodb-setup
 
+  jwt-frontend:
+    build:
+      context: ./jwt-auth-frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./jwt-auth-frontend/src:/app/src
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    depends_on:
+      - fastapi-app
+
 networks:
   app-network:
     driver: bridge

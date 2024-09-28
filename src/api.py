@@ -40,20 +40,28 @@ change_stream_thread = None
 ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator())
 invoice_extractor = OpenAIExtractor(config_path=config_path)
 
+
 def process_change_stream(ocr_reader, invoice_extractor, config):
     global change_stream
     for change in change_stream:
         if change['operationType'] == 'insert':
-            document_id = change['fullDocument']['_id']
-            document = mongo_db.get_document_by_id(document_id=str(document_id))
-            base64_img = document['invoice_image_base64']
+            # Instead of processing just the inserted document, we'll fetch all unprocessed documents
+            unprocessed_documents, _ = mongo_db.get_documents(filters={"status": "not extracted"})
+            
+            for document in unprocessed_documents:
+                document_id = document['_id']
+                base64_img = document['invoice_image_base64']
 
-            new_data = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
-                                            invoice_extractor=invoice_extractor, config=config, 
-                                            logger=logger)
-
-            mongo_db.update_document_by_id(document_id, new_data)
-   
+                try:
+                    new_data = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
+                                                    invoice_extractor=invoice_extractor, config=config, 
+                                                    logger=logger)
+                    
+                    # Update the processed document
+                    mongo_db.update_document_by_id(str(document_id), new_data)
+                    
+                except Exception as e:
+                    logger.error(f"Error processing document {document_id}: {str(e)}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
