@@ -11,7 +11,7 @@
     - [2.2 Delete Invoice Image](#22-delete-invoice-image)
     - [2.3 Get Invoice Information](#23-get-invoice-information)
     - [2.4 Modify Invoice Information](#24-modify-invoice-information)
-    - [2.5 Get Frontend Defines](#25-get-frontend-efines)
+    - [2.5 Get Frontend Defines](#25-get-frontend-defines)
 3. [Admin Dashboard](#admin-dashboard)
     - [3.1 Get System Metrics](#31-get-system-metrics)
     - [3.2 Get All Invoices](#32-get-all-invoices)
@@ -302,7 +302,6 @@ curl -X PUT "http://localhost:8000/api/v1/invoices/<invoice_uuid>" \
 |--------------|--------|--------------------------------|
 | invoice_uuid | UUID   | UUID of the updated invoice     |
 | message       | string | Message of the update process   |
-
 
 ### 2.5 Get Frontend Defines
 
