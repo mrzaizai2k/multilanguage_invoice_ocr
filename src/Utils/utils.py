@@ -19,7 +19,7 @@ from pytesseract import Output
 import pytesseract
 from collections import Counter
 from io import BytesIO
-
+import openpyxl
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -400,9 +400,58 @@ def convert_datetime_to_iso(data):
         for item in data:
             convert_datetime_to_iso(item)
 
+
+def get_currencies_from_txt(file_path:str ="config/currencies.txt"):
+    # Read the file and return a list of currency codes
+    with open(file_path, 'r') as f:
+        currencies = [line.strip() for line in f.readlines() if line.strip()]
+    return currencies
+
+def get_land_and_city_list(file_path:str = "config/travel_expenses-2024.xlsx", 
+                              sheet_name=None):
+    # Load the Excel workbook
+    workbook = openpyxl.load_workbook(file_path, keep_vba=True)
+    
+    # Get the sheet (use the first one if no sheet name is provided)
+    if sheet_name is None:
+        sheet = workbook.active
+    else:
+        sheet = workbook[sheet_name]
+
+    cities = set()  # Use set to store unique cities
+    lands = set()  # Use set to store unique countries
+
+    # Iterate through rows and extract city/country names
+    for row in sheet.iter_rows(min_row=4, min_col=1, max_col=1):
+        cell_value = row[0].value
+        if cell_value:
+            cell_value = cell_value.strip()
+            if cell_value.startswith('–'):  # Check for em dash (city)
+                city = cell_value[1:].strip()  # Remove em dash and spaces
+                if city == "im Übrigen":  # Replace city name if it's 'im Übrigen'
+                    city = 'Other'
+                cities.add(city)  # Add to set to ensure uniqueness
+            else:
+                lands.add(cell_value)  # Add to set to ensure uniqueness
+
+    workbook.close()
+    
+    # Convert sets back to lists before returning
+    return list(lands), list(cities) 
+
+
 if __name__ == "__main__":
+    config_path = "config/config.yaml"
+    config = read_config(config_path)
     print("Has GPU?")
     config = read_config("config/config.yaml")
     print(get_current_time(timezone=config['timezone']))
     # Define the Berlin time zone
-    
+    # Get the list of all currencies
+    currencies = get_currencies_from_txt(file_path=config['currencies_path'])
+    print(currencies)
+    lands, cities = get_land_and_city_list(file_path=config['country_and_city']['file_path'],
+                                                  sheet_name=config['country_and_city']['sheet_name'])
+    print("countries",lands)
+    print("cities",cities)
+        

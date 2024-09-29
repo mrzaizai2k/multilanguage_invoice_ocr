@@ -2,7 +2,7 @@ import sys
 sys.path.append("")
 
 import openpyxl
-from fuzzywuzzy import fuzz, process
+from fuzzywuzzy import fuzz
 
 from src.Utils.utils import read_config
 

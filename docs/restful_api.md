@@ -11,6 +11,7 @@
     - [2.2 Delete Invoice Image](#22-delete-invoice-image)
     - [2.3 Get Invoice Information](#23-get-invoice-information)
     - [2.4 Modify Invoice Information](#24-modify-invoice-information)
+    - [2.5 Get Frontend Defines](#25-get-frontend-efines)
 3. [Admin Dashboard](#admin-dashboard)
     - [3.1 Get System Metrics](#31-get-system-metrics)
     - [3.2 Get All Invoices](#32-get-all-invoices)
@@ -147,7 +148,6 @@ curl -X POST "http://localhost:8000/api/v1/invoices/upload" \
 - The `user_uuid` field in the body identifies the user uploading the invoice.
 - The response includes the `invoice_uuid` of the uploaded invoice and a confirmation message.
 
-Here’s the updated Markdown for the DELETE API with `user_uuid` included:
 
 ### 2.2 Delete Invoice Image
 
@@ -303,6 +303,97 @@ curl -X PUT "http://localhost:8000/api/v1/invoices/<invoice_uuid>" \
 | invoice_uuid | UUID   | UUID of the updated invoice     |
 | message       | string | Message of the update process   |
 
+
+### 2.5 Get Frontend Defines
+
+**Description**: This endpoint retrieves the frontend definitions, including currencies, lands, and cities. It reads the definitions from a JSON file and populates them with the latest data.
+
+```shell
+curl -X GET "http://localhost:8000/api/v1/frontend_defines" 
+```
+
+
+**Response on success**:  
+```json
+{
+  "frontend_defines": [
+    {
+      "key": "name",
+      "key_name_user": "Name",
+      "type": "input",
+      "data_type": "string",
+      "required": true
+    },
+    {
+    "key": "city",
+    "key_name_user": "City",
+    "type": "select",
+    "data": ["Vietnam", "USA"],
+    "required": true
+    },
+    {
+    "key": "date",
+    "key_name_user": "Date",
+    "type": "input",
+    "data_type": "date",
+    "note": "dd/mm/YYYY",
+    "required": true
+    },
+    {
+    "key": "start_time",
+    "key_name_user": "Start Time",
+    "type": "input",
+    "data_type": "time",
+    "note": "HH:mm:ss",
+    "required": true
+  },
+  {
+    "key": "has_employee_signature",
+    "key_name_user": "Has Employee Signature ?",
+    "type": "checkbox",
+    "required": false
+  },
+  ]
+}
+```
+
+| Element           | Type    | Description                              |
+|-------------------|---------|------------------------------------------|
+| frontend_defines  | array   | An array of frontend definition objects   |
+| message           | string  | Status message indicating success "Get frontend_defines successful"        |
+
+### Explanation:
+- The response includes `frontend_defines`, which is an array of objects. Each object contains a `key` (such as `"currency"`, `"city"`, or `"land"`) and corresponding `data` with the available options.
+- If successful, the response will also include a message indicating that the operation was successful.
+  
+### Error Response:
+In case of an error, the API will return a response with a status code of 500 and an error message.
+
+```json
+{
+  "status": "error",
+  "message": "Error message here"
+}
+```
+
+| Element   | Type    | Description                     |
+|-----------|---------|---------------------------------|
+| status    | string  | Indicates the status of the request (should be "error") |
+| message   | string  | A description of the error     |
+
+### Notes:
+- Ensure that the `frontend_fields_define_path` in your configuration points to a valid JSON file.
+- Handle authorization errors appropriately, as the endpoint requires a valid token for access.
+```
+
+### Summary of Document:
+1. **Description**: Briefly explains the purpose of the endpoint.
+2. **Request Example**: Shows how to use `curl` to make a GET request.
+3. **Headers**: Details required headers.
+4. **Response on Success**: Provides a JSON response example for a successful request.
+5. **Explanation**: Describes the structure of the response and the meaning of various fields.
+6. **Error Response**: Details what to expect in case of an error.
+7. **Notes**: Additional information relevant to using the endpoint.
 
 
 ## 3. Admin Dashboard

@@ -2,6 +2,7 @@ import sys
 sys.path.append("") 
 
 import os
+import json
 from fastapi import (FastAPI, Request, Header, Depends,
                      status, HTTPException, Query)
 from fastapi.responses import JSONResponse
@@ -19,7 +20,8 @@ from src.base_extractors import OpenAIExtractor
 from src.ldap_authen import (User, get_current_user, ldap_authen, 
                              Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
-                             valid_base64_image, convert_datetime_to_iso)
+                             valid_base64_image, convert_datetime_to_iso,
+                             get_land_and_city_list, get_currencies_from_txt)
 from src.invoice_extraction import extract_invoice_info
 from src.Utils.logger import create_logger
 
@@ -85,6 +87,7 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000",
+                   "http://localhost:80",
                    "http://http://46.137.228.37/",
                    "http://jwt-frontend-container:3000",],  # Replace with your React app's URL
     allow_credentials=True,
@@ -129,6 +132,49 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Error fetching user info for username: {current_user.username} - {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/api/v1/frontend_defines")
+async def get_frontend_defines():
+    try:
+        # Read the JSON file
+        frontend_fields_define_path = config['frontend_fields_define_path']
+        with open(frontend_fields_define_path, "r") as file:
+            frontend_defines = json.load(file)
+
+        # Get currencies, lands, and cities
+        currencies = get_currencies_from_txt()
+        lands, cities = get_land_and_city_list()
+
+        # Update the frontend defines with the retrieved data
+        for item in frontend_defines:
+            if item["key"] == "currency":
+                item["data"] = currencies
+            elif item["key"] == "city":
+                item["data"] = cities
+            elif item["key"] == "land":
+                item["data"] = lands
+
+        msg={
+                "frontend_defines": frontend_defines,
+                "message": "Get frontend_defines successful"
+            }
+        logger.debug(msg=msg)
+        return JSONResponse(
+            status_code=200,
+            content=msg
+        )
+
+    except Exception as e:
+        # Handle errors
+        msg = {
+                "status": "error",
+                "message": str(e)
+            }
+        logger.debug(msg = msg)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=msg)
+    
 
 @app.post("/api/v1/invoices/upload")
 async def upload_invoice(
@@ -269,6 +315,7 @@ async def modify_invoice(invoice_uuid: str, request: Request):
                 "status": "error",
                 "message": str(e)
             }
+        logger.debug(msg = msg)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=msg)
@@ -335,6 +382,7 @@ async def get_invoices(
             "status": "error",
             "message": str(e)
         }
+        logger.debug(msg = msg)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=msg

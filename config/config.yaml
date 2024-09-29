@@ -54,6 +54,13 @@ invoice_txt_template:
 invoice_txt_template_thresh: 0.3
 
 timezone: Europe/Berlin
+currencies_path: config/currencies.txt
+frontend_fields_define_path: config/frontend_fields_define.json
+
+country_and_city:
+  file_path: config/travel_expenses-2024.xlsx
+  sheet_name: Table 1 
+
 
 excel:
   excel_file_path: config/user_template.xlsm

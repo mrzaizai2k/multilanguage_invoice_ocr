@@ -23,12 +23,19 @@ services:
       mongosh --host mongodb:27017 --eval \"rs.initiate()\" &&
       mongosh --host mongodb:27017 --eval \"rs.reconfig({_id: 'test-change-streams', members: [{ _id : 0, host : 'mongodb:27017'}]}, {force: true})\"
       "
+
   fastapi-app:
-    # image: multilanguage_invoice_ocr-fastapi:latest
     build:
       context: .
       dockerfile: Dockerfile
-    env_file: .env
+    container_name: fastapi-app
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
     volumes:
       - ./config:/app/config
       - ./src:/app/src
@@ -44,6 +51,7 @@ services:
     build:
       context: ./jwt-auth-frontend
       dockerfile: Dockerfile
+    container_name: jwt-frontend
     volumes:
       - ./jwt-auth-frontend/src:/app/src
     ports:
@@ -52,6 +60,20 @@ services:
       - app-network
     depends_on:
       - fastapi-app
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+    depends_on:
+      - fastapi-app
+      - jwt-frontend
+      - mongodb
 
 networks:
   app-network:

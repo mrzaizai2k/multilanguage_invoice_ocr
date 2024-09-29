@@ -1,0 +1,660 @@
+[
+  {
+    "key": "name",
+    "key_name_user": "Name",
+    "type": "input",
+    "data_type": "string",
+    "required": true
+  },
+  {
+    "key": "project_number",
+    "key_name_user": "Project Number",
+    "type": "input",
+    "data_type": "string",
+    "required": true
+  },
+  {
+    "key": "kw",
+    "key_name_user": "KW",
+    "type": "input",
+    "data_type": "string",
+    "required": true
+  },
+  {
+    "key": "kunde",
+    "key_name_user": "Kunde",
+    "type": "input",
+    "data_type": "string",
+    "required": true
+  },
+  {
+    "key": "customer",
+    "key_name_user": "Customer",
+    "type": "input",
+    "data_type": "string",
+    "required": true
+  },
+  {
+    "key": "city",
+    "key_name_user": "City",
+    "type": "select",
+    "data": [],
+    "required": true
+  },
+  {
+    "key": "description",
+    "key_name_user": "Description",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "land",
+    "key_name_user": "Land",
+    "type": "select",
+    "required": true,
+    "data": []
+  },
+  {
+    "key": "is_process_done",
+    "key_name_user": "Is Process Completed",
+    "type": "checkbox",
+    "required": false
+  },
+  {
+    "key": "is_commissioned_work",
+    "key_name_user": "Is Commissioned Work ?",
+    "type": "checkbox",
+    "required": false
+  },
+  {
+    "key": "is_without_measuring_technology",
+    "key_name_user": "Is Without Measuring Technology ?",
+    "type": "checkbox",
+    "required": false
+  },
+  {
+    "key": "sign_date",
+    "key_name_user": "Sign Date",
+    "type": "input",
+    "data_type": "date",
+    "note": "dd/mm/YYYY",
+    "required": true
+  },
+  {
+    "key": "has_employee_signature",
+    "key_name_user": "Has Employee Signature ?",
+    "type": "checkbox",
+    "required": false
+  },
+  {
+    "key": "has_customer_signature",
+    "key_name_user": "Has Customer Signature ?",
+    "type": "checkbox",
+    "required": false
+  },
+  {
+    "key": "date",
+    "key_name_user": "Date",
+    "type": "input",
+    "data_type": "date",
+    "note": "dd/mm/YYYY",
+    "required": true
+  },
+  {
+    "key": "start_time",
+    "key_name_user": "Start Time",
+    "type": "input",
+    "data_type": "time",
+    "note": "HH:mm:ss",
+    "required": true
+  },
+  {
+    "key": "end_time",
+    "key_name_user": "End Time",
+    "type": "input",
+    "data_type": "time",
+    "note": "HH:mm:ss",
+    "required": true
+  },
+  {
+    "key": "break_time",
+    "key_name_user": "Break Time",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "is_in_egw",
+    "key_name_user": "Is In EGW",
+    "type": "checkbox",
+    "required": false
+  },
+  {
+    "key": "currency",
+    "key_name_user": "Currency",
+    "type": "select",
+    "required": true, 
+    "data": []
+  },
+  {
+    "key": "invoice_type",
+    "key_name_user": "Invoice Type",
+    "type": "select",
+    "required": false, 
+    "data": ["invoice 1", "invoice 2", "invoice 3"]
+  },
+  {
+    "key": "amount",
+    "key_name_user": "Amount",
+    "type": "input",
+    "data_type": "number",
+    "required": true
+  },
+  {
+    "key": "amount_change",
+    "key_name_user": "Amount Change",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "fixed_lines",
+    "key_name_user": "Fixed lines",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "sku",
+    "key_name_user": "Stock Keeping Unit (SKU)",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "lines",
+    "key_name_user": "Lines",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "vatitems",
+    "key_name_user": "VAT Items",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "amount_each",
+    "key_name_user": "Amount / Item",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "percentage",
+    "key_name_user": "Percentage",
+    "type": "input",
+    "data_type": "number",
+    "note": "%",
+    "required": false
+  },
+  {
+    "key": "amount_shipping",
+    "key_name_user": "Shipping Amount",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "quantity",
+    "key_name_user": "Quantity",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "vatamount",
+    "key_name_user": "VAT Amount",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "amountexvat",
+    "key_name_user": "Amount Ex. VAT",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "purchasedate",
+    "key_name_user": "Purchase Date",
+    "type": "input",
+    "data_type": "date",
+    "note": "dd/mm/YYYY",
+    "required": true
+  },
+  {
+    "key": "purchasetime",
+    "key_name_user": "Purchase Time",
+    "type": "input",
+    "data_type": "time",
+    "note": "HH:mm:ss",
+    "required": false
+  },
+  {
+    "key": "amount_incl_excl_vat_estimated",
+    "key_name_user": "Amount Including or Excluding VAT Estimated ?",
+    "type": "checkbox",
+    "required": false
+  },
+  {
+    "key": "vat_context",
+    "key_name_user": "VAT Context",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "paymentmethod",
+    "key_name_user": "Payment Method",
+    "type": "input",
+    "data_type": "string",
+    "required": true
+  },
+  {
+    "key": "payment_auth_code",
+    "key_name_user": "Payment Auth Code",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "payment_card_number",
+    "key_name_user": "Payment Card Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "payment_card_account_number",
+    "key_name_user": "Payment Card Account Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "payment_card_bank",
+    "key_name_user": "Payment Card Bank",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "payment_card_issuer",
+    "key_name_user": "Payment Card Issuer",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "payment_due_date",
+    "key_name_user": "Payment Due Date",
+    "type": "input",
+    "data_type": "date",
+    "note": "dd/mm/YYYY",
+    "required": false
+  },
+  {
+    "key": "terminal_number",
+    "key_name_user": "Terminal Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "document_subject",
+    "key_name_user": "Document Subject",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "package_number",
+    "key_name_user": "Package Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "invoice_number",
+    "key_name_user": "Invoice Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "receipt_number",
+    "key_name_user": "Receipt Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "shop_number",
+    "key_name_user": "Shop Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "transaction_number",
+    "key_name_user": "Transaction Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "transaction_reference",
+    "key_name_user": "Transaction Reference",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "order_number",
+    "key_name_user": "Order Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "table_number",
+    "key_name_user": "Table Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "table_group",
+    "key_name_user": "Table Group",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "server",
+    "key_name_user": "Server",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_name",
+    "key_name_user": "Merchant Name",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_id",
+    "key_name_user": "Merchant ID",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_coc_number",
+    "key_name_user": "Merchant CoC Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_vat_number",
+    "key_name_user": "Merchant VAT Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_bank_account_number",
+    "key_name_user": "Merchant Bank Account Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_bank_account_number_bic",
+    "key_name_user": "Merchant Bank Account Number BIC",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_chain_liability_bank_account_number",
+    "key_name_user": "Merchant Chain Liability Bank Account Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_chain_liability_amount",
+    "key_name_user": "Merchant Chain Liability Amount",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "merchant_bank_domestic_account_number",
+    "key_name_user": "Merchant Bank Domestic Account Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_bank_domestic_bank_code",
+    "key_name_user": "Merchant Bank Domestic Bank Code",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_website",
+    "key_name_user": "Merchant Website",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_email",
+    "key_name_user": "Merchant Email",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_address",
+    "key_name_user": "Merchant Address",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "merchant_phone",
+    "key_name_user": "Merchant Phone",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_name",
+    "key_name_user": "Customer Name",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_number",
+    "key_name_user": "Customer Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_reference",
+    "key_name_user": "Customer Reference",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_address",
+    "key_name_user": "Customer Address",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_phone",
+    "key_name_user": "Customer Phone",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_vat_number",
+    "key_name_user": "Customer VAT Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_coc_number",
+    "key_name_user": "Customer CoC Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_bank_account_number",
+    "key_name_user": "Customer Bank Account Number",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_bank_account_number_bic",
+    "key_name_user": "Customer Bank Account Number BIC",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_website",
+    "key_name_user": "Customer Website",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "customer_email",
+    "key_name_user": "Customer Email",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "document_language",
+    "key_name_user": "Document Language",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "title",
+    "key_name_user": "Title",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "payment_method",
+    "key_name_user": "Payment Method",
+    "type": "select",
+    "data": ["visa", "self paid", "invoice to the company"],
+    "required": false
+  },
+  {
+    "key": "with_breakfast",
+    "key_name_user": "Is with Breakfast ?",
+    "type": "checkbox",
+    "required": false
+  },
+  {
+    "key": "can_book_again",
+    "key_name_user": "Can you book again ?",
+    "type": "checkbox",
+    "required": false
+  },
+  {
+    "key": "amount_ex_vat",
+    "key_name_user": "Amount Excluding VAT",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "vat_amount",
+    "key_name_user": "VAT Amount",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "vat_percentage",
+    "key_name_user": "VAT Percentage",
+    "type": "input",
+    "data_type": "number",
+    "note": "%",
+    "required": false
+  },
+  {
+    "key": "unit_of_measurement",
+    "key_name_user": "Unit of Measurement",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "vat_code",
+    "key_name_user": "VAT Code",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  },
+  {
+    "key": "amount_excl_vat",
+    "key_name_user": "Amount Exclude VAT",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "amount_incl_vat",
+    "key_name_user": "Amount Include VAT",
+    "type": "input",
+    "data_type": "number",
+    "required": false
+  },
+  {
+    "key": "code",
+    "key_name_user": "Code",
+    "type": "input",
+    "data_type": "string",
+    "required": false
+  }
+]

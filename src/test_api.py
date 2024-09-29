@@ -109,6 +109,30 @@ def test_get_invoices(user_uuid: Optional[str] = None,
 
     return response
 
+
+def test_get_frontend_defines(root_url):
+    # Define the base URL of the API
+    url = f"{root_url}/api/v1/frontend_defines"
+
+    # Send the GET request
+    response = requests.get(url)
+
+    # Print the response for debugging (optional)
+    print(response.json())
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        print("Successfully retrieved frontend defines.")
+        frontend_defines = response.json().get("frontend_defines", [])
+        
+        # Additional checks (optional)
+        assert isinstance(frontend_defines, list), "Frontend defines should be a list"
+        assert len(frontend_defines) > 0, "Frontend defines should not be empty"
+        # Add more assertions based on your expected data structure
+    else:
+        print(f"Failed to retrieve frontend defines: {response.status_code} - {response.text}")
+
+
 if __name__ == "__main__":
     config_path='config/config.yaml'
     config = read_config(path=config_path)
@@ -124,9 +148,10 @@ if __name__ == "__main__":
 
     # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', status="not extracted")
+    # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', status="not extracted")
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
+    test_get_frontend_defines(root_url=root_url)
 
 
 
