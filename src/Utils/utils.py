@@ -20,6 +20,8 @@ import pytesseract
 from collections import Counter
 from io import BytesIO
 import openpyxl
+from fuzzywuzzy import fuzz
+
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -439,7 +441,29 @@ def get_land_and_city_list(file_path:str = "config/travel_expenses-2024.xlsx",
     # Convert sets back to lists before returning
     return list(lands), list(cities) 
 
+def find_best_match_fuzzy(string_list: list[str], text:str):
+    """
+    Find the closest match to text using fuzzy matching.
+    :param text: string text (possibly incorrect)
+    :param list: List of string to find
+    :return: Position of best matching name in the original list, best matching name, and highest similarity score.
+    """
+    # Preprocess the OCR output
+    text = text.lower()
 
+    # Extract the closest match using fuzzy matching (search over both last-first and first-last formats)
+    best_idx, best_score = None, 0
+
+    for idx, item in enumerate(string_list):
+        score = fuzz.ratio(text, item.lower())
+        if score > best_score:
+            best_score = score
+            best_idx = idx
+
+    # Return the index of the original name in the list, the best match, and the score
+    original_name = string_list[best_idx]
+    return best_idx, original_name, best_score
+        
 if __name__ == "__main__":
     config_path = "config/config.yaml"
     config = read_config(config_path)
@@ -449,9 +473,11 @@ if __name__ == "__main__":
     # Define the Berlin time zone
     # Get the list of all currencies
     currencies = get_currencies_from_txt(file_path=config['currencies_path'])
-    print(currencies)
+    # print(currencies)
     lands, cities = get_land_and_city_list(file_path=config['country_and_city']['file_path'],
                                                   sheet_name=config['country_and_city']['sheet_name'])
-    print("countries",lands)
-    print("cities",cities)
+    # print("countries",lands)
+    # print("cities",cities)
+
+    print(find_best_match_fuzzy(string_list=cities, text = "Tokioo"))
         

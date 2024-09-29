@@ -4,7 +4,7 @@ sys.path.append("")
 import openpyxl
 from fuzzywuzzy import fuzz
 
-from src.Utils.utils import read_config
+from src.Utils.utils import read_config, find_best_match_fuzzy
 
 class ExcelProcessor:
     def __init__(self, config_path:str = None, config:dict = None):
@@ -139,26 +139,14 @@ class FuzzyNameMatcher:
         :param ocr_output: OCR string (possibly incorrect)
         :return: Position of best matching name in the original list, best matching name, and highest similarity score.
         """
-        # Preprocess the OCR output
-        ocr_output = ocr_output.lower()
-
-        # Extract the closest match using fuzzy matching (search over both last-first and first-last formats)
-        best_match, best_score = None, 0
-        best_idx = None
-
-        for name, idx in self.canonical_names:
-            score = fuzz.ratio(ocr_output, name)
-            if score > best_score:
-                best_match = name
-                best_score = score
-                best_idx = idx
-
+        name_list = [name for name, _ in self.canonical_names]
+        best_idx, _, best_score = find_best_match_fuzzy(string_list=name_list, 
+                                                           text=ocr_output)
         # Return the index of the original name in the list, the best match, and the score
-        if best_match is not None:
-            original_name = self.names[best_idx]
-            return best_idx, original_name, best_score
-        else:
-            return None, None, 0
+        (_, idx) = self.canonical_names[best_idx]
+        original_name = self.names[idx]
+        return best_idx, original_name, best_score
+ 
 
 def get_full_name(name_tuple):
     """

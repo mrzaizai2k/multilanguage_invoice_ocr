@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Any, Union
 from datetime import date, datetime
 from src.excel_export import FuzzyNameMatcher, ExcelProcessor, get_full_name
-from src.Utils.utils import read_config
+from src.Utils.utils import (read_config, get_currencies_from_txt,
+                              get_land_and_city_list, find_best_match_fuzzy)
 
 
 def preprocess_name(name: str) -> str:
@@ -67,14 +68,45 @@ def normalize_time(value):
     except Exception:
         return ""  # Return an empty string if splitting fails
 
-        
- # Normalize currency to uppercase three-letter code
-def normalize_currency(value):
-    if isinstance(value, str) and len(value.strip()) == 3:
-        return value.strip().upper()
-    return None
+def validate_currency(currency_text: str, config:dict) -> str:
+    # Use fuzzy matching to find the best match
+    if not currency_text or currency_text =="":
+        return ""
+    
+    currencies = get_currencies_from_txt(file_path=config['currencies_path'])
+    best_idx, currency, best_score = find_best_match_fuzzy(string_list=currencies, text=currency_text)
+    # Return the best matching currency or the original currency if no match is found
+    return currency
 
-def validate_invoice_3(invoice_data: dict) -> dict:
+def validate_land(land_text: str, config:dict) -> str:
+    if not land_text or land_text =="":
+        return ""
+    
+    lands, cities = get_land_and_city_list(file_path=config['country_and_city']['file_path'],
+                                                  sheet_name=config['country_and_city']['sheet_name'])
+    
+    best_idx, land, best_score = find_best_match_fuzzy(string_list=lands, text=land_text)
+    # Return the best matching currency or the original currency if no match is found
+    return land
+
+
+def validate_city(city_text: str, config:dict) -> str:
+    if not city_text or city_text =="":
+        return "Other"
+    
+    lands, cities = get_land_and_city_list(file_path=config['country_and_city']['file_path'],
+                                                  sheet_name=config['country_and_city']['sheet_name'])
+    
+    best_idx, city, best_score = find_best_match_fuzzy(string_list=cities, text=city_text)
+    # Return the best matching currency or the original currency if no match is found
+    if best_score <= 50:
+        return "Other"
+    
+    return city
+
+
+
+def validate_invoice_3(invoice_data: dict, config:dict) -> dict:
 
     # Normalize payment card number by removing all non-digit characters
     def normalize_payment_card_number(value):
@@ -116,7 +148,7 @@ def validate_invoice_3(invoice_data: dict) -> dict:
                     data[key] = normalize_phone_number(data[key])
                 
                 if 'currency' in key:
-                    data[key] = normalize_currency(data[key])
+                    data[key] = validate_currency(data[key], config=config)
                 
                 # Recursively normalize nested dictionaries or lists
                 if isinstance(value, dict) or isinstance(value, list):
@@ -157,6 +189,12 @@ def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
 
                 if key == 'name':
                     data[key] = map_name(value, config)
+                
+                if key == 'land':
+                    data[key] = validate_land(value, config)
+                
+                if key == 'city':
+                    data[key] = validate_city(value, config)
                 
                 # Recursively normalize nested dictionaries or lists
                 if isinstance(value, dict) or isinstance(value, list):
@@ -225,9 +263,13 @@ def validate_invoice_2(invoice_data: dict, config:dict) -> dict:
                         if 'payment_method' in line:
                             line['payment_method'] = normalize_payment_method(line['payment_method'])
                 
+                if key == 'currency':
+                    data[key] = validate_currency(value, config=config)
+                
                 # Recursively normalize nested dictionaries or lists
                 if isinstance(value, dict) or isinstance(value, list):
                     data[key] = validate_and_normalize(value, reference_year)
+
         
         elif isinstance(data, list):
             data = [validate_and_normalize(item, reference_year) for item in data]
@@ -549,8 +591,8 @@ if __name__ == "__main__":
             'name': 'Tümmler Dirk',
             'project_number': 'V240045',
             'customer': 'Magua',
-            'city': 'Salzgitter',
-            'land': 'DE',
+            'city': 'Othe',
+            'land': 'Vietna',
             'lines': [
                 {
                     'date': '07/08/2024',
@@ -581,7 +623,7 @@ if __name__ == "__main__":
             'name': 'Schmidt, Timo',
             'project_number': 'V123023',
             'is_in_egw': True,
-            'currency': 'EUR',
+            'currency': 'EURk',
             'lines': [
                 {'title': 'Hotel', 'amount': 504.0},
                 {'title': 'Fuel', 'amount': 24.6},
@@ -592,6 +634,19 @@ if __name__ == "__main__":
             'has_employee_signature': True
         }
     }
+    data3 = {
+        'invoice_info': {
+        
+            'currency': 'EURk',
+
+        }
+    }
 
     data = validate_invoice_1(data1, config=config)
     print("\ndata1", data)
+
+    data = validate_invoice_2(data2, config=config)
+    print("\ndata2", data)
+
+    data = validate_invoice_3(data3, config=config)
+    print("\ndata3", data)
