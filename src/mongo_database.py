@@ -13,7 +13,7 @@ class MongoDatabase:
         self.config = read_config(path=self.config_path)
         try:
             print(f"mongo URI: {str(self.config['mongodb']['uri'])}")
-            self.client = MongoClient(str(self.config['mongodb']['uri']), connect=True)
+            self.client = MongoClient(str(self.config['mongodb']['uri']), directConnection=True)
             print(f"Connected to MongoDB. Version: {self.client.server_info()['version']}")
         except Exception as e:
             try:
@@ -23,6 +23,7 @@ class MongoDatabase:
             except Exception as e:
                 print(f"Failed to connect to fallback MongoDB. Error: {str(e)}")
                 raise
+        
 
         # self.client = MongoClient(host = str(self.config['mongodb']['uri'])) 
         self.db = self.client[self.config['mongodb']['database']]
@@ -165,7 +166,6 @@ if __name__ == "__main__":
 
     invoice = Invoice1(invoice_info=json_1['invoice_info'])
     sample_data = invoice.model_dump(exclude_unset=False)
-
     # Instantiate MongoDatabase
     mongo_db = MongoDatabase(config_path='config/config.yaml')
 
