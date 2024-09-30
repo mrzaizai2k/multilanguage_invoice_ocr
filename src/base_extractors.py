@@ -166,7 +166,8 @@ def test_post_processing():
     - Additional notes: Scan'Express is waiting for you!!! Thank you for your visit, see you soon"""
 
     config_path = "config/config.yaml"
-    invoice_template_path = "config/invoice_template.txt"
+    config = read_config(path = config_path)
+    invoice_template_path = config['invoice_dict']['invoice 3']
     with open(invoice_template_path, 'r') as file:
             invoice_template = file.read()
 
@@ -179,7 +180,10 @@ def test_openai_invoice():
     config_path = "config/config.yaml"
     ocr_text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
     image_path = "fr_1.png"
-    invoice_template_path = "config/invoice_template.txt"
+    config_path = "config/config.yaml"
+    config = read_config(path = config_path)
+    invoice_template_path = config['invoice_dict']['invoice 3']
+    
     with open(invoice_template_path, 'r') as file:
         invoice_template = file.read()
 

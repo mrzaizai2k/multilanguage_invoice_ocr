@@ -125,11 +125,9 @@ class MongoDatabase:
 
 if __name__ == "__main__":
     # Load sample JSON file
-    # with open('config/sample_mongo_doc.json', 'r') as f:
-    #     sample_data = json.load(f)
 
     from src.validate_invoice import Invoice1
-    from datetime import date, time
+    from datetime import date
     json_1 = {
         "invoice_info": {
             "name": "Tümmler, Dirk",

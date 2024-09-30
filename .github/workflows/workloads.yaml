@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      EMAIL_USER: ${{ secrets.EMAIL_USER }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
 
     steps:
     - name: Checkout repository
@@ -31,12 +33,22 @@ jobs:
     # - name: Run bot tests
     #   run: make bot
 
+    - name: Run excel_export test
+      run: python src/excel_export.py
+
+    - name: Run LDAP test
+      run: python src/ldap_authen.py
+
+    - name: Run validate invoice test
+      run: python src/validate_invoice.py
+    
+    - name: Run email test
+      run: python src/mail.py
+
     - name: Run paddleocr test
       run: python src/ocr_reader.py
 
     - name: Run invoice extraction test
-      # env:
-      #   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: python src/invoice_extraction.py
 
 

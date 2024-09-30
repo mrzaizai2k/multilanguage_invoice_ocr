@@ -22,18 +22,6 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
 
-
-app = FastAPI()
-
-# Enable CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Replace with your React app's URL
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -98,27 +86,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return token_data
 
-@app.post("/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    is_valid, is_admin, username = ldap_authen(username = form_data.username, 
-                                             password=form_data.password, 
-                                             config=config)
-    if is_valid:
-        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
-            data={"sub": username, "is_admin": is_admin}, expires_delta=access_token_expires
-        )
-        return {"access_token": access_token, "token_type": "bearer"}
-    else:
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-@app.get("/users/me")
-async def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
 
 if __name__ == "__main__":  
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8148)
+    config_path = "config/config.yaml"
+    ldap_authen(username='tesla', password='password', config=read_config(path=config_path))
 
     # username: tesla
     # password: password 

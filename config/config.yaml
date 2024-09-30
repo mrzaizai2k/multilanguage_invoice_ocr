@@ -1,6 +1,4 @@
 
-key_name_dict_path: config/key_name_dict.json
-
 ocr:
   language_detector: facebook/metaclip-b32-400m
   language_thresh: 0.2
@@ -10,7 +8,7 @@ ocr:
   resize_size: 1080
 
 llm_extract:
-  invoice_template_path: config/invoice_template.txt
+  # invoice_template_path: config/invoice_3_template.txt
 
   openai:
     model_name: gpt-4o-mini
@@ -45,7 +43,7 @@ IES_port: 8149
 invoice_dict: #The template answer of invoice for LLM
   invoice 1: config/page_1_template.txt
   invoice 2: config/page_2_template.txt
-  invoice 3: config/invoice_template.txt
+  invoice 3: config/invoice_3_template.txt
   
 invoice_txt_template:
   invoice 1: config/invoice_1_text_template.txt

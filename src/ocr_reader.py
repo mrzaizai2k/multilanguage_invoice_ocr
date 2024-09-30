@@ -224,8 +224,16 @@ def load_image(image_path: str):
 
 # Example usage
 if __name__ == "__main__":
-    # img_path = "test/images/page_9.png"
-    img_path = "fr_1.png"
+    img_path = "test/images/page_9.png"
+    
+    #### CI CD test
+    import os
+    if os.path.exists(img_path):
+        print(f"Image found: {img_path}")
+    else:
+        print(f"Image path {img_path} not found! Using alternative path.")
+        img_path = "fr_1.png"  # Use alternative path if primary is not found
+
     config_path = "config/config.yaml"
     
     image = load_image(img_path)

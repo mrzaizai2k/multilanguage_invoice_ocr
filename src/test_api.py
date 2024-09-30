@@ -137,8 +137,8 @@ if __name__ == "__main__":
     config_path='config/config.yaml'
     config = read_config(path=config_path)
 
-    root_url = f"http://{config['IES_host']}:{config['IES_port']}"
-    # root_url = f"http://46.137.228.37/api" # aws
+    # root_url = f"http://{config['IES_host']}:{config['IES_port']}"
+    root_url = f"http://46.137.228.37/api" # aws
 
     img_path = "test/images/009_1.png"
     # user_uuid = "gauss"
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', status="not extracted")
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
-    # test_get_frontend_defines(root_url=root_url)
+    test_get_frontend_defines(root_url=root_url)
 
 
 
