@@ -20,11 +20,19 @@ services:
       - app-network
     command: >
       bash -c "
-      mongosh --host mongodb:27017 --eval \"rs.initiate()\" &&
-      mongosh --host mongodb:27017 --eval \"rs.reconfig({_id: 'test-change-streams', members: [{ _id : 0, host : 'mongodb:27017'}]}, {force: true})\"
+      sleep 10 &&
+      mongosh --host mongodb:27017 --eval \"
+      rs.initiate({
+        _id: 'test-change-streams',
+        members: [
+          {_id: 0, host: 'mongodb:27017'}
+        ]
+      })
+      \"
       "
 
   fastapi-app:
+    image: multilanguage_invoice_ocr-fastapi-app
     build:
       context: .
       dockerfile: Dockerfile
@@ -48,6 +56,7 @@ services:
       - mongodb-setup
 
   jwt-frontend:
+    image: multilanguage_invoice_ocr-jwt-frontend
     build:
       context: ./jwt-auth-frontend
       dockerfile: Dockerfile

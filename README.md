@@ -74,6 +74,10 @@ Follow these steps to run the application:
 
    https://www.mongodb.com/developer/languages/python/python-change-streams/#how-to-set-up-a-local-cluster
 
+   https://www.mongodb.com/docs/languages/python/pymongo-driver/current/connect/connection-targets/#replica-sets
+
+   https://www.mongodb.com/resources/products/compatibilities/deploying-a-mongodb-cluster-with-docker#:~:text=Create%20a%20Docker%20network.%20Start%20three%20instances%20of,you%20will%20be%20able%20to%20experiment%20with%20it.?msockid=34c38bc4da6f68c918d898c8db6e69e0
+
    create network
    ```shell
       docker network create app-network
@@ -81,6 +85,8 @@ Follow these steps to run the application:
 
    run mongo
    ```shell
+      mkdir -p data/test-change-streams
+
       docker run -d \
          --name mongodb \
          -v /data/test-change-streams:/data/db \
@@ -129,6 +135,21 @@ Follow these steps to run the application:
    
    https://dev.to/theinfosecguy/how-to-deploy-a-fastapi-application-using-docker-on-aws-4m61
 
+   setup mongo for testing
+   ```shell
+   mkdir -p /data/test-streams
+   
+   docker run -d --rm -p 27018:27017 --name mongo1 -v /data/test-streams:/data/db --network app-network mongo:latest mongod --replSet test-streams --bind_ip localhost,mongo1
+
+   docker exec -it mongo1 mongosh --eval "rs.initiate({
+   _id: \"test-streams\",
+   members: [
+      {_id: 0, host: \"mongo1\"}
+   ]
+   })"
+
+   docker exec -it mongo1 mongosh --eval "rs.status()"
+   ```
 
 5. **Sending Email**
 

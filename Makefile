@@ -11,3 +11,4 @@ unit_test:
 	python src/ocr_reader.py
 	python src/invoice_extraction.py
 	python src/qwen2_extract.py
+	python src/mongo_database.py

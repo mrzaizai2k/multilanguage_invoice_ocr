@@ -17,8 +17,8 @@ class MongoDatabase:
             print(f"Connected to MongoDB. Version: {self.client.server_info()['version']}")
         except Exception as e:
             try:
-                print(f"mongo URI: {str(self.config['mongodb']['uri'])}")
-                self.client = MongoClient("mongodb://mongodb:27017/", connect=True)
+                print(f"mongo URI: mongodb://mongodb:27017/")
+                self.client = MongoClient("mongodb://mongodb:27017/", directConnection=True)
                 print(f"Connected to fallback MongoDB. Version: {self.client.server_info()['version']}")
             except Exception as e:
                 print(f"Failed to connect to fallback MongoDB. Error: {str(e)}")
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     print('doc', doc)
 
     # Test deleting the document
-    delete = mongo_db.delete_document_by_id(document_id=document_id)
-    print(f"Delete Success: {delete}")
+    # delete = mongo_db.delete_document_by_id(document_id=document_id)
+    # print(f"Delete Success: {delete}")
 
     # mongo_db.delete_all_documents()
