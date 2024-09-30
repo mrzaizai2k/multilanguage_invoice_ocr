@@ -467,8 +467,7 @@ def find_best_match_fuzzy(string_list: list[str], text:str):
 if __name__ == "__main__":
     config_path = "config/config.yaml"
     config = read_config(config_path)
-    print("Has GPU?")
-    config = read_config("config/config.yaml")
+
     print(get_current_time(timezone=config['timezone']))
     # Define the Berlin time zone
     # Get the list of all currencies
