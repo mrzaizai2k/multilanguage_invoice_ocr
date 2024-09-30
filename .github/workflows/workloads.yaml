@@ -29,6 +29,13 @@ jobs:
         sudo apt install make
         make install
 
+     - name: run test base extractor and ollama setup
+      run: |
+
+        docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+        docker exec -it ollama ollama run llama3.1:8b
+ 
+        python src/base_extractors.py
 
     # - name: Run bot tests
     #   run: make bot
