@@ -55,22 +55,10 @@ jobs:
     - name: run test MongoDB
       run: |
 
-        # Run MongoDB container
         docker run -d \
-          --name mongodb \
-          -v /data/test-change-streams:/data/db \
-          -p 27017:27017 \
-          mongo:latest \
-          mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017
-
-        # Wait for MongoDB to be fully up and running
-        sleep 30
-
-        # Initialize MongoDB replica set
-
-        docker exec -it mongodb mongosh --eval "rs.status()"
-
-        docker exec mongodb mongosh --eval """config = {_id: "test-change-streams",members: [{ _id : 0, host : "localhost:27017"}]};rs.initiate(config);"""
+         --name mongodb \
+         -p 27017:27017 \
+         mongo:latest 
 
         # Run the mongodb 
         python src/mongo_database.py
