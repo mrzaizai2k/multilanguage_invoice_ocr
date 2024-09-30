@@ -97,6 +97,8 @@ app.add_middleware(
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+def get_current_user_dependency(token: str = Depends(oauth2_scheme)) -> User:
+    return get_current_user(token, SECRET_KEY, ALGORITHM)
 
 @app.get("/")
 @app.post("/")
@@ -112,7 +114,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
                                                    config=config)
         if is_valid:
             access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-            access_token = create_access_token(
+            access_token = create_access_token(secret_key=SECRET_KEY, algorithm=ALGORITHM,
                 data={"sub": username, "is_admin": is_admin}, expires_delta=access_token_expires
             )
             logger.debug(f"Login successful for username: {username} (is_admin: {is_admin})")
@@ -125,7 +127,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/users/me")
-async def read_users_me(current_user: User = Depends(get_current_user)):
+async def read_users_me(current_user: User = Depends(get_current_user_dependency)):
     logger.info(f"Fetching user info for username: {current_user.username}")
     try:
         return current_user
