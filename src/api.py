@@ -88,7 +88,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000",
                    "http://localhost:80",
-                   "http://http://46.137.228.37/",
+                   "http://localhost",
+                   "http://46.137.228.37/",
                    "http://jwt-frontend-container:3000",],  # Replace with your React app's URL
     allow_credentials=True,
     allow_methods=["*"],
