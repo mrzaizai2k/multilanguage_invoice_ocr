@@ -8,7 +8,7 @@ export const API_URL = SERVER_IP
   ? `http://${SERVER_IP}/api/`
   : 'http://localhost:8149';
 
-// console.log("API_URL", API_URL)
+console.log("API_URL", API_URL)
 
 export const login = async (username, password) => {
     const result = await axios.post(`${API_URL}/token`,
