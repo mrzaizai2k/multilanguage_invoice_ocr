@@ -94,14 +94,12 @@ allowed_origins = [
     "http://localhost:3000",
     "http://localhost",
     "http://localhost:80",
-    "http://13.212.194.138",
-    "http://jwt-frontend-container:3000",
 ]
 
 # Add SERVER_IP to allowed origins if it exists
 if SERVER_IP:
-    allowed_origins.append(f"http://{SERVER_IP}")
-    allowed_origins.append(f"https://{SERVER_IP}")
+    allowed_origins.append(f"http://{SERVER_IP}/")
+    allowed_origins.append(f"https://{SERVER_IP}/")
 
 app.add_middleware(
     CORSMiddleware,
