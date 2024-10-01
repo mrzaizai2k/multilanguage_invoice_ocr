@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { pdfjs } from 'react-pdf';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
+import 'react-photo-view/dist/react-photo-view.css';
 import { notification, Spin } from 'antd';
 import { BsFiletypeJpg, BsFiletypePdf, BsFiletypePng, BsTrash3Fill, BsUpload } from "react-icons/bs";
 import { MdAddToPhotos, MdOutlineZoomOutMap } from "react-icons/md";
