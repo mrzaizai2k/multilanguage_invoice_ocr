@@ -3,25 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './UserDashboard.css';
 import { API_URL } from '../../services/api';
-import { MdUploadFile, MdLogout, MdOutlinePersonOutline } from "react-icons/md";
+import { MdUploadFile, MdLogout, MdOutlinePersonOutline, MdInfo } from "react-icons/md";
 import { BsFileEarmarkRichtext } from "react-icons/bs";
 import { Helmet } from 'react-helmet';
 import AddInvoice from '../../components/AddInovice';
 import UserInfo from '../../components/UserInfo';
 import InvoiceList from './InvoiceList';
+import { Modal } from 'antd';
 
-// Memoized components
 const MemoizedUserInfo = memo(UserInfo);
 const MemoizedInvoiceList = memo(InvoiceList);
 const MemoizedAddInvoice = memo(AddInvoice);
 
+const { confirm } = Modal;
 
 function UserDashboard() {
   const [activeTab, setActiveTab] = useState('userInfo');
-  const [userData, setUserData] = useState(null); // State for user data
+  const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch user data on component mount
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -31,31 +31,39 @@ function UserDashboard() {
         setUserData(response.data);
       } catch (error) {
         console.error("Error fetching user data", error);
-        // Handle error, maybe log out or show an error message
       }
     };
 
     fetchUserData();
   }, [navigate]);
 
-  // Memoize the tab change handler
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab);
   }, []);
 
-  // Memoize the logout handler
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  }, [navigate]);
+  const showLogoutConfirm = () => {
+    confirm({
+      title: 'Are you sure you want to logout?',
+      icon: <MdInfo />,
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk: () => {
+        localStorage.removeItem('token');
+        navigate('/login');
+      },
+      onCancel() {
+        console.log('Cancel');
+      },
+    });
+  };
 
-  // Memoize the content displayed based on the active tab
   const tabContent = React.useMemo(() => {
     switch (activeTab) {
       case 'userInfo':
-        return <MemoizedUserInfo userData={userData} title="User Information"/>;
+        return <MemoizedUserInfo userData={userData} title="User Information" />;
       case 'invoice':
-        return <MemoizedInvoiceList userData={userData?.username}/>;
+        return <MemoizedInvoiceList userData={userData?.username} />;
       case 'addInvoice':
         return <MemoizedAddInvoice username={userData?.username} />;
       default:
@@ -73,7 +81,7 @@ function UserDashboard() {
         <Sidebar
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          onLogout={handleLogout}
+          onLogout={showLogoutConfirm}
         />
         <div className="content">
           {tabContent}
@@ -85,7 +93,7 @@ function UserDashboard() {
 
 const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
   <div className="sidebar">
-    <h1 style={{cursor: "default"}}>Invoice Extract System</h1>
+    <h1 style={{ cursor: "default" }}>Invoice Extract System</h1>
     <div className="menu__list">
       <SidebarButton
         active={activeTab === 'userInfo'}
@@ -105,17 +113,16 @@ const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
         icon={<MdUploadFile />}
         text="Add Invoice"
       />
+      <SidebarButton
+        className="logout"
+        onClick={onLogout}
+        icon={<MdLogout />}
+        text="Logout"
+      />
     </div>
-    <SidebarButton
-      className="logout"
-      onClick={onLogout}
-      icon={<MdLogout />}
-      text="Logout"
-    />
   </div>
 ));
 
-// Reusable SidebarButton component
 const SidebarButton = memo(({ active, onClick, icon, text, className = '' }) => (
   <button
     className={`${active ? 'active' : ''} ${className}`}

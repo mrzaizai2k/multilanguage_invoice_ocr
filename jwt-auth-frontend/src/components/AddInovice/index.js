@@ -1,13 +1,13 @@
-import React, { useState, useCallback } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useCallback, useRef } from 'react';
 import { pdfjs } from 'react-pdf';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
-import 'react-photo-view/dist/react-photo-view.css';
-import { notification, Spin } from 'antd';  // Import Spin from antd
-import './AddInvoice.css';
-import { createInvoice } from '../../services/api';
+import { notification, Spin } from 'antd';
 import { BsFiletypeJpg, BsFiletypePdf, BsFiletypePng, BsTrash3Fill, BsUpload } from "react-icons/bs";
 import { MdAddToPhotos, MdOutlineZoomOutMap } from "react-icons/md";
 import { Helmet } from 'react-helmet';
+import { createInvoice } from '../../services/api';
+import './AddInvoice.css';
 
 // Initialize PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -15,9 +15,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 function AddInvoice({ username }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [images, setImages] = useState([]);
-  const [dragging, setDragging] = useState(false);  // State to manage drag visual feedback
-  const [loadingAddFile, setLoadingAddFile] = useState(false);  // State for loading spinner when adding files
-  const [loadingUpload, setLoadingUpload] = useState(false);  // State for loading spinner when uploading
+  const [dragging, setDragging] = useState(false);
+  const [loadingAddFile, setLoadingAddFile] = useState(false);
+  const [loadingUpload, setLoadingUpload] = useState(false);
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const totalSizeRef = useRef(0);
 
   const imageToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -33,41 +35,63 @@ function AddInvoice({ username }) {
     const data = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument(data).promise;
     const canvas = document.createElement('canvas');
+
     for (let i = 0; i < pdf.numPages; i++) {
       const page = await pdf.getPage(i + 1);
       const viewport = page.getViewport({ scale: 1 });
       const context = canvas.getContext('2d');
       canvas.height = viewport.height;
       canvas.width = viewport.width;
-      await page.render({ canvasContext: context, viewport: viewport }).promise;
+      await page.render({ canvasContext: context, viewport }).promise;
       images.push(canvas.toDataURL());
     }
     canvas.remove();
     return images;
   };
 
-  const handleFileChange = useCallback(async (files) => {
-    setLoadingAddFile(true);  // Set loading for adding files
-    const newImages = [];
-    const newFiles = [];
+  const handleFileChange = useCallback(async (newFiles) => {
+    setLoadingAddFile(true);
+    let filesToAdd = [];
+    let imagesToAdd = [];
 
-    for (const file of files) {
+    for (const file of newFiles) {
+      if (file.size > MAX_FILE_SIZE) {
+        notification.warning({
+          message: 'File Size Exceeded',
+          description: `File "${file.name}" exceeds the maximum limit of 5MB.`,
+        });
+        continue;
+      }
+
+      if (totalSizeRef.current + file.size > MAX_FILE_SIZE) {
+        notification.warning({
+          message: 'Total File Size Exceeded',
+          description: 'The total size of all files would exceed the 5MB limit.',
+        });
+        break;
+      }
+
+      totalSizeRef.current += file.size;
+
       if (file.type === 'application/pdf') {
         const pdfImages = await convertPdfToImages(file);
-        newImages.push(...pdfImages);
-        newFiles.push(...pdfImages.map(img => {
+        imagesToAdd.push(...pdfImages);
+        filesToAdd.push(...pdfImages.map(img => {
           const blob = dataURItoBlob(img);
-          return new File([blob], `${file.name}-page-${newImages.length}.png`, { type: 'image/png' });
+          return new File([blob], `${file.name}-page-${imagesToAdd.length}.png`, { type: 'image/png' });
         }));
       } else if (file.type.startsWith('image/')) {
-        newImages.push(URL.createObjectURL(file));
-        newFiles.push(file);
+        imagesToAdd.push(URL.createObjectURL(file));
+        filesToAdd.push(file);
       }
     }
 
-    setImages(prevImages => [...prevImages, ...newImages]);
-    setSelectedFiles(prevFiles => [...prevFiles, ...newFiles]);
-    setLoadingAddFile(false);  // Turn off loading after file added
+    if (filesToAdd.length > 0) {
+      setImages(prevImages => [...prevImages, ...imagesToAdd]);
+      setSelectedFiles(prevFiles => [...prevFiles, ...filesToAdd]);
+    }
+
+    setLoadingAddFile(false);
   }, []);
 
   const dataURItoBlob = (dataURI) => {
@@ -91,7 +115,6 @@ function AddInvoice({ username }) {
     }
 
     setLoadingUpload(true);
-
     try {
       for (const file of selectedFiles) {
         const base64Image = await imageToBase64(file);
@@ -111,10 +134,10 @@ function AddInvoice({ username }) {
     } catch (error) {
       notification.error({
         message: 'Upload Failed',
-        description: 'Error uploading file:' + error,
+        description: 'Error uploading file: ' + error,
       });
     } finally {
-      setLoadingUpload(false);  // Turn off loading after upload
+      setLoadingUpload(false);
     }
   };
 
@@ -123,20 +146,18 @@ function AddInvoice({ username }) {
     setSelectedFiles(prevFiles => prevFiles.filter((_, index) => images[index] !== imageToDelete));
   };
 
-  // Handle drag events
   const handleDragOver = (e) => {
-    e.preventDefault();  // Prevent default to allow drop
-    setDragging(true);   // Set drag feedback
+    e.preventDefault();
+    setDragging(true);
   };
 
   const handleDragLeave = () => {
-    setDragging(false);  // Remove drag feedback
+    setDragging(false);
   };
 
   const handleDrop = async (e) => {
     e.preventDefault();
-    setDragging(false);  // Remove drag feedback
-
+    setDragging(false);
     const files = Array.from(e.dataTransfer.files);
     await handleFileChange(files);
   };
@@ -146,9 +167,8 @@ function AddInvoice({ username }) {
       <Helmet>
         <title>Add Invoice</title>
       </Helmet>
-
       <div className="add-invoice">
-        <div className={`drop-zone ${dragging ? 'dragging' : ''}`}  // Add drag feedback
+        <div className={`drop-zone ${dragging ? 'dragging' : ''}`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -157,7 +177,7 @@ function AddInvoice({ username }) {
             <div className="loading-spinner">
               <Spin size="large" />
             </div>
-          ) : images.length > 0 ? (<>
+          ) : images.length > 0 ? (
             <PhotoProvider toolbarRender={({ rotate, onRotate }) => {
               return (
                 <svg
@@ -197,19 +217,21 @@ function AddInvoice({ username }) {
                 </div>
               </div>
             </PhotoProvider>
-          </>) : (<>
-            <div className="icon-upload"><BsUpload /></div>
-            <p>Drag and drop your image here</p>
-            <span className='or'>or</span>
-            <label htmlFor='file' className="browse-btn">Browse File</label>
-            <input id='file' type="file" accept=".jpg,.png,.pdf" multiple onChange={(e) => handleFileChange(Array.from(e.target.files))} hidden />
-            <div className="file-types">
-              <BsFiletypeJpg />
-              <BsFiletypePng />
-              <BsFiletypePdf />
-            </div>
-          </>)}
-
+          ) : (
+            <>
+              <div className="icon-upload"><BsUpload /></div>
+              <p>Drag and drop your image here</p>
+              <span className='or'>or</span>
+              <label htmlFor='file' className="browse-btn">Browse File</label> <br/>
+              <span style={{display: "block", paddingTop: "15px", color: "red"}}>Upload max file size 5MB</span>
+              <input id='file' type="file" accept=".jpg,.png,.pdf" multiple onChange={(e) => handleFileChange(Array.from(e.target.files))} hidden />
+              <div className="file-types">
+                <BsFiletypeJpg />
+                <BsFiletypePng />
+                <BsFiletypePdf />
+              </div>
+            </>
+          )}
         </div>
         {images.length > 0 && (
           <button className="upload-btn" onClick={handleUpload} disabled={loadingUpload}>
@@ -226,6 +248,11 @@ function AddInvoice({ username }) {
             )}
           </button>
         )}
+        {images.length > 0 && (
+          <div style={{marginTop: "10px"}}>
+            <p>Total size: {(totalSizeRef.current / (1024 * 1024)).toFixed(2)} MB / 5 MB</p>
+          </div>
+        )}  
       </div>
     </>
   );

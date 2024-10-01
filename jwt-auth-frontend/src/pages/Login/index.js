@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../../services/api';
+import { login, setFrontendDefines } from '../../services/api';
 import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
 import { Spin } from 'antd';
 import Helmet from "react-helmet";
@@ -11,7 +11,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -20,8 +20,8 @@ function Login() {
     setError('');
     try {
       const response = await login(username, password);
-      console.log(response);
       localStorage.setItem('token', response.data.access_token);
+      setFrontendDefines();
       navigate('/protected');
     } catch (error) {
       setError('Invalid credentials');
@@ -30,7 +30,6 @@ function Login() {
     }
   };
 
-  // Function to toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
@@ -38,9 +37,9 @@ function Login() {
   return (
     <>
       <Helmet>
-          <title>Login</title>
+        <title>Login</title>
       </Helmet>
-      
+
       <div className="login-container">
         <div className="login-box">
           <div className="login-header">

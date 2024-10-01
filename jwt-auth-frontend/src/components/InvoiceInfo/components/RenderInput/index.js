@@ -1,25 +1,42 @@
 import React from "react";
 import fieldLabels from "../../../../config/fieldLabels";
+import moment from "moment";
 
 const renderFields = (info) => {
-    const renderInput = (key, value) => {
-        if (typeof value === 'string') {
-            return <input key={key} type="text" defaultValue={value} disabled />;
-        }
-        if (typeof value === 'number') {
-            return <input key={key} type="number" defaultValue={value} disabled />;
-        }
-        if (typeof value === 'boolean') {
-            return (
-                <input key={key} type="checkbox" defaultChecked={value} disabled />
-            );
-        }
-        if (value instanceof Date) {
-            const formattedDate = value.toISOString().split('T')[0]; // Định dạng thành YYYY-MM-DD
-            return <input key={key} type="date" defaultValue={formattedDate} disabled />;
-        }
-        return null;
-    };
+const renderInput = (key, value) => {
+    if (typeof value === 'string' && moment(value, moment.ISO_8601, true).isValid()) {
+        return (
+            <input
+                key={key}
+                type="date"
+                defaultValue={moment(value).format('YYYY-MM-DD')}
+                disabled
+            />
+        );
+    }
+    if (typeof value === 'string' && moment(value, 'HH:mm', true).isValid()) {
+        return (
+            <input
+                key={key}
+                type="time"
+                defaultValue={moment(value, 'HH:mm').format('HH:mm')}
+                disabled
+            />
+        );
+    }
+    if (typeof value === 'string') {
+        return <input key={key} type="text" defaultValue={value} disabled />;
+    }
+    if (typeof value === 'number') {
+        return <input key={key} type="number" defaultValue={value} disabled />;
+    }
+    if (typeof value === 'boolean') {
+        return (
+            <input key={key} type="checkbox" defaultChecked={value} disabled />
+        );
+    }
+    return null;
+};
 
     const isEmptyObject = (obj) => {
         return Object.values(obj).every(value => value === null || value === '' || (Array.isArray(value) && value.length === 0));

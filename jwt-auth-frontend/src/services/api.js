@@ -1,7 +1,8 @@
 import axios from "axios";
 
-// export const API_URL = 'http://46.137.228.37';
-export const API_URL = 'http://localhost:8149';
+export const API_URL = 'http://13.212.194.138/api';
+// export const API_URL = 'http://46.137.228.37/api//';
+// export const API_URL = 'http://localhost:8149';
 
 export const login = async (username, password) => {
     const result = await axios.post(`${API_URL}/token`,
@@ -9,6 +10,30 @@ export const login = async (username, password) => {
         { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
     return result;
 };
+
+// export const getFrontendDefines = async () => {
+//     const result = await axios.get(`${API_URL}/api/v1/frontend_defines`);
+//     return result;
+// };
+
+export const setFrontendDefines = async () => {
+    try {
+        const result = await axios.get(`${API_URL}/api/v1/frontend_defines`);
+        if (result && result.data) {
+            localStorage.setItem('frontendDefines', JSON.stringify(result.data));
+        }
+        return result.data;
+    } catch (error) {
+        console.error('Error fetching frontend defines:', error);
+        return null;
+    }
+};
+
+export const getFrontendDefines = () => {
+    const data = localStorage.getItem('frontendDefines');
+        return data ? JSON.parse(data).frontend_defines : null;
+};
+
 
 export const getInvoicesByUser = async (user_uuid, filterDate, filterType, currentPage, pageSize) => {
     const sortOrder = filterDate === "asc" ? "asc" : filterDate === "desc" ? "desc" : "";

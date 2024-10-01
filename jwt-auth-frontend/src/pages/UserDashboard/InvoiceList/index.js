@@ -105,7 +105,20 @@ function InvoiceList({ userData }) {
                         <Skeleton.Image key={index} active={true} style={{ width: "180px", height: "230px", margin: "15px" }} />
                     ))
                 ) : (
-                    <PhotoProvider>
+                    <PhotoProvider toolbarRender={({ rotate, onRotate }) => {
+                        return (
+                            <svg
+                                className="PhotoView-Slider__toolbarIcon"
+                                onClick={() => onRotate(rotate + 90)}
+                                width="44"
+                                height="44"
+                                viewBox="0 0 768 768"
+                                fill="white"
+                            >
+                                <path d="M565.5 202.5l75-75v225h-225l103.5-103.5c-34.5-34.5-82.5-57-135-57-106.5 0-192 85.5-192 192s85.5 192 192 192c84 0 156-52.5 181.5-127.5h66c-28.5 111-127.5 192-247.5 192-141 0-255-114-255-255s114-255 255-255c70.5 0 135 28.5 181.5 72z" />
+                            </svg>
+                        );
+                    }}>
                         {invoices.map((item, index) => (
                             <div className="invoice__item" key={index}>
                                 {item.invoice_image_base64 &&

@@ -9,11 +9,13 @@ import { Helmet } from 'react-helmet';
 import AddInvoice from '../../components/AddInovice';
 import UserInfo from '../../components/UserInfo';
 import InvoiceList from './InvoiceList';
+import { Modal } from 'antd';
 
-// Memoized components
 const MemoizedUserInfo = memo(UserInfo);
 const MemoizedInvoiceList = memo(InvoiceList);
 const MemoizedAddInvoice = memo(AddInvoice);
+
+const { confirm } = Modal;
 
 function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('userInfo');
@@ -42,19 +44,29 @@ function AdminDashboard() {
     setActiveTab(tab);
   }, []);
 
-  // Memoize the logout handler
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  }, [navigate]);
+  // Show logout confirmation
+  const showLogoutConfirm = () => {
+    confirm({
+      title: 'Are you sure you want to logout?',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk: () => {
+        localStorage.removeItem('token');
+        navigate('/login');
+      },
+      onCancel() {
+        console.log('Cancel');
+      },
+    });
+  };
 
-  // Memoize the content displayed based on the active tab
   const tabContent = React.useMemo(() => {
     switch (activeTab) {
       case 'userInfo':
-        return <MemoizedUserInfo userData={userData} title="Admin Information"/>;
+        return <MemoizedUserInfo userData={userData} title="Admin Information" />;
       case 'invoice':
-        return <MemoizedInvoiceList userData={userData?.username}/>;
+        return <MemoizedInvoiceList userData={userData?.username} />;
       case 'addInvoice':
         return <MemoizedAddInvoice username={userData?.username} />;
       default:
@@ -72,7 +84,7 @@ function AdminDashboard() {
         <Sidebar
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          onLogout={handleLogout}
+          onLogout={showLogoutConfirm}
         />
         <div className="content">
           {tabContent}
@@ -84,7 +96,7 @@ function AdminDashboard() {
 
 const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
   <div className="sidebar">
-    <h1 style={{cursor: "default"}}>Invoice Extract System</h1>
+    <h1 style={{ cursor: "default" }}>Invoice Extract System</h1>
     <div className="menu__list">
       <SidebarButton
         active={activeTab === 'userInfo'}
@@ -104,13 +116,13 @@ const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
         icon={<MdUploadFile />}
         text="Add Invoice"
       />
+      <SidebarButton
+        className="logout"
+        onClick={onLogout}
+        icon={<MdLogout />}
+        text="Logout"
+      />
     </div>
-    <SidebarButton
-      className="logout"
-      onClick={onLogout}
-      icon={<MdLogout />}
-      text="Logout"
-    />
   </div>
 ));
 

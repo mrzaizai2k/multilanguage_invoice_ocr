@@ -155,6 +155,7 @@
   border-radius: 5px;
   font-size: 14px;
   background-color: #fff;
+  font-family: "Public Sans", sans-serif;
 }
 
 .invoice__overlay-input input:focus {

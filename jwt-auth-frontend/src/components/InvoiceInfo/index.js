@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BsXCircle, BsX, BsPencilSquare, BsTrash3Fill } from "react-icons/bs";
+import { BsX, BsPencilSquare, BsTrash3Fill } from "react-icons/bs";
 import { MdOutlineSave, MdInfo } from "react-icons/md";
 import "./InvoiceInfo.css";
 import { message, Skeleton, Modal } from 'antd';
@@ -8,15 +8,16 @@ import ModifyFieldsInovice1 from "./components/RenderInputModify/Invoice1";
 import ModifyFieldsInovice2 from "./components/RenderInputModify/Invoice2";
 import ModifyFieldsInovice3 from "./components/RenderInputModify/Invoice3";
 import renderFields from "./components/RenderInput";
+import { formatDataInvoice } from "./components/FormatDataInvoice";
 
 const { confirm } = Modal;
 
 function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
-    const [invoiceDetails, setInvoiceDetails] = useState(null);
+    const [invoiceDetails, setInvoiceDetails] = useState({});
     const [isInvoiceOpen, setInvoiceOpen] = useState(false);
     const [isModifyMode, setIsModifyMode] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
-    const [modifiedInvoice, setModifiedInvoice] = useState(null);
+    const [modifiedInvoice, setModifiedInvoice] = useState({});
     const [messageApi, contextHolder] = message.useMessage();
 
     const openModifyMode = () => {
@@ -24,21 +25,16 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
         setModifiedInvoice({ ...invoiceDetails });
     };
 
-    const closeModifyMode = () => {
-        setIsModifyMode(false);
-        setModifiedInvoice(null);
-    };
-
     const saveModifiedInvoice = async () => {
         try {
-            await updateInvoice(modifiedInvoice._id, modifiedInvoice)
+            await updateInvoice(modifiedInvoice._id, modifiedInvoice);
             messageApi.open({
                 type: "success",
                 content: "Invoice updated successfully!",
                 duration: 5,
             });
             setInvoiceDetails(modifiedInvoice);
-            closeModifyMode();
+            setIsModifyMode(false); 
         } catch (error) {
             console.error('Error saving modified invoice:', error);
             messageApi.open({
@@ -59,8 +55,7 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
             cancelText: 'No',
             onOk: async () => {
                 try {
-                    await deleteInvoice(invoiceDetails._id, userData)
-
+                    await deleteInvoice(invoiceDetails._id, userData);
                     setInvoiceOpen(false);
                     onClose();
                     onInvoiceDeleted(invoiceDetails._id);
@@ -77,18 +72,19 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
     useEffect(() => {
         setInvoiceOpen(true);
         const fetchApi = async () => {
-            const response = await getInvoiceDetail(invoiceId)
+            const response = await getInvoiceDetail(invoiceId);
             setInvoiceDetails(response.data.invoices[0]);
+            setModifiedInvoice({ ...response.data.invoices[0] });
         };
         fetchApi();
     }, [invoiceId]);
 
     const closeInvoice = () => {
-        setIsClosing(true);        
-        setTimeout(() => {            
-            setInvoiceOpen(false);            
-            setIsClosing(false);            
-            onClose();        
+        setIsClosing(true);
+        setTimeout(() => {
+            setInvoiceOpen(false);
+            setIsClosing(false);
+            onClose();
         }, 100);
     };
 
@@ -103,6 +99,8 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
 
         setModifiedInvoice(newModifiedInvoice);
     };
+
+    const formatInvoiceInfo = formatDataInvoice(modifiedInvoice?.invoice_info)
 
     return (
         <>
@@ -123,26 +121,26 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
                                 <>
                                     {invoiceDetails.invoice_type === 'invoice 1' ? (
                                         <ModifyFieldsInovice1
-                                            info={modifiedInvoice?.invoice_info || {}}
+                                            info={formatInvoiceInfo || {}}
                                             onChange={handleChange} />
                                     ) : invoiceDetails.invoice_type === 'invoice 2' ? (
                                         <ModifyFieldsInovice2
-                                            info={modifiedInvoice?.invoice_info || {}}
+                                            info={formatInvoiceInfo || {}}
                                             onChange={handleChange} />
                                     ) : (
                                         <ModifyFieldsInovice3
-                                            info={modifiedInvoice?.invoice_info || {}}
+                                            info={formatInvoiceInfo || {}}
                                             onChange={handleChange} />
                                     )}
                                 </>
                             ) : (
-                                renderFields(invoiceDetails.invoice_info || { })
+                                renderFields(invoiceDetails.invoice_info || {})
                             )}
                         </div>
                     ) : (
                         <>
                             <Skeleton active={true} />
-                            <br/>
+                            <br />
                             <Skeleton active={true} />
                         </>
                     )}
@@ -151,7 +149,6 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
                         {isModifyMode ? (
                             <>
                                 <button onClick={saveModifiedInvoice}><MdOutlineSave /> Save</button>
-                                <button onClick={closeModifyMode}><BsXCircle /> Cancel</button>
                             </>
                         ) : (
                             <>
