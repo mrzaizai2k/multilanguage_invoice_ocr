@@ -94,6 +94,7 @@ allowed_origins = [
     "http://localhost:3000",
     "http://localhost",
     "http://localhost:80",
+    "http://13.212.194.138",
 ]
 
 # Add SERVER_IP to allowed origins if it exists
