@@ -89,9 +89,7 @@ app.add_middleware(
     allow_origins=["http://localhost:3000",
                    "http://localhost:80",
                    "http://localhost",
-                   "http://46.137.228.37/",
-                   "http://13.212.194.138",
-                   "http://jwt-frontend-container:3000",],  # Replace with your React app's URL
+                   "http://13.212.194.138",],  # Replace with your React app's URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
