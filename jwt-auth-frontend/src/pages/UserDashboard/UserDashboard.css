@@ -72,7 +72,7 @@
 }
 
 .logout {
-  margin-top: auto !important;
+  /* margin-top: auto !important; */
   color: #666 !important;
   padding: 15px;
   border: none;
