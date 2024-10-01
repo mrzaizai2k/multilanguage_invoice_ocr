@@ -44,6 +44,8 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - ALGORITHM=${ALGORITHM}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - SERVER_IP=${SERVER_IP}
+
     volumes:
       - ./config:/app/config
       - ./src:/app/src
@@ -69,6 +71,9 @@ services:
       - app-network
     depends_on:
       - fastapi-app
+    environment:
+      - SERVER_IP=${SERVER_IP:-fastapi-app}
+
 
   nginx:
     build:
