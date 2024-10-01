@@ -72,7 +72,7 @@ services:
     depends_on:
       - fastapi-app
     environment:
-      - SERVER_IP=${SERVER_IP:-fastapi-app}
+      - SERVER_IP=${SERVER_IP}
 
 
   nginx:

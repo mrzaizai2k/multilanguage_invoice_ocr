@@ -1,13 +1,15 @@
 import axios from "axios";
 
 // Load SERVER_IP from environment variable
-const SERVER_IP = process.env.SERVER_IP;
+// const SERVER_IP = process.env.SERVER_IP;
+// console.log("SERVER_IP", SERVER_IP)
 
-// Set API_URL based on SERVER_IP
-export const API_URL = SERVER_IP
-  ? `http://${SERVER_IP}/api/`
-  : 'http://localhost:8149';
+// // Set API_URL based on SERVER_IP
+// export const API_URL = SERVER_IP
+//   ? `http://${SERVER_IP}/api/`
+//   : 'http://localhost:8149';
 
+export const API_URL = "http://13.212.194.138/api/"
 console.log("API_URL", API_URL)
 
 export const login = async (username, password) => {
