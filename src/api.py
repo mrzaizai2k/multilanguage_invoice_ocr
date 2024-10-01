@@ -34,6 +34,8 @@ logger.info(msg = "Loading config")
 SECRET_KEY = os.getenv('SECRET_KEY')
 ALGORITHM = os.getenv('ALGORITHM')
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES'))
+SERVER_IP = os.getenv('SERVER_IP')
+
 
 mongo_db = MongoDatabase(config_path=config_path, logger=logger)
 change_stream = None
@@ -84,12 +86,20 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Define allowed origins
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost",
+]
+
+# Add SERVER_IP to allowed origins if it exists
+if SERVER_IP:
+    allowed_origins.append(f"http://{SERVER_IP}")
+    allowed_origins.append(f"https://{SERVER_IP}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000",
-                   "http://localhost:80",
-                   "http://localhost",
-                   "http://13.212.194.138",],  # Replace with your React app's URL
+    allow_origins=allowed_origins,  # Replace with your React app's URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

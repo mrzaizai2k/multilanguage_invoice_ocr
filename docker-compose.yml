@@ -71,10 +71,11 @@ services:
       - fastapi-app
 
   nginx:
-    image: nginx:latest
+    build:
+      context: ./nginx  # Path to the directory where the Dockerfile is located
     container_name: nginx
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro  # Mount the template
     ports:
       - "80:80"
     networks:
@@ -83,6 +84,9 @@ services:
       - fastapi-app
       - jwt-frontend
       - mongodb
+    environment:
+      - CLIENT_MAX_BODY_SIZE=${CLIENT_MAX_BODY_SIZE}
+      - SERVER_IP=${SERVER_IP}
 
 networks:
   app-network:
