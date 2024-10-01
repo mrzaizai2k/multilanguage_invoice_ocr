@@ -3,6 +3,16 @@ import axios from "axios";
 export const API_URL = 'http://13.212.194.138/api';
 // export const API_URL = 'http://46.137.228.37/api//';
 // export const API_URL = 'http://localhost:8149';
+// Load SERVER_IP from environment variable
+// const SERVER_IP = process.env.SERVER_IP;
+// console.log("SERVER_IP", SERVER_IP)
+
+// // Set API_URL based on SERVER_IP
+// export const API_URL = SERVER_IP
+//   ? `http://${SERVER_IP}/api/`
+//   : 'http://localhost:8149';
+
+console.log("API_URL", API_URL)
 
 export const login = async (username, password) => {
     const result = await axios.post(`${API_URL}/token`,

@@ -3,9 +3,12 @@ events {
 }
 
 http {
+    # Placeholder for max file transfer size
+    client_max_body_size ${CLIENT_MAX_BODY_SIZE};
+
     server {
         listen 80;
-        server_name localhost;
+        server_name localhost ${SERVER_IP};  # Handles both localhost and server IP
 
         location / {
             proxy_pass http://jwt-frontend:3000/;
@@ -13,7 +16,6 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
         }
 
         location /api/ {
