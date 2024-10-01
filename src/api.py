@@ -93,6 +93,7 @@ app = FastAPI(lifespan=lifespan)
 allowed_origins = [
     "http://localhost:3000",
     "http://localhost",
+    "http://localhost:80",
 ]
 
 # Add SERVER_IP to allowed origins if it exists
