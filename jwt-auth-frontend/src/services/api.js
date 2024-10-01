@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // export const API_URL = 'http://46.137.228.37';
-export const API_URL = 'http://13.212.194.138/api';
+export const API_URL = 'http://localhost:8149';
 
 export const login = async (username, password) => {
     const result = await axios.post(`${API_URL}/token`,
