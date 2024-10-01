@@ -59,7 +59,6 @@ class GoogleTranslator:
     
 class OcrReader:
     def __init__(self,  
-                 device=None, 
                  translator=None,
                  config_path:str = "config/config.yaml"
                  ):
@@ -148,7 +147,14 @@ class OcrReader:
         src_language = self._get_lang(image)
 
         # Initialize the PaddleOCR with the detected language
-        ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True, cls=True)
+        ocr = None
+
+        if (src_language in ["zh-CN","ch", "chinese_cht"]) and (self.device == 'cpu'):
+            ocr = PaddleOCR(lang=src_language, show_log=True, use_angle_cls=True, 
+                            cls=True, ocr_version='PP-OCRv3') #https://github.com/PaddlePaddle/PaddleOCR/issues/11597
+        else:
+            ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True, cls=True, )
+        
 
         result = ocr.ocr(np.array(image))
 
@@ -196,16 +202,6 @@ class OcrReader:
         else:
             raise KeyError(f"No such key: {item}")
         
-    # def get_invoice_type(self, input_data):
-    #     # Detect the language of the image
-    #     image = self.get_image(input_data)
-    #     candidate_labels = ["A photo has black box", "A photo not has excel sheet table"]
-
-    #     # Perform inference to classify the language
-    #     outputs = self.image_classifier(image, candidate_labels=candidate_labels)
-    #     outputs = [{"score": round(output["score"], 4), "label": output["label"] } for output in outputs]
-    #     print("outputs", outputs)
-    #     return outputs
     
 def load_image(image_path: str):
     try:
@@ -224,7 +220,7 @@ def load_image(image_path: str):
 
 # Example usage
 if __name__ == "__main__":
-    img_path = "test/images/page_9.png"
+    img_path = "test/images/ch_1.png"
     
     #### CI CD test
     import os
@@ -238,7 +234,8 @@ if __name__ == "__main__":
     
     image = load_image(img_path)
 
-    ocr_reader = OcrReader(config_path=config_path, 
+    ocr_reader = OcrReader(
+                            config_path=config_path, 
                            translator=GoogleTranslator())
 
     recognized_text = ocr_reader.get_text(image)
