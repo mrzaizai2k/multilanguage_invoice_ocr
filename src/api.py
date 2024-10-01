@@ -25,6 +25,9 @@ from src.Utils.utils import (read_config, get_current_time, is_base64,
 from src.invoice_extraction import extract_invoice_info
 from src.Utils.logger import create_logger
 
+from dotenv import load_dotenv
+load_dotenv()
+
 config_path='config/config.yaml'
 config = read_config(path=config_path)
 
@@ -104,6 +107,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+logger.debug(msg=f"allowed_origins: {allowed_origins}")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
