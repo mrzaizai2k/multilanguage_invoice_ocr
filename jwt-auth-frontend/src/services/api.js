@@ -21,11 +21,6 @@ export const login = async (username, password) => {
     return result;
 };
 
-// export const getFrontendDefines = async () => {
-//     const result = await axios.get(`${API_URL}/api/v1/frontend_defines`);
-//     return result;
-// };
-
 export const setFrontendDefines = async () => {
     try {
         const result = await axios.get(`${API_URL}/api/v1/frontend_defines`);
@@ -43,7 +38,6 @@ export const getFrontendDefines = () => {
     const data = localStorage.getItem('frontendDefines');
         return data ? JSON.parse(data).frontend_defines : null;
 };
-
 
 export const getInvoicesByUser = async (user_uuid, filterDate, filterType, currentPage, pageSize) => {
     const sortOrder = filterDate === "asc" ? "asc" : filterDate === "desc" ? "desc" : "";
