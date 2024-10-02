@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fieldLabels from "../../config/fieldLabels";
 import { BsX, BsPencilSquare, BsTrash3Fill } from "react-icons/bs";
 import { MdOutlineSave, MdInfo } from "react-icons/md";
 import "./InvoiceInfo.css";
@@ -19,6 +20,68 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
     const [isClosing, setIsClosing] = useState(false);
     const [modifiedInvoice, setModifiedInvoice] = useState({});
     const [messageApi, contextHolder] = message.useMessage();
+    const [validationErrors1, setValidationErrors1] = useState({});
+    const [validationErrors23, setValidationErrors23] = useState({});
+
+    const formatInvoiceInfo = formatDataInvoice(modifiedInvoice?.invoice_info)
+
+    const validateFieldsInvoice1 = (info) => {
+        const errors = {};
+
+        const checkRequiredFields = (fields) => {
+            Object.entries(fields).forEach(([key, field]) => {
+                if (field?.required && (!field.value || field.value === '')) {
+                    errors[key] = `${field.key_name_user || fieldLabels[key]} is required`;
+                }
+                if (typeof field === 'object' && field !== null && !Array.isArray(field)) {
+                    checkRequiredFields(field);
+                }
+            });
+        };
+
+        checkRequiredFields(info);
+
+        if (Array.isArray(info.lines)) {
+            info.lines.forEach((line, index) => {
+                const fields = [
+                    { label: 'Date', key: 'date', required: true },
+                    { label: 'Start Time', key: 'start_time', required: true },
+                    { label: 'End Time', key: 'end_time', required: true },
+                    { label: 'Break Time', key: 'break_time', required: true },
+                    { label: 'Description', key: 'description', required: false },
+                    { label: 'Has Customer Signature', key: 'has_customer_signature', required: false }
+                ];
+
+                fields.forEach(({ key, label, required }) => {
+                    if (required && (!line[key] || line[key] === '')) {
+                        errors[`lines[${index}].${key}`] = `${label} is required`;
+                    }
+                });
+            });
+        }
+
+        setValidationErrors1(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const validateFieldsInvoice23 = (info) => {
+        const errors = {};
+
+        const checkRequiredFields = (fields) => {
+            Object.entries(fields).forEach(([key, field]) => {
+                if (field?.required && (!field.value || field.value === '')) {
+                    errors[key] = `${field.key_name_user || fieldLabels[key]} is required`;
+                }
+                if (typeof field === 'object' && field !== null && !Array.isArray(field)) {
+                    checkRequiredFields(field);
+                }
+            });
+        };
+
+        checkRequiredFields(info);
+        setValidationErrors23(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const openModifyMode = () => {
         setIsModifyMode(true);
@@ -26,6 +89,17 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
     };
 
     const saveModifiedInvoice = async () => {
+        const isValid = validateFieldsInvoice1(formatInvoiceInfo) || validateFieldsInvoice23(formatInvoiceInfo);
+
+        if (!isValid) {
+            messageApi.open({
+                type: "error",
+                content: "Please fill all required fields!",
+                duration: 5,
+            });
+            return;
+        }
+
         try {
             await updateInvoice(modifiedInvoice._id, modifiedInvoice);
             messageApi.open({
@@ -34,7 +108,7 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
                 duration: 5,
             });
             setInvoiceDetails(modifiedInvoice);
-            setIsModifyMode(false); 
+            setIsModifyMode(false);
         } catch (error) {
             console.error('Error saving modified invoice:', error);
             messageApi.open({
@@ -100,8 +174,6 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
         setModifiedInvoice(newModifiedInvoice);
     };
 
-    const formatInvoiceInfo = formatDataInvoice(modifiedInvoice?.invoice_info)
-
     return (
         <>
             {contextHolder}
@@ -122,15 +194,21 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
                                     {invoiceDetails.invoice_type === 'invoice 1' ? (
                                         <ModifyFieldsInovice1
                                             info={formatInvoiceInfo || {}}
-                                            onChange={handleChange} />
+                                            onChange={handleChange}
+                                            validationErrors={validationErrors1}
+                                        />
                                     ) : invoiceDetails.invoice_type === 'invoice 2' ? (
                                         <ModifyFieldsInovice2
                                             info={formatInvoiceInfo || {}}
-                                            onChange={handleChange} />
+                                            onChange={handleChange}
+                                            validationErrors={validationErrors23}
+                                        />
                                     ) : (
                                         <ModifyFieldsInovice3
                                             info={formatInvoiceInfo || {}}
-                                            onChange={handleChange} />
+                                            onChange={handleChange}
+                                            validationErrors={validationErrors23}
+                                        />
                                     )}
                                 </>
                             ) : (

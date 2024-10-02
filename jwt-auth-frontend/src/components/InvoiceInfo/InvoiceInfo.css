@@ -148,8 +148,12 @@
   width: 140px;
   word-wrap: break-word;
 }
-.invoice__overlay-input input{
+.invoice__overlay-input div {
   width: 60%;
+}
+.invoice__overlay-input div input{
+  width: 100%;
+  display: block;
   padding: 10px;
   border: 1px solid #cdcdcd;
   border-radius: 5px;
@@ -158,18 +162,18 @@
   font-family: "Public Sans", sans-serif;
 }
 
-.invoice__overlay-input input:focus {
+.invoice__overlay-input div input:focus {
   border-color: #1193D4;
   background-color: #1193D415;
 }
 
-.invoice__overlay-input input:disabled {
+.invoice__overlay-input div input:disabled {
   background-color: #fafafa;
   color: #5f5f5f;
   cursor: not-allowed;
 }
 
-.invoice__overlay-input input[type="checkbox"] {
+.invoice__overlay-input div input[type="checkbox"] {
   width: 13px;  
 }
 
@@ -196,4 +200,29 @@
   font-size: 30px;
   margin-right: 10px;
   color: #1193D4;
+}
+
+.btn_delete-item,
+.btn_delete-item-2 {
+  margin-left: 343px;
+  margin-bottom: 10px;
+  font-size: 15p;
+  height: 20px;
+  padding: 4px 10px;
+}
+
+.btn_delete-item:hover {
+  color: #fff !important;
+  border-color: #ff4d4f !important;
+  background: #ff4d4f !important;
+}
+
+.btn_delete-item-2 {
+  margin-left: 316px !important;
+}
+
+.btn_delete-item-2:hover {
+  color: #fff !important;
+  border-color: #ff4d4f !important;
+  background: #ff4d4f !important;
 }

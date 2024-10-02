@@ -1,10 +1,10 @@
 import React from 'react';
 import fieldLabels from "../../../../config/fieldLabels";
-import { BsPlusSquare } from 'react-icons/bs';
+import { BsPlusSquare, BsTrash } from 'react-icons/bs';
 import moment from 'moment';
-import { Select } from "antd";
+import { Button, Popconfirm, Select } from "antd";
 
-function ModifyFieldsInvoice3({ info, keyPath = [], onChange }) {
+function ModifyFieldsInvoice3({ info, keyPath = [], onChange, validationErrors }) {
     const handleInputChange = (keyPath, value) => {
         let target = info;
         for (let i = 0; i < keyPath.length - 1; i++) {
@@ -46,83 +46,131 @@ function ModifyFieldsInvoice3({ info, keyPath = [], onChange }) {
         handleInputChange([...keyPath, 'lines'], updatedLines);
     };
 
-    const renderInputModify = (keyPath, value, fieldType, options) => {
+    const deleteLineItem = (lineIndex, itemIndex) => {
+        const currentLines = Array.isArray(info?.lines) ? info.lines : [];
+        const line = currentLines[lineIndex];
+        const updatedLineItems = line.lineitems.filter((_, index) => index !== itemIndex);
+        const updatedLine = {
+            ...line,
+            lineitems: updatedLineItems
+        };
+        const updatedLines = [
+            ...currentLines.slice(0, lineIndex),
+            updatedLine,
+            ...currentLines.slice(lineIndex + 1)
+        ];
+        handleInputChange([...keyPath, 'lines'], updatedLines);
+    };
+
+    const renderInputModify = (keyPath, value, fieldType, options, isRequired = false) => {
         const key = keyPath.join('.');
+        const error = validationErrors[key];
 
         switch (fieldType) {
             case 'number':
                 return (
-                    <input
-                        key={key}
-                        type="number"
-                        value={value === null ? '' : value}
-                        onChange={(e) => {
-                            const newValue = e.target.value === '' ? null : Number(e.target.value);
-                            handleInputChange(keyPath, newValue);
-                        }}
-                    />
+                    <div>
+                        <input
+                            key={key}
+                            type="number"
+                            value={value === null ? '' : value}
+                            onChange={(e) => {
+                                const newValue = e.target.value;
+                                if (newValue === '' || /^\d+$/.test(newValue)) {
+                                    handleInputChange(keyPath, newValue === '' ? null : Number(newValue));
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (['e', 'E', '+', '-'].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            required={isRequired}
+                        />
+                        {error && <span className="error-message" style={{ color: 'red' }}>{error}</span>}
+                    </div>
                 );
             case 'string':
                 return (
-                    <input
-                        key={key}
-                        type="text"
-                        value={value || ''}
-                        onChange={(e) => handleInputChange(keyPath, e.target.value)}
-                    />
+                    <div>
+                        <input
+                            key={key}
+                            type="text"
+                            value={value || ''}
+                            onChange={(e) => handleInputChange(keyPath, e.target.value)}
+                            required={isRequired}
+                        />
+                        {error && <span className="error-message" style={{ color: 'red' }}>{error}</span>}
+                    </div>
                 );
             case 'boolean':
                 return (
-                    <input
-                        key={key}
-                        type="checkbox"
-                        checked={value || false}
-                        onChange={(e) => handleInputChange(keyPath, e.target.checked)}
-                    />
+                    <div>
+                        <input
+                            key={key}
+                            type="checkbox"
+                            checked={value || false}
+                            onChange={(e) => handleInputChange(keyPath, e.target.checked)}
+                            required={isRequired}
+                        />
+                        {error && <span className="error-message" style={{ color: 'red' }}>{error}</span>}
+                    </div>
                 );
             case 'select':
                 return (
-                    <Select
-                        key={key}
-                        value={value}
-                        onChange={(value) => handleInputChange(keyPath, value)}
-                        style={{ width: '60%', height: '38px' }}
-                        showSearch
-                        placeholder="Select an option"
-                        filterOption={(input, option) =>
-                            (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
-                        }
-                    >
-                        {options.map((option, idx) => (
-                            <Select.Option key={idx} value={option}>
-                                {option}
-                            </Select.Option>
-                        ))}
-                    </Select>
+                    <div>
+                        <Select
+                            key={key}
+                            value={value}
+                            onChange={(value) => handleInputChange(keyPath, value)}
+                            style={{ width: '100%', height: '38px' }}
+                            showSearch
+                            placeholder="Select an option"
+                            filterOption={(input, option) =>
+                                (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                            }
+                            required={isRequired}
+                        >
+                            {options.map((option, idx) => (
+                                <Select.Option key={idx} value={option}>
+                                    {option}
+                                </Select.Option>
+                            ))}
+                        </Select>
+                        {error && <span className="error-message" style={{ color: 'red' }}>{error}</span>}
+                    </div>
                 );
             case 'date':
                 const formattedDate = value ? moment(value).format('YYYY-MM-DD') : '';
                 return (
-                    <input
-                        key={key}
-                        type="date"
-                        value={formattedDate}
-                        onChange={(e) => handleInputChange(keyPath, e.target.value)}
-                    />
+                    <div>
+                        <input
+                            key={key}
+                            type="date"
+                            value={formattedDate}
+                            onChange={(e) => handleInputChange(keyPath, e.target.value)}
+                            required={isRequired}
+                        />
+                        {error && <span className="error-message" style={{ color: 'red' }}>{error}</span>}
+                    </div>
                 );
             case 'time':
                 const formattedTime = value ? moment(value, 'HH:mm:ss').format('HH:mm') : '';
                 return (
-                    <input
-                        key={key}
-                        type="time"
-                        value={formattedTime}
-                        onChange={(e) => handleInputChange(keyPath, e.target.value)}
-                    />
+                    <div>
+                        <input
+                            key={key}
+                            type="time"
+                            value={formattedTime}
+                            onChange={(e) => handleInputChange(keyPath, e.target.value)}
+                            required={isRequired}
+                        />
+                        {error && <span className="error-message" style={{ color: 'red' }}>{error}</span>}
+                    </div>
                 );
             case 'percentage':
                 return (
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div>
                         <input
                             key={key}
                             type="number"
@@ -132,8 +180,9 @@ function ModifyFieldsInvoice3({ info, keyPath = [], onChange }) {
                                 const newValue = e.target.value === '' ? null : Number(e.target.value);
                                 handleInputChange(keyPath, newValue);
                             }}
-                            style={{ flexGrow: 1 }}
+                            required={isRequired}
                         />
+                        {error && <span className="error-message" style={{ color: 'red' }}>{error}</span>}
                     </div>
                 );
             default:
@@ -159,6 +208,15 @@ function ModifyFieldsInvoice3({ info, keyPath = [], onChange }) {
 
         return (
             <div className="invoice__overlay-group-item" key={`${newKeyPath.join('.')}`} style={{ marginLeft: '40px' }}>
+                <Popconfirm
+                    title="Delete item"
+                    description="Are you sure to delete item"
+                    onConfirm={() => deleteLineItem(lineIndex, itemIndex)}
+                    okText="Yes"
+                    cancelText="No"
+                >
+                    <Button danger className="btn_delete-item-2"><BsTrash /></Button>
+                </Popconfirm>
                 {fields.map(({ label, key, type }) => (
                     <div key={key} className='invoice__overlay-input' style={{ marginLeft: '20px' }}>
                         <label>{label}</label>
@@ -219,7 +277,7 @@ function ModifyFieldsInvoice3({ info, keyPath = [], onChange }) {
                                 {Object.entries(vatItem).map(([vatKey, vatValue]) => {
                                     const isPercentage = vatKey === 'percentage';
                                     const fieldType = isPercentage ? 'percentage' : (typeof vatValue === 'number' ? 'number' : 'string');
-            
+
                                     return (
                                         <div key={vatKey} className='invoice__overlay-input' style={{ marginLeft: '20px' }}>
                                             <label>
@@ -246,7 +304,7 @@ function ModifyFieldsInvoice3({ info, keyPath = [], onChange }) {
                         {label}
                         {isRequired && <span style={{ color: 'red', fontSize: "18px" }}> * </span>}
                     </label>
-                    {renderInputModify(newKeyPath, field.value, fieldType, field.data, options)}
+                    {renderInputModify(newKeyPath, field.value, fieldType, field.data, options, isRequired)}
                 </div>
             );
         });

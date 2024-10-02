@@ -5,35 +5,19 @@ import moment from "moment";
 const renderFields = (info) => {
 const renderInput = (key, value) => {
     if (typeof value === 'string' && moment(value, moment.ISO_8601, true).isValid()) {
-        return (
-            <input
-                key={key}
-                type="date"
-                defaultValue={moment(value).format('YYYY-MM-DD')}
-                disabled
-            />
-        );
+        return <div><input key={key} type="date" defaultValue={moment(value).format('YYYY-MM-DD')} disabled/></div>
     }
     if (typeof value === 'string' && moment(value, 'HH:mm', true).isValid()) {
-        return (
-            <input
-                key={key}
-                type="time"
-                defaultValue={moment(value, 'HH:mm').format('HH:mm')}
-                disabled
-            />
-        );
+        return <div><input key={key} type="time" defaultValue={moment(value, 'HH:mm').format('HH:mm')} disabled/></div>
     }
     if (typeof value === 'string') {
-        return <input key={key} type="text" defaultValue={value} disabled />;
+        return <div><input key={key} type="text" defaultValue={value} disabled/></div>
     }
     if (typeof value === 'number') {
-        return <input key={key} type="number" defaultValue={value} disabled />;
+        return <div><input key={key} type="number" defaultValue={value} disabled/></div>;
     }
     if (typeof value === 'boolean') {
-        return (
-            <input key={key} type="checkbox" defaultChecked={value} disabled />
-        );
+        return <div><input key={key} type="checkbox" defaultChecked={value} disabled/></div>
     }
     return null;
 };

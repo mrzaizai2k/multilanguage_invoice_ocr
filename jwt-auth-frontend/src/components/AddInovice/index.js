@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { pdfjs } from 'react-pdf';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
@@ -20,7 +20,6 @@ function AddInvoice({ username }) {
   const [loadingAddFile, setLoadingAddFile] = useState(false);
   const [loadingUpload, setLoadingUpload] = useState(false);
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-  const totalSizeRef = useRef(0);
 
   const imageToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -64,23 +63,20 @@ function AddInvoice({ username }) {
         continue;
       }
 
-      if (totalSizeRef.current + file.size > MAX_FILE_SIZE) {
-        notification.warning({
-          message: 'Total File Size Exceeded',
-          description: 'The total size of all files would exceed the 5MB limit.',
-        });
-        break;
-      }
-
-      totalSizeRef.current += file.size;
-
       if (file.type === 'application/pdf') {
         const pdfImages = await convertPdfToImages(file);
-        imagesToAdd.push(...pdfImages);
-        filesToAdd.push(...pdfImages.map(img => {
-          const blob = dataURItoBlob(img);
-          return new File([blob], `${file.name}-page-${imagesToAdd.length}.png`, { type: 'image/png' });
-        }));
+        for (let i = 0; i < pdfImages.length; i++) {
+          const blob = dataURItoBlob(pdfImages[i]);
+          if (blob.size > MAX_FILE_SIZE) {
+            notification.warning({
+              message: 'Extracted Image Size Exceeded',
+              description: `Extracted image from PDF (page ${i + 1}) exceeds the maximum limit of 5MB.`,
+            });
+            continue;
+          }
+          imagesToAdd.push(pdfImages[i]);
+          filesToAdd.push(new File([blob], `${file.name}-page-${i + 1}.png`, { type: 'image/png' }));
+        }
       } else if (file.type.startsWith('image/')) {
         imagesToAdd.push(URL.createObjectURL(file));
         filesToAdd.push(file);
@@ -132,7 +128,6 @@ function AddInvoice({ username }) {
       });
       setSelectedFiles([]);
       setImages([]);
-      totalSizeRef.current = 0;
     } catch (error) {
       notification.error({
         message: 'Upload Failed',
@@ -250,11 +245,6 @@ function AddInvoice({ username }) {
             )}
           </button>
         )}
-        {images.length > 0 && (
-          <div style={{marginTop: "10px"}}>
-            <p>Total size: {(totalSizeRef.current / (1024 * 1024)).toFixed(2)} MB / 5 MB</p>
-          </div>
-        )}  
       </div>
     </>
   );
