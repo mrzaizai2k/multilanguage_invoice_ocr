@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState } from "react";
 import { PhotoProvider, PhotoView } from "react-photo-view";
+import 'react-photo-view/dist/react-photo-view.css';
 import { MdInfo, MdOutlineZoomOutMap } from "react-icons/md";
 import { BsTrash3Fill, BsEye } from "react-icons/bs";
 import "./InvoiceList.css";

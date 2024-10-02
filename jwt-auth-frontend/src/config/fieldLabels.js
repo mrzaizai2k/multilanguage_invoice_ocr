@@ -79,6 +79,7 @@ const fieldLabels = {
     document_language: "Document Language",
     matched_keywords: "Matched Keywords",
     matched_lineitems: "Matched Line Items",
+    lineitems: "Line Items",
     matched_purchase_order_id: "Matched Purchase Order ID",
     barcodes: "Barcodes",
     hash: "Hash",
