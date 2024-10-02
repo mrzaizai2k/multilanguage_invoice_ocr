@@ -405,7 +405,7 @@ def get_currencies_from_txt(file_path:str ="config/currencies.txt"):
     # Read the file and return a list of currency codes
     with open(file_path, 'r') as f:
         currencies = [line.strip() for line in f.readlines() if line.strip()]
-    return currencies
+    return list(set(currencies))
 
 def get_land_and_city_list(file_path:str = "config/travel_expenses-2024.xlsx", 
                               sheet_name=None):
@@ -470,7 +470,7 @@ if __name__ == "__main__":
     # Define the Berlin time zone
     # Get the list of all currencies
     currencies = get_currencies_from_txt(file_path=config['currencies_path'])
-    # print(currencies)
+    print(currencies)
     lands, cities = get_land_and_city_list(file_path=config['country_and_city']['file_path'],
                                                   sheet_name=config['country_and_city']['sheet_name'])
     # print("countries",lands)

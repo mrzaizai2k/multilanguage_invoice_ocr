@@ -1,28 +1,46 @@
-FROM python:3.10-slim
+# Stage 1: Build stage
 
-# Set the working directory inside the container
+# Build stage
+FROM python:3.10-slim AS builder
+
+# Set the working directory
 WORKDIR /app
 
-# Copy the current directory (app code) into the container
-COPY . /app
+# Copy only the requirements file
+COPY requirements-cpu.txt .
 
-# Update and install system dependencies
+# Install build dependencies and create virtual environment
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && python -m venv /app/venv \
+    && . /app/venv/bin/activate \
+    && pip install --no-cache-dir -r requirements-cpu.txt \
+    && pip install torch --index-url https://download.pytorch.org/whl/cpu \
+    && pip uninstall opencv-python -y \
+    && pip install opencv-python-headless
+
+# Final stage
+FROM python:3.10-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the virtual environment from the builder stage
+COPY --from=builder /app/venv /app/venv
+
+# Copy the application code
+COPY . .
+
+# Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
-    python3-venv
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create and activate a virtual environment
-RUN python -m venv /app/venv
+# Set the PATH to use the virtual environment
 ENV PATH="/app/venv/bin:$PATH"
 
-# Install Python packages in the virtual environment
-RUN . /app/venv/bin/activate && \
-    pip install --no-cache-dir -r requirements-cpu.txt && \
-    pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    pip uninstall opencv-python -y && \
-    pip install opencv-python-headless
-
-# Expose the desired port for the app (8149 in this case)
+# Expose the desired port
 EXPOSE 8149
 
 # Run the FastAPI app with Uvicorn

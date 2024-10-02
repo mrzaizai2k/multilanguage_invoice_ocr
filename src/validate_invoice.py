@@ -209,9 +209,8 @@ def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
     return validate_and_normalize(invoice_data)
 
 
-def validate_invoice_2(invoice_data: dict, config:dict) -> dict:
-    
-    # Function to normalize titles in fixed lines
+def validate_invoice_2(invoice_data: dict, config: dict) -> dict:
+    fixed_line_titles = config['fixed_line_titles']
     def normalize_title(title: str) -> str:
         title_lower = title.lower()
         if 'hotel' in title_lower:
@@ -225,8 +224,6 @@ def validate_invoice_2(invoice_data: dict, config:dict) -> dict:
         elif 'park' in title_lower:
             return "Parking fees"
         return title
-    
-    # Function to normalize payment methods
     def normalize_payment_method(payment_method: str) -> str:
         payment_method_lower = payment_method.lower()
         if 'visa' in payment_method_lower or 'credit' in payment_method_lower:
@@ -236,49 +233,45 @@ def validate_invoice_2(invoice_data: dict, config:dict) -> dict:
         elif 'self' in payment_method_lower:
             return "self paid"
         return ""
-    
-    # Function to apply normalizations and validations to the data
     def validate_and_normalize(data: Any, reference_year=None):
         if isinstance(data, dict):
             for key, value in data.items():
-                # Strip all string values
-                data[key] = strip_strings(value)
-
-                # Normalize date fields
+                if isinstance(value, str):
+                    data[key] = strip_strings(value)
                 if 'date' in key:
                     data[key] = normalize_date(data[key])
-
-                # Normalize amount fields
-                if 'amount' in key:
+                elif 'amount' in key:
                     data[key] = normalize_float(data[key])
-
-                # If the key is 'name', apply map_name to standardize it
-                if key == 'name':
+                elif key == 'name':
                     data[key] = map_name(value, config)
-
-                # If the key is 'fixed_lines', normalize the title and payment_method
-                if key == 'fixed_lines':
-                    for line in data[key]:
-                        line['title'] = normalize_title(line['title'])
+                elif key == 'currency':
+                    data[key] = validate_currency(value, config=config)
+                elif key == 'fixed_lines':
+                    fixed_lines = []
+                    if 'lines' not in data:
+                        data['lines'] = []
+                    for line in value:
+                        normalized_title = normalize_title(line['title'])
+                        if normalized_title in fixed_line_titles:
+                            line['title'] = normalized_title
+                            if 'payment_method' in line:
+                                line['payment_method'] = normalize_payment_method(line['payment_method'])
+                            fixed_lines.append(line)
+                        else:
+                            data['lines'].append(line)
+                    data[key] = fixed_lines
+                
+                elif key in ['lines', 'fixed_lines']:
+                    for line in value:
                         if 'payment_method' in line:
                             line['payment_method'] = normalize_payment_method(line['payment_method'])
-                
-                if key == 'currency':
-                    data[key] = validate_currency(value, config=config)
-                
-                # Recursively normalize nested dictionaries or lists
-                if isinstance(value, dict) or isinstance(value, list):
-                    data[key] = validate_and_normalize(value, reference_year)
 
-        
+                elif isinstance(value, (dict, list)):
+                    data[key] = validate_and_normalize(value, reference_year)
         elif isinstance(data, list):
             data = [validate_and_normalize(item, reference_year) for item in data]
-
         return data
-
-    # Call the validation and normalization function
     return validate_and_normalize(invoice_data)
-
 
 ################################################################################
 
@@ -560,6 +553,11 @@ if __name__ == "__main__":
                     "title": "Fuel",
                     "amount": 40.0,
                     "payment_method": "invoice"
+                },
+                {
+                    "title": "hahahah",
+                    "amount": 40324.0,
+                    "payment_method": "invoice"
                 }
             ],
             "lines": [
@@ -624,12 +622,18 @@ if __name__ == "__main__":
             'project_number': 'V123023',
             'is_in_egw': True,
             'currency': 'EURk',
-            'lines': [
-                {'title': 'Hotel', 'amount': 504.0},
-                {'title': 'Fuel', 'amount': 24.6},
-                {'title': 'Parking fees', 'amount': 20.0},
+            'fixed_lines': [
+                {'title': 'Hotelahha', 'amount': 504.0, 'payment_method': 'visa pay'},
+                {'title': 'Fuelawd', 'amount': 24.6, 'payment_method': 'invoice to pay'},
+                {'title': 'Parking fees', 'amount': 20.0, 'payment_method': 'invoice to self pay'},
                 {'title': 'Rental car', 'amount': 156.2},
-                {'title': 'Toll', 'amount': 20.0}
+                {'title': 'Toll', 'amount': 20.0},
+                {'title': 'haha_1', 'amount': 1.0},
+                {'title': 'haha_3', 'amount': 1.0}
+            ],
+            'lines': [
+                {'title': 'line_1', 'amount': 20.0, 'payment_method': 'selfpayment'},
+                {'title': 'haha_2', 'amount': 2.0}
             ],
             'has_employee_signature': True
         }

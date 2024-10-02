@@ -128,6 +128,7 @@ function AddInvoice({ username }) {
       });
       setSelectedFiles([]);
       setImages([]);
+      totalSizeRef.current = 0;
     } catch (error) {
       notification.error({
         message: 'Upload Failed',

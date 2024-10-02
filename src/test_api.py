@@ -148,9 +148,9 @@ if __name__ == "__main__":
 
     test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', status="not extracted")
-    # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
-    # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
+    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', status="not extracted")
+    test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
+    test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
     test_get_frontend_defines(root_url=root_url)
 
 

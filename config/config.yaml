@@ -86,3 +86,11 @@ logging:
     uvicorn: WARNING
     httpcore: WARNING
     multipart: WARNING
+
+
+fixed_line_titles:
+  - Hotel
+  - Fuel
+  - Rental car
+  - Toll
+  - Parking fees
