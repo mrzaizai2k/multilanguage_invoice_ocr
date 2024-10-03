@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_URL = 'http://47.128.71.19/api';
+export const API_URL = 'http://54.169.56.249/api';
 // export const API_URL = 'http://localhost:8149';
 
 console.log("API_URL", API_URL)
