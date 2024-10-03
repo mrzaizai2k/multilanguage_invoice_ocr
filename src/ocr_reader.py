@@ -150,12 +150,11 @@ class OcrReader:
             # Initialize the PaddleOCR with the detected language
             ocr = None
 
-
             if (src_language in ["zh-CN","ch", "chinese_cht"]) and (self.device == 'cpu'):
                 print("src_language", src_language)
                 print("self.device", self.device)
-                ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True, 
-                                cls=True, ocr_version='PP-OCRv2', enable_mkldnn=True) #https://github.com/PaddlePaddle/PaddleOCR/issues/11597
+                ocr = PaddleOCR(lang="japan", show_log=False, use_angle_cls=True, 
+                                cls=True,) # ocr_version='PP-OCR2', enable_mkldnn=True) #https://github.com/PaddlePaddle/PaddleOCR/issues/11597
             else:
                 ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True, cls=True, )
             
