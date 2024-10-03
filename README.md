@@ -1,16 +1,34 @@
 # Invoice Information Extractor
 
+## Table of Contents
+1. [Introduction](#introduction)
+    - [1.1 Login](#11-login)
+    - [1.2 Register](#12-register)
+    - [1.3 Logout](#13-logout)
+2. [Invoice Management](#invoice-management)
+    - [2.1 Upload Invoice Image](#21-upload-invoice-image)
+    - [2.2 Delete Invoice Image](#22-delete-invoice-image)
+    - [2.3 Get Invoice Information](#23-get-invoice-information)
+    - [2.4 Modify Invoice Information](#24-modify-invoice-information)
+    - [2.5 Get Frontend Defines](#25-get-frontend-defines)
+3. [Admin Dashboard](#admin-dashboard)
+    - [3.1 Get System Metrics](#31-get-system-metrics)
+    - [3.2 Get All Invoices](#32-get-all-invoices)
+
+
 ## Introduction
 
 The **Invoice Information Extractor** is a web application built using Streamlit that allows users to upload images or PDF files containing invoices and extract relevant information from them using Optical Character Recognition (OCR) and natural language processing techniques. It provides an easy-to-use interface for visualizing extracted data in both JSON and table formats.
 
-## Features
+The system can:
 
+- Login using LDAP Authenticator
 - Upload single or multiple images and PDF files.
-- Rotate images for better OCR accuracy.
 - Extract invoice data such as names, dates, amounts, etc.
 - Display extracted information in structured formats (JSON or table).
-- Dynamically create thumbnails for uploaded images.
+- Have a website to interact, modify and delet invoices
+- Automatically calculate and export report 
+- Send the report via email 
 
 ## Requirements
 
