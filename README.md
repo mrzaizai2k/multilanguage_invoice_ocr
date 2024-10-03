@@ -109,7 +109,7 @@ Follow these steps to run the application:
 
    docker build -t multilanguage_invoice_ocr-fastapi .
 
-   docker run --env-file .env \
+   docker run -d --env-file .env \
     -v $(pwd)/config:/app/config \
     -v $(pwd)/src:/app/src \
     -p 8149:8149 \
