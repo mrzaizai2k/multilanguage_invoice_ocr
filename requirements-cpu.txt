@@ -23,3 +23,4 @@ pytz
 llama_index
 llama-index-llms-ollama
 python-jose
+python-Levenshtein

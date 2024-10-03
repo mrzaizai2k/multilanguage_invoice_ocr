@@ -172,6 +172,13 @@ Follow these steps to run the application:
 https://stackoverflow.com/questions/74515846/error-could-not-install-packages-due-to-an-oserror-errno-28-no-space-left-on
 https://github.com/pypa/pip/issues/7745#issuecomment-587296318
 
+6. **SSH AWS**
+
+   ```shell
+   chmod 400 /path/to/your-key.pem && \
+   ssh -i /path/to/your-key.pem username@public-ip
+   ```
+
 ## Usage
 
 1. Upload one or more invoice images or PDF files using the file uploader interface.
