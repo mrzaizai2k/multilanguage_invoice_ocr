@@ -24,7 +24,7 @@ This document provides step-by-step instructions to set up the Multilanguage Inv
     - **Security Group**: Allow access from all IP addresses.
     - **Spot Instance**: Use spot instances for cost savings (optional).
     - **Operating System**: Select **Ubuntu 22.04**.
-    - **Instance Type**: Choose **t2.large**.
+    - **Instance Type**: Choose **t3.large** (must be t3, do not use t2 - Paddle error)
     - **Memory**: Set 16GB for optimal performance.
 
 ---

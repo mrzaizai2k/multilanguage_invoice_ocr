@@ -73,6 +73,9 @@ services:
       - fastapi-app
     environment:
       - SERVER_IP=${SERVER_IP}
+    env_file:
+    - ./.env
+    
 
 
   nginx:

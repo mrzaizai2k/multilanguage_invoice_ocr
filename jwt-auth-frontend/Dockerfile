@@ -13,6 +13,9 @@ RUN npm install
 # Copy the rest of the application code to the container (except node_modules)
 COPY . .
 
+# Build the app (include env variables)
+RUN npm run build
+
 # Expose the port that the app will run on
 EXPOSE 3000
 

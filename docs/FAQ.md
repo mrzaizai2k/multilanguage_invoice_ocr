@@ -83,3 +83,5 @@ For LDAP authentication using FastAPI, explore the following resources:
   https://github.com/PaddlePaddle/PaddleOCR/issues/11597
 
   https://github.com/PaddlePaddle/PaddleOCR/blob/main/doc/doc_en/multi_languages_en.md
+
+  Must use t3 instance
