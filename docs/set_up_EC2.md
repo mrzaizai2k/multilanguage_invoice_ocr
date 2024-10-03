@@ -131,6 +131,7 @@ git clone https://github.com/mrzaizai2k/multilanguage_invoice_ocr.git
 ```
 
 ### 2. Setup `.env` file
+
 Navigate to the project directory and create the `.env` file:
 ```bash
 touch .env
@@ -143,11 +144,21 @@ OPENAI_API_KEY=
 EMAIL_USER=
 EMAIL_PASSWORD=
 SECRET_KEY=
-ALGORITHM=
-ACCESS_TOKEN_EXPIRE_MINUTES=
-CLIENT_MAX_BODY_SIZE=
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+CLIENT_MAX_BODY_SIZE=5M
 SERVER_IP=
 ```
+
+#### Explanation:
+- **`OPENAI_API_KEY`**: Your API key from OpenAI for accessing its services.
+- **`EMAIL_USER`**: The email address used for sending notifications or communications from the application.
+- **`EMAIL_PASSWORD`**: The password or app-specific password for the email account. It's typically a string like `wckzqeq.....`.
+- **`SECRET_KEY`**: A secret key used to sign the JWT (JSON Web Token) for securing the application.
+- **`ALGORITHM`**: The hashing algorithm for the JWT, set to `HS256` (HMAC using SHA-256).
+- **`ACCESS_TOKEN_EXPIRE_MINUTES`**: The expiration time for the access token in minutes (e.g., 30 minutes).
+- **`CLIENT_MAX_BODY_SIZE`**: Specifies the maximum allowed request body size (e.g., `5M` for 5 MB).
+- **`SERVER_IP`**: The public IP address of your EC2 instance where the application will be accessible.
 
 ### 3. Run the application
 Use Docker Compose to build and run the application:

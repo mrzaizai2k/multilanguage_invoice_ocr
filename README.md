@@ -2,207 +2,85 @@
 
 ## Table of Contents
 1. [Introduction](#introduction)
-    - [1.1 Login](#11-login)
-    - [1.2 Register](#12-register)
-    - [1.3 Logout](#13-logout)
-2. [Invoice Management](#invoice-management)
-    - [2.1 Upload Invoice Image](#21-upload-invoice-image)
-    - [2.2 Delete Invoice Image](#22-delete-invoice-image)
-    - [2.3 Get Invoice Information](#23-get-invoice-information)
-    - [2.4 Modify Invoice Information](#24-modify-invoice-information)
-    - [2.5 Get Frontend Defines](#25-get-frontend-defines)
-3. [Admin Dashboard](#admin-dashboard)
-    - [3.1 Get System Metrics](#31-get-system-metrics)
-    - [3.2 Get All Invoices](#32-get-all-invoices)
+2. [Features](#features)
+2. [Screenshots](#screenshots)
 
+---
 
 ## Introduction
 
-The **Invoice Information Extractor** is a web application built using Streamlit that allows users to upload images or PDF files containing invoices and extract relevant information from them using Optical Character Recognition (OCR) and natural language processing techniques. It provides an easy-to-use interface for visualizing extracted data in both JSON and table formats.
+The **Invoice Information Extractor** is a user-friendly web application designed for businesses and individuals who frequently handle invoices and need an automated tool to extract, organize, and manage invoice data. By leveraging Optical Character Recognition (OCR) and natural language processing (NLP) techniques, this tool allows users to easily upload invoices in the form of images or PDF files and automatically extract relevant data, such as vendor names, dates, amounts, and more.
 
-The system can:
+Built with **Reactjs** and **Python**, the application offers a clean and interactive interface that enables users to view, modify, and delete invoice information. Extracted data can be displayed in both JSON and table formats, making it easy for users to verify and work with the data. Additionally, the tool offers the functionality to generate reports and send them via email.
 
-- Login using LDAP Authenticator
-- Upload single or multiple images and PDF files.
-- Extract invoice data such as names, dates, amounts, etc.
-- Display extracted information in structured formats (JSON or table).
-- Have a website to interact, modify and delet invoices
-- Automatically calculate and export report 
-- Send the report via email 
+---
 
-## Requirements
+## Features
 
-To run this application, you need the following libraries:
+- **Login using LDAP Authentication**: Secure login process that integrates with LDAP, ensuring only authorized users have access to the tool.
+  
+- **Upload Functionality**: Supports uploading both single and multiple files, including image formats (JPEG, PNG, etc.) and PDF files. Users can upload multiple invoices for batch processing.
 
-- Python 3.x
-- Streamlit
-- Pillow
-- NumPy
-- Additional dependencies (OCR and invoice extraction libraries)
+- **Data Extraction**: Automatically extracts key invoice information such as:
+  - Vendor/Client names
+  - Invoice dates
+  - Invoice amounts
+  - Due dates
+  - Invoice numbers
+
+- **Structured Data Display**:
+  - **JSON format**: View the raw extracted data in a structured JSON format.
+  - **Table format**: A more user-friendly tabular format for quick review and edits.
+
+- **Website for Invoice Management**: A built-in web interface allows users to:
+  - Interact with uploaded invoices
+  - Modify extracted information
+  - Delete invoices from the system
+
+- **Automated Report Generation**:
+  - Generate and export reports from the extracted invoice data, summarizing key metrics such as total amounts due, payment deadlines, and more.
+
+- **Email Report Delivery**: Automatically send the generated report via email, making it easier for users to share invoice summaries with relevant stakeholders.
+
+### Screenshots
+
+- **Login Screen**:
+  ![Login Screen](docs/login.png)
+
+- **User Information**:
+  ![User Info](docs/user_info.png)
+
+- **Invoice List**:
+  ![Invoice List](docs/show_invoice.jpg)
+
+- **Upload Invoice**:
+  ![Upload Invoice](docs/upload_invoice.jpg)
+
+- **Invoice Information and Modification**:
+  ![Invoice Info](docs/invoice_info.jpg)
 
 
-Make sure you have the following files in the `config` directory:
 
-- `key_name_dict.json`: A JSON file that maps keys to human-readable field names.
-- `config.yaml`: A YAML configuration file for the OCR and invoice extraction setup.
+Here’s the rewritten document in Markdown:
 
-## Getting Started
+## Get Started
 
-Follow these steps to run the application:
+If you want to build using Docker Compose on EC2, please refer to this document: [docs/set_up_EC2.md](docs/set_up_EC2.md). Essentially, you just need to:
 
-1. **Clone the repository:**
-
+1. Clone the code.
+2. Set up the `.env` file.
+3. Run:
    ```bash
-   git clone https://github.com/yourusername/invoice-information-extractor.git
-   cd invoice-information-extractor
+   docker-compose up -d
    ```
 
-2. **Install the required packages:**
+If you'd prefer to custom build each part using Docker, please refer to this document: [docs/custom_build.md](docs/custom_build.md).
 
-   If you haven't already done so, set up a virtual environment and install the dependencies:
+For more information, check the following documents in the [docs](docs) folder:
 
-   ```bash
-   # Create a virtual environment (optional)
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   
-   # Install requirements
-   pip install --no-cache-dir -r requirements.txt
-   ```
+- [Invoice Info Format](docs/invoice_info.md)
+- [RESTful APIs](docs/restful_api.md)
+- [Architecture](docs/architecture.md)
 
-3. **Run the app:**
 
-   Start the Streamlit application:
-
-   ```bash
-   streamlit run app.py
-   ```
-   
-   Replace `app.py` with the name of your main Python file if it's different.
-
-4. **Access the application:**
-
-   Open your browser and go to `http://localhost:8501` to interact with the Invoice Information Extractor.
-
-5. **Set up Mongo Database**
-
-   You can set up mongo database by docker as this [official link](https://www.mongodb.com/docs/manual/tutorial/install-mongodb-community-with-docker/?msockid=12d1fdc9a4da62680b18e9ffa5036390)
-
-   Donwload the [Mongo Compass](https://www.mongodb.com/try/download/compass) for GUI management
-
-   https://www.mongodb.com/developer/languages/python/python-change-streams/#how-to-set-up-a-local-cluster
-
-   https://www.mongodb.com/docs/languages/python/pymongo-driver/current/connect/connection-targets/#replica-sets
-
-   https://www.mongodb.com/resources/products/compatibilities/deploying-a-mongodb-cluster-with-docker#:~:text=Create%20a%20Docker%20network.%20Start%20three%20instances%20of,you%20will%20be%20able%20to%20experiment%20with%20it.?msockid=34c38bc4da6f68c918d898c8db6e69e0
-
-   create network
-   ```shell
-      docker network create app-network
-   ```
-
-   run mongo
-   ```shell
-      mkdir -p data/test-change-streams
-
-      docker run -d \
-         --name mongodb \
-         -v /data/test-change-streams:/data/db \
-         -p 27017:27017 \
-         --network app-network \
-         mongo:latest \
-         mongod --replSet test-change-streams --logpath /data/db/mongodb.log --dbpath /data/db --port 27017
-
-      docker exec -it mongodb mongosh --eval "rs.initiate()"
-      
-      docker exec -it mongodb mongosh --eval "rs.reconfig({_id: 'test-change-streams', members: [{ _id : 0, host : 'mongodb:27017'}]}, {force: true})"
-
-      docker exec -it mongodb mongosh --eval "rs.status()"
-
-   ```
-
-   run backend
-
-   ```shell
-
-   docker build -t multilanguage_invoice_ocr-fastapi .
-
-   docker run -d --env-file .env \
-    -v $(pwd)/config:/app/config \
-    -v $(pwd)/src:/app/src \
-    -p 8149:8149 \
-    --network app-network \
-    multilanguage_invoice_ocr-fastapi:latest
-    ```
-   run front end
-   ```shell
-
-   cd jwt-auth-frontend/
-
-   docker build -t jwt-auth-frontend .
-   
-   docker run -d \
-   --name jwt-frontend-container \
-   --network app-network \
-   -p 3000:3000 \
-   -v $(pwd)/src:/app/src \
-   jwt-auth-frontend
-
-   ```
-   set up NGINX
-   
-   https://dev.to/theinfosecguy/how-to-deploy-a-fastapi-application-using-docker-on-aws-4m61
-
-   setup mongo for testing
-   ```shell
-   mkdir -p /data/test-streams
-   
-   docker run -d --rm -p 27018:27017 --name mongo1 -v /data/test-streams:/data/db --network app-network mongo:latest mongod --replSet test-streams --bind_ip localhost,mongo1
-
-   docker exec -it mongo1 mongosh --eval "rs.initiate({
-   _id: \"test-streams\",
-   members: [
-      {_id: 0, host: \"mongo1\"}
-   ]
-   })"
-
-   docker exec -it mongo1 mongosh --eval "rs.status()"
-   ```
-
-5. **Sending Email**
-
-   https://viblo.asia/p/gui-mail-voi-python-bWrZn7Mrlxw
-
-   Set up an App Password in Gmail:
-
-   - Go to your Google Account.
-   - Select "Security" on the left-hand side.
-   - If you use 2-Step Verification, under "Signing in to Google," select "App Passwords" and create one.
-   - Use this App Password instead of your regular Gmail password in the script.
-
-6. **LDAP authen**
-   
-   https://github.com/RetributionByRevenue/LDAP3-fastapi-auth-simple
-   
-   https://www.forumsys.com/2022/05/10/online-ldap-test-server/
-
-- No space on aws
-https://stackoverflow.com/questions/74515846/error-could-not-install-packages-due-to-an-oserror-errno-28-no-space-left-on
-https://github.com/pypa/pip/issues/7745#issuecomment-587296318
-
-6. **SSH AWS**
-
-   ```shell
-   chmod 400 /path/to/your-key.pem && \
-   ssh -i /path/to/your-key.pem username@public-ip
-   ```
-
-## Usage
-
-1. Upload one or more invoice images or PDF files using the file uploader interface.
-2. Select an image from the uploaded files to view it in the main display area.
-3. Use the rotation buttons to adjust the image for optimal OCR results.
-4. Wait for the extraction process to complete, after which you can view the extracted information in JSON format or as a table.
-
-- ollama: https://ollama.com/blog/ollama-is-now-available-as-an-official-docker-image
 
