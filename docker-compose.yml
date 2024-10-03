@@ -72,9 +72,7 @@ services:
     depends_on:
       - fastapi-app
     environment:
-      - SERVER_IP=${SERVER_IP}
-    env_file:
-    - ./.env
+    - REACT_APP_SERVER_IP=${SERVER_IP}
     
 
 
