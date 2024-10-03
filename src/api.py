@@ -44,7 +44,7 @@ mongo_db = MongoDatabase(config_path=config_path, logger=logger)
 change_stream = None
 change_stream_thread = None
 
-ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator())
+ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator(), logger=logger)
 invoice_extractor = OpenAIExtractor(config_path=config_path)
 
 

@@ -60,7 +60,8 @@ class GoogleTranslator:
 class OcrReader:
     def __init__(self,  
                  translator=None,
-                 config_path:str = "config/config.yaml"
+                 config_path:str = "config/config.yaml",
+                 logger=None
                  ):
         
         self.config_path = config_path
@@ -72,6 +73,7 @@ class OcrReader:
         self.target_language = self.config['target_language']
         self.resize_size = self.config['resize_size']
 
+        self.logger = logger
 
         # Load language dictionary from JSON file
         with open(self.language_dict_path, 'r', encoding='utf-8') as f:
@@ -147,13 +149,16 @@ class OcrReader:
             
             src_language = self._get_lang(image)
 
+            if self.logger:
+                self.logger.debug(f"src_language: {src_language}")
+
             # Initialize the PaddleOCR with the detected language
             ocr = None
 
-            if (src_language in ["zh-CN","ch", "chinese_cht"]) and (self.device == 'cpu'):
+            if (src_language in ["zh-CN","ch", "chinese_cht", "japan"]) and (self.device == 'cpu'):
                 print("src_language", src_language)
                 print("self.device", self.device)
-                ocr = PaddleOCR(lang="japan", show_log=False, use_angle_cls=True, 
+                ocr = PaddleOCR(lang="en", show_log=False, use_angle_cls=True, 
                                 cls=True,) # ocr_version='PP-OCR2', enable_mkldnn=True) #https://github.com/PaddlePaddle/PaddleOCR/issues/11597
             else:
                 ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True, cls=True, )
@@ -184,6 +189,10 @@ class OcrReader:
                     "language": src_language,
                 }
             data['angle'] = doc_angle
+
+            if self.logger:
+                self.logger.debug(f"ocr_data: {data}")
+
         except Exception as e:
             print("error", e)
             data = {
@@ -193,6 +202,8 @@ class OcrReader:
                     "language": "",
                     "angle": 0,
                 }
+            if self.logger:
+                self.logger.debug(f"error: {e}")
         return data
     
     def get_rotated_image(self, input_data):
