@@ -4,7 +4,8 @@ sys.path.append("")
 import requests
 from typing import Literal, Optional
 from src.Utils.utils import *
-
+from dotenv import load_dotenv
+load_dotenv()
 
 def test_upload_invoice(img_path, user_uuid):
     # Define the payload
@@ -137,8 +138,11 @@ if __name__ == "__main__":
     config_path='config/config.yaml'
     config = read_config(path=config_path)
 
-    root_url = f"http://{config['IES_host']}:{config['IES_port']}"
-    # root_url = f"http://46.137.228.37/api" # aws
+    SERVER_IP = os.getenv('SERVER_IP')
+    root_url = f"http://{SERVER_IP}/api" # aws
+
+    # root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
+
 
     img_path = "test/images/009_1.png"
     # user_uuid = "gauss"

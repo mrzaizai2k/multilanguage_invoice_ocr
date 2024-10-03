@@ -7,8 +7,9 @@ This document addresses common issues, additional resources, and useful guides f
 2. [Sending Emails](#sending-emails)
 3. [LDAP Authentication](#ldap-authentication)
 3. [Set up Ollama](#set-up-ollama)
+3. [Illegal instruction using lang ch in Paddle](#illegal-instruction-using-lang-ch-in-paddle)
 
----
+
 
 ## AWS Error
 
@@ -62,3 +63,21 @@ For LDAP authentication using FastAPI, explore the following resources:
 ## Set up Ollama
 
 - ollama: https://ollama.com/blog/ollama-is-now-available-as-an-official-docker-image
+
+
+## Illegal instruction using lang ch in Paddle
+
+  ```shell
+  GraphPatternDetector::PDNodeCompare, std::allocator<std::pair<paddle::framework::ir::PDNode* const, paddle::framework::ir::Node*> > > const&, paddle::framework::ir::Graph*)>)
+  2024-10-03T07:43:01.546387878Z 
+  2024-10-03T07:43:01.546391528Z ----------------------
+  2024-10-03T07:43:01.546395211Z Error Message Summary:
+  2024-10-03T07:43:01.546398806Z ----------------------
+  2024-10-03T07:43:01.546403060Z FatalError: `Illegal instruction` is detected by the operating system.
+  2024-10-03T07:43:01.546406784Z   [TimeInfo: *** Aborted at 1727941381 (unix time) try "date -d @1727941381" if you are using GNU date ***]
+  2024-10-03T07:43:01.546410723Z   [SignalInfo: *** SIGILL (@0x7682e348331a) received by PID 7 (TID 0x76829a6006c0) from PID 18446744073227744026 ***]
+  2024-10-03T07:43:01.546414527Z 
+  2024-10-03T07:43:02.258236787Z Illegal instruction (core dumped)
+  ```
+
+  https://github.com/PaddlePaddle/PaddleOCR/issues/11597

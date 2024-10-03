@@ -65,6 +65,17 @@ excel:
   nachname_key: 'nachname'
   vorname_key: 'vorname'
   name_thresh: 20
+  export:
+    output_path: output
+    excel_1_file: 'VorlageSpesenabrechnung.xlsx'
+    excel_2_file: '1.4437_10578_A3DS GmbH_04_2024.xlsm'
+    excel_3_file: 'travel_expenses_2024.xlsx'
+
+    # name sheets
+    MAIN_SHEET: 'Auszahlung'
+    PROGRESS: 'Vorgang 1'
+    PROGRESS_2: 'Vorgang 2'
+    FORMAT_NUMBER: '_-* #,##0.00\ "€"_-;\-* #,##0.00\ "€"_-;_-* "-"??\ "€"_-;_-@_-'
 
 ldap:
   ldap_server: ldap.forumsys.com

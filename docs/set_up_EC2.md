@@ -42,7 +42,7 @@ Install Docker using the official Docker repository:
 
 - Install necessary packages:
     ```bash
-    sudo apt install apt-transport-https ca-certificates curl software-properties-common
+    sudo apt install apt-transport-https ca-certificates curl software-properties-common -y 
     ```
 
 - Add Docker's GPG key:
@@ -62,7 +62,7 @@ Install Docker using the official Docker repository:
 
 - Install Docker:
     ```bash
-    sudo apt install docker-ce docker-ce-cli containerd.io
+    sudo apt install docker-ce docker-ce-cli containerd.io -y 
     ```
 
 - Start and enable Docker:
