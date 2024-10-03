@@ -3,7 +3,7 @@
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Features](#features)
-2. [Screenshots](#screenshots)
+2. [Get Started](#get-started)
 
 ---
 
