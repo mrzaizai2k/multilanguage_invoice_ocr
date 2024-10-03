@@ -141,48 +141,59 @@ class OcrReader:
 
     def get_text(self, input_data) -> dict:
         # Detect the language of the image
-        image = self.get_image(input_data)
-        image, doc_angle = rotate_image(image)
-        
-        src_language = self._get_lang(image)
+        try:
+            image = self.get_image(input_data)
+            image, doc_angle = rotate_image(image)
+            
+            src_language = self._get_lang(image)
 
-        # Initialize the PaddleOCR with the detected language
-        ocr = None
+            # Initialize the PaddleOCR with the detected language
+            ocr = None
 
-        if (src_language in ["zh-CN","ch", "chinese_cht"]) and (self.device == 'cpu'):
-            print("src_language", src_language)
-            print("self.device", self.device)
-            ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True, 
-                            cls=True, ocr_version='PP-OCRv2') #, enable_mkldnn=True) #https://github.com/PaddlePaddle/PaddleOCR/issues/11597
-        else:
-            ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True, cls=True, )
-        
 
-        result = ocr.ocr(np.array(image))
+            if (src_language in ["zh-CN","ch", "chinese_cht"]) and (self.device == 'cpu'):
+                print("src_language", src_language)
+                print("self.device", self.device)
+                ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True, 
+                                cls=True, ocr_version='PP-OCRv2', enable_mkldnn=True) #https://github.com/PaddlePaddle/PaddleOCR/issues/11597
+            else:
+                ocr = PaddleOCR(lang=src_language, show_log=False, use_angle_cls=True, cls=True, )
+            
 
-        # Combine the recognized text from the OCR result
-        text = " ".join([line[1][0] for line in result[0]])
+            result = ocr.ocr(np.array(image))
 
-        # Handle translation if a translator and target language are provided
-        if self.translator and self.target_language:
-            trans_text, src_language = self.translator.translate(text=text, to_lang=self.target_language)
+            # Combine the recognized text from the OCR result
+            text = " ".join([line[1][0] for line in result[0]])
 
+            # Handle translation if a translator and target language are provided
+            if self.translator and self.target_language:
+                trans_text, src_language = self.translator.translate(text=text, to_lang=self.target_language)
+
+                data = {
+                    "ori_text": text,
+                    "ori_language": src_language,
+                    "text": trans_text,
+                    "language": self.target_language,
+                }
+            else:
+                # If translation is not required, use the original text and language
+                trans_text, src_language = text, src_language
+                data = {
+                    "ori_text": text,
+                    "ori_language": src_language,
+                    "text": trans_text,
+                    "language": src_language,
+                }
+            data['angle'] = doc_angle
+        except Exception as e:
+            print("error", e)
             data = {
-                "ori_text": text,
-                "ori_language": src_language,
-                "text": trans_text,
-                "language": self.target_language,
-            }
-        else:
-            # If translation is not required, use the original text and language
-            trans_text, src_language = text, src_language
-            data = {
-                "ori_text": text,
-                "ori_language": src_language,
-                "text": trans_text,
-                "language": src_language,
-            }
-        data['angle'] = doc_angle
+                    "ori_text": "",
+                    "ori_language": "",
+                    "text": "",
+                    "language": "",
+                    "angle": 0,
+                }
         return data
     
     def get_rotated_image(self, input_data):
