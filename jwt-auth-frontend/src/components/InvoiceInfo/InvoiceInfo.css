@@ -204,9 +204,9 @@
 
 .btn_delete-item,
 .btn_delete-item-2 {
-  margin-left: 343px;
+  margin-left: 340px;
   margin-bottom: 10px;
-  font-size: 15p;
+  font-size: 16px;
   height: 20px;
   padding: 4px 10px;
 }
@@ -218,7 +218,7 @@
 }
 
 .btn_delete-item-2 {
-  margin-left: 316px !important;
+  margin-left: 315px !important;
 }
 
 .btn_delete-item-2:hover {
