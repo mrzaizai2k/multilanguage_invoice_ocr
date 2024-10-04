@@ -1,7 +1,7 @@
 import axios from "axios";
 
-export const API_URL = `http://${process.env.REACT_APP_SERVER_IP}/api`;
-// export const API_URL = 'http://localhost:8149';
+// export const API_URL = `http://${process.env.REACT_APP_SERVER_IP}/api`; //aws
+export const API_URL = 'http://localhost/api'; // local machine as nginx config 
 
 console.log("API_URL", API_URL)
 
