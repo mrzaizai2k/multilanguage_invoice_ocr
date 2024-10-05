@@ -94,6 +94,7 @@ def test_get_invoices(user_uuid: Optional[str] = None,
     # Print the response for debugging (optional)
     print(f"Status code: {response.status_code}")
     invoices = response.json()["invoices"]
+    invoice_ids = [invoice['_id'] for invoice in invoices]
     print(f"Number of invoices: {len(invoices)}")
     print(f"Number of matching docs: {response.json()['total']}")
 
@@ -108,7 +109,7 @@ def test_get_invoices(user_uuid: Optional[str] = None,
     else:
         print(f"Failed to fetch invoices. Status code: {response.status_code}")
 
-    return response
+    return response, invoice_ids
 
 
 def test_get_frontend_defines(root_url):
@@ -144,18 +145,23 @@ if __name__ == "__main__":
     # root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
 
 
-    img_path = "test/images/009_1.png"
-    # user_uuid = "gauss"
-    user_uuid = "2111_1111_1111_1111"
+    img_path = "test/images/japan_1.png"
+    user_uuid = "gauss"
+    # user_uuid = "2111_1111_1111_1111"
     invoice_uuid = "66f3d0eb898e7aaf3dd6e00b"
     invoice_info = {"amount": "1111",} 
 
-    test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
+    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', status="not extracted")
-    test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
-    test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
-    test_get_frontend_defines(root_url=root_url)
+    _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', status="not extracted")
+    # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
+    # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
+    # test_get_frontend_defines(root_url=root_url)
+
+    # print(invoice_ids)
+    # for invoice in invoice_ids:
+    #     test_delete_invoice(invoice_uuid=invoice, user_uuid=user_uuid)
+
 
 
 

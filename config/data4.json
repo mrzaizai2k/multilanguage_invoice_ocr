@@ -1,0 +1,51 @@
+{
+    "invoice_info": {
+        "name": "Stiboy Dirk",
+        "project_number": "V240045",
+        "is_in_egw": true,
+        "currency": "EUR",
+        "has_employee_signature": true,
+        "sign_date": "2024-08-07",
+        "fixed_lines": [
+            {
+                "title": "Hotel",
+                "amount": 412.5,
+                "payment_method": "self paid",
+                "with_breakfast": true,
+                "can_book_again": true
+            },
+            {
+                "title": "Fuel",
+                "amount": 86.24,
+                "payment_method": "self paid"
+            },
+            {
+                "title": "Parking fees",
+                "amount": 41.0,
+                "payment_method": "self paid"
+            },
+            {
+                "title": "Rental car",
+                "amount": 156.2,
+                "payment_method": "self paid"
+            },
+            {
+                "title": "Toll",
+                "amount": 20.0,
+                "payment_method": "self paid"
+            }
+        ],
+        "lines": [
+            {
+                "title": "Bal ticket",
+                "amount": 24.5,
+                "payment_method": "self paid"
+            },
+            {
+                "title": "Fahrkarten ticket",
+                "amount": 9.8,
+                "payment_method": "self paid"
+            }
+        ]
+    }
+}

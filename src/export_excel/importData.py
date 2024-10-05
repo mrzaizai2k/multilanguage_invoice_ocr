@@ -129,7 +129,6 @@ def write_data(excel_index, sheet_name, cell, value_to_write, is_money = False):
     wb.close()
     print(f"Added value '{value_to_write}' from JSON to cell {cell} in sheet '{sheet_name}'.")
 
-
 def conver_number_hour(time):
     '''
     Hanlde time

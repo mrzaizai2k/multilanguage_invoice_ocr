@@ -1,0 +1,57 @@
+{
+    "invoice_info": {
+        "name": "Stiboy Dirk",
+        "project_number": "V240045",
+        "customer": "Magua",
+        "city": "Hongkong",
+        "kw": "ABC",
+        "land": "China",
+        "lines": [
+            {
+                "date": "2024-08-07",
+                "start_time": "06:00:00",
+                "end_time": "19:00:00",
+                "break_time": 0.5,
+                "description": "BS - S2 - Support",
+                "has_customer_signature": true
+            },
+            {
+                "date": "2024-08-08",
+                "start_time": "07:00:00",
+                "end_time": "24:00:00",
+                "break_time": 0.5,
+                "description": "S2 - BS - Support",
+                "has_customer_signature": false
+            },
+            {
+                "date": "2024-08-09",
+                "start_time": "07:00:00",
+                "end_time": "20:00:00",
+                "break_time": 0.5,
+                "description": "BS - S2 - Support",
+                "has_customer_signature": false
+            },
+            {
+                "date": "2024-08-10",
+                "start_time": "07:00:00",
+                "end_time": "20:00:00",
+                "break_time": 0.5,
+                "description": "S2 - BS - Support",
+                "has_customer_signature": false
+            },
+            {
+                "date": "2024-08-11",
+                "start_time": "06:00:00",
+                "end_time": "16:00:00",
+                "break_time": 0.5,
+                "description": "BS - S2 - Support",
+                "has_customer_signature": false
+            }
+        ],
+        "is_process_done": true,
+        "is_commissioned_work": true,
+        "is_without_measuring_technology": false,
+        "sign_date": "2024-08-13",
+        "has_employee_signature": true
+    }
+}

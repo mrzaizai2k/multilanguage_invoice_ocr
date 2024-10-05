@@ -4,7 +4,7 @@ import re
 from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Any, Union
 from datetime import date, datetime
-from src.excel_export import FuzzyNameMatcher, ExcelProcessor, get_full_name
+from src.excel_export import EmployeeNameRetriever, get_full_name
 from src.Utils.utils import (read_config, get_currencies_from_txt,
                               get_land_and_city_list, find_best_match_fuzzy)
 
@@ -29,18 +29,11 @@ def map_name(ocr_name: str, config: dict):
     ocr_name = preprocess_name(ocr_name)
     
     # Initialize the processor and matcher
-    processor = ExcelProcessor(config=config)
-    user_names = processor.get_user_names()
-    
-    matcher = FuzzyNameMatcher(user_names)
-    best_idx, best_match, best_score = matcher.find_best_match(ocr_name)
-    
-    # Check if the match score is above the defined threshold
-    if best_score >= config['excel']['name_thresh']:
-        full_name = get_full_name(best_match)
-        return full_name
-    else:
-        return ""
+    processor = EmployeeNameRetriever(config=config)    
+    best_match = processor.find_best_matching_name(name=ocr_name)
+    full_name = get_full_name(best_match)
+    return full_name
+
     
 def strip_strings(value):
         if isinstance(value, str):

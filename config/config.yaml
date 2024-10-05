@@ -60,22 +60,31 @@ country_and_city:
 
 
 excel:
-  excel_file_path: config/user_template.xlsm
-  sheet_name: April 24_0
-  nachname_key: 'nachname'
-  vorname_key: 'vorname'
-  name_thresh: 20
   export:
-    output_path: output
-    excel_1_file: 'VorlageSpesenabrechnung.xlsx'
-    excel_2_file: '1.4437_10578_A3DS GmbH_04_2024.xlsm'
-    excel_3_file: 'travel_expenses_2024.xlsx'
+    input_path: 'config/'
+    output_path: 'output/'
+
+    # Define the name file
+    excel_1_file: VorlageSpesenabrechnung.xlsx
+    excel_2_file: 1.4437_10578_A3DS GmbH_04_2024 .xlsm
+    excel_3_file: travel_expenses-2024.xlsx
+    json_1_file: data1.json
+    json_2_file: data2.json
 
     # name sheets
     MAIN_SHEET: 'Auszahlung'
     PROGRESS: 'Vorgang 1'
     PROGRESS_2: 'Vorgang 2'
     FORMAT_NUMBER: '_-* #,##0.00\ "€"_-;\-* #,##0.00\ "€"_-;_-* "-"??\ "€"_-;_-@_-'
+
+  employee_name:
+    excel_file_path: config/user_template.xlsm
+    sheet_name: April 24_0
+    nachname_key: 'nachname'
+    vorname_key: 'vorname'
+    name_thresh: 20
+
+  
 
 ldap:
   ldap_server: ldap.forumsys.com

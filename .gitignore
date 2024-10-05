@@ -170,3 +170,4 @@ front_end/node_modules/
 *.Identifier
 logs/
 output/
+temp/

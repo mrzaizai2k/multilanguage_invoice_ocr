@@ -30,4 +30,4 @@ ldap3
 python-multipart
 python-jose
 python-Levenshtein
-xlwings
+formulas

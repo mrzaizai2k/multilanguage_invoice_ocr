@@ -1,12 +1,13 @@
 import sys
 sys.path.append("")
 
+import os
 import openpyxl
-from fuzzywuzzy import fuzz
-
+from typing import List, Tuple, Dict
 from src.Utils.utils import read_config, find_best_match_fuzzy
 
-class ExcelProcessor:
+
+class EmployeeNameRetriever:
     def __init__(self, config_path:str = None, config:dict = None):
         # Load configuration from the YAML file
         if (config_path is None and config is None) or (config_path and config):
@@ -16,13 +17,14 @@ class ExcelProcessor:
             self.config_path = config_path
             self.config = read_config(path=self.config_path)['excel']
         elif config:
-            self.config = config['excel']
+            self.config = config['excel']['employee_name']
 
         # Load the Excel file and sheet
         self.workbook = openpyxl.load_workbook(self.config['excel_file_path'], keep_vba=True)
         self.sheet = self.workbook[self.config['sheet_name']]
         self.nachname_position = None
         self.vorname_position = None
+        self.canonical_names = self._preprocess_names()
 
     def _find_nachname_vorname_positions(self):
         """Find the row and column positions of 'nachname' and 'vorname'."""
@@ -107,45 +109,45 @@ class ExcelProcessor:
     def get_sheet_names(self):
         return self.workbook.sheetnames
 
-
-
-class FuzzyNameMatcher:
-    def __init__(self, names):
-        """
-        Initialize the matcher with the list of names.
-        :param names: List of tuples (nachname, vorname)
-        """
-        self.names = names
-        # Preprocess names into canonical form and create a mapping for unique names
-        self.canonical_names = self._preprocess_names()
-
-    def _preprocess_names(self):
+    def _preprocess_names(self) -> List[Tuple[str, int]]:
         """
         Preprocess the names by creating both first-last and last-first formats.
-        :return: List of unique preprocessed names as strings.
+        :return: List of unique preprocessed names as strings with their original indices.
         """
         corpus = []
-        for idx, (last_name, first_name) in enumerate(self.names):
+        names = self.get_user_names()
+        for idx, (last_name, first_name) in enumerate(names):
             last_first = f"{last_name.lower()} {first_name.lower()}"
             first_last = f"{first_name.lower()} {last_name.lower()}"
-            # Store both last-first and first-last with the index of the name
             corpus.append((last_first, idx))
             corpus.append((first_last, idx))
         return corpus
 
-    def find_best_match(self, ocr_output):
+    def find_best_matching_name(self, name: str, name_thresh=None) -> Tuple[Tuple[str, str], float]:
         """
-        Find the closest match to the OCR output using fuzzy matching.
-        :param ocr_output: OCR string (possibly incorrect)
-        :return: Position of best matching name in the original list, best matching name, and highest similarity score.
+        Find the closest match to the given name using fuzzy matching.
+        :param name: Input name string (possibly incorrect)
+        :return: Tuple containing the best matching name (nachname, vorname) and the similarity score
         """
         name_list = [name for name, _ in self.canonical_names]
-        best_idx, _, best_score = find_best_match_fuzzy(string_list=name_list, 
-                                                           text=ocr_output)
-        # Return the index of the original name in the list, the best match, and the score
-        (_, idx) = self.canonical_names[best_idx]
-        original_name = self.names[idx]
-        return best_idx, original_name, best_score
+        best_idx, best_match, best_score = find_best_match_fuzzy(string_list=name_list, 
+                                                           text=name)
+        
+        # Find the index of the best match in canonical_names
+        best_idx = next(idx for idx, (n, _) in enumerate(self.canonical_names) if n == best_match)
+        
+        # Get the original index of the name in the user_names list
+        original_idx = self.canonical_names[best_idx][1]
+        
+        # Get the original name tuple
+        if not name_thresh:
+            name_thresh = self.config['name_thresh']
+        
+        if best_score >= name_thresh:
+            return self.get_user_names()[original_idx]
+        else:
+            return ""  # Normalize score to be between 0 and 1
+
  
 
 def get_full_name(name_tuple):
@@ -156,14 +158,45 @@ def get_full_name(name_tuple):
     """
     return ' '.join(f"{part}" for part in name_tuple)
 
+def generate_new_config(config: dict):
+    # Simplify config access
+    config = config['excel']['export']
 
+    # Reading paths from config
+    input_path = config['input_path']
+    output_path = config['output_path']
+    
+    # Collecting all filenames from the config
+    excel_1_file = config['excel_1_file']
+    excel_2_file = config['excel_2_file']
+    excel_3_file = config['excel_3_file']
+    json_1_file = config['json_1_file']
+    json_2_file = config['json_2_file']
+    
+    # Generating input/output paths for excel and json files
+    paths = {
+        'input_1_excel': os.path.join(input_path, excel_1_file),
+        'output_1_excel': os.path.join(output_path, excel_1_file),
+        'input_1_json': os.path.join(input_path, json_1_file),
+
+        'input_2_excel': os.path.join(input_path, excel_2_file),
+        'output_2_excel': os.path.join(output_path, excel_2_file),
+        'input_2_json': os.path.join(input_path, json_2_file),
+
+        'input_3_excel': os.path.join(input_path, excel_3_file)
+    }
+
+    # Merge the generated paths into the original config
+    new_config = {**config, **paths}
+    
+    return new_config
 
 
 if __name__ == "__main__":
     # Example usage:
     config_path = 'config/config.yaml'
     config = read_config(config_path)
-    processor = ExcelProcessor(config=config)
+    processor = EmployeeNameRetriever(config=config)
     names = processor.get_user_names()
 
     print(names)
@@ -173,20 +206,11 @@ if __name__ == "__main__":
         
     print(processor.get_sheet_names())
 
-    # Example usage:
-
-    matcher = FuzzyNameMatcher(names)
-
     # OCR output (potentially with errors and mixed order)
     ocr_output = ["Téuuley Divl", "Tuuulev Dirk", "Tümmeler Dirk", "Dirk Tuuulev", "Divl Téuuley"]
 
     for ocr_name in ocr_output:
-        best_idx, best_match, best_score = matcher.find_best_match(ocr_name)
-        print(f"OCR Output: {ocr_name}")
-        if best_match:
-            print(f"Best Match: {best_match} at index {best_idx} with score {best_score}")
-            full_name = get_full_name(best_match)
-            print(full_name)
-        else:
-            print("No match found")
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+        print(processor.find_best_matching_name(name = ocr_name, ))
+
+    print(generate_new_config(config=config))
+

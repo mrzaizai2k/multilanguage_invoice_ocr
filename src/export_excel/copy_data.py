@@ -1,6 +1,9 @@
 import openpyxl
 from config import output_1_excel, output_2_excel
-import xlwings as xw
+from openpyxl import load_workbook
+import formulas
+import shutil
+import os
 
 def copy_data(src_file, src_sheet, des_file, des_sheet):
     if src_file == 1:
@@ -36,15 +39,45 @@ def copy_data(src_file, src_sheet, des_file, des_sheet):
 
     target_workbook.save(target_file)
 
+
 def get_formula_result(file_path, sheet_name, cell_address):
-    # Get value from func excel
-    app = xw.App(visible=False)
-    workbook = app.books.open(file_path)
+    # Create a temporary directory
+    temp_dir = 'temp'
+    os.makedirs(temp_dir, exist_ok=True)
+
+    # Get the base filename and create the new uppercase filename
+    base_filename = os.path.basename(file_path)
+    new_filename = base_filename.upper()
+    temp_file_path = os.path.join(temp_dir, new_filename)
+
+    try:
+        # Use formulas to calculate and save the new version of the Excel file
+        xl_model = formulas.ExcelModel().loads(file_path).finish()
+        xl_model.calculate()
+        xl_model.write(dirpath=temp_dir)
+
+        # Load the workbook using openpyxl
+        workbook = load_workbook(filename=temp_file_path, data_only=True)
+        
+        # Get the specified sheet
+        sheet = workbook[sheet_name.upper()]
+        
+        # Get the value from the specified cell
+        result = sheet[cell_address].value
+        
+        # Close the workbook
+        workbook.close()
+        
+        return result
+
+    finally:
+        # Clean up: remove the temporary directory and its contents
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        # pass
+
+
+if __name__ == "__main__":
+    from config import output_1_excel, output_2_excel, MAIN_SHEET
+
+    print(get_formula_result(file_path = "output/StDi_07_24.xlsx", sheet_name=MAIN_SHEET, cell_address='D5'))
     
-    sheet = workbook.sheets[sheet_name]
-    result = sheet.range(cell_address).value
-    
-    workbook.close()
-    app.quit()
-    
-    return result
