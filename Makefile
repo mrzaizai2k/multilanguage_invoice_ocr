@@ -4,6 +4,7 @@ install:
 
 unit_test:
 	python src/excel_export.py
+	python src/export_excel/main.py
 	python src/ldap_authen.py
 	python src/mail.py
 	python src/validate_invoice.py

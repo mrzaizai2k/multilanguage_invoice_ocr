@@ -37,8 +37,11 @@ jobs:
  
     #     python src/base_extractors.py
 
-    - name: Run excel_export test
+    - name: Run get employee names test
       run: python src/excel_export.py
+
+    - name: Run excel_export test
+      run: python src/export_excel/main.py
 
     - name: Run LDAP test
       run: python src/ldap_authen.py
