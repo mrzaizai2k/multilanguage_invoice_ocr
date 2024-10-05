@@ -10,7 +10,7 @@
             {
                 "title": "Hotel",
                 "amount": 412.5,
-                "payment_method": " paid",
+                "payment_method": "self paid",
                 "with_breakfast": true,
                 "can_book_again": true
             },
