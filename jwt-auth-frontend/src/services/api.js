@@ -73,8 +73,17 @@ export const createInvoice = async (newInvoice) => {
     return result;
 };
 
-export const updateInvoice = async (invoiceId, updatedInvoice) => {
-    const result = await axios.put(`${API_URL}/api/v1/invoices/${invoiceId}`, updatedInvoice);
+// export const updateInvoice = async (invoiceId, updatedInvoice) => {
+//     const result = await axios.put(`${API_URL}/api/v1/invoices/${invoiceId}`, updatedInvoice);
+//     return result;
+// };
+
+export const updateInvoice = async (invoiceId, updatedInvoice, user_uuid) => {
+    const payload = {
+        user_uuid: user_uuid,
+        invoice_info: updatedInvoice
+    };
+    const result = await axios.put(`${API_URL}/api/v1/invoices/${invoiceId}`, payload);
     return result;
 };
 

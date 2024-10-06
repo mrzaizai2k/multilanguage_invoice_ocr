@@ -101,7 +101,7 @@ function InvoiceInfo({ userData, invoiceId, onClose, onInvoiceDeleted }) {
         }
 
         try {
-            await updateInvoice(modifiedInvoice._id, modifiedInvoice);
+            await updateInvoice(modifiedInvoice._id, modifiedInvoice, userData);
             messageApi.open({
                 type: "success",
                 content: "Invoice updated successfully!",
