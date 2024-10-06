@@ -24,6 +24,7 @@ from src.Utils.utils import (read_config, get_current_time, is_base64,
                              get_land_and_city_list, get_currencies_from_txt)
 from src.invoice_extraction import extract_invoice_info
 from src.Utils.logger import create_logger
+from src.export_excel.main import export_json_to_excel
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -69,6 +70,35 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                     
                 except Exception as e:
                     logger.error(f"Error processing document {document_id}: {str(e)}")
+
+        elif change['operationType'] == 'update':
+            # Process modified documents
+            #  'documentKey': {'_id': ObjectId('67023140275ae654b6ff8387')}
+            doc_id = str(change['documentKey']['_id']) 
+            updated_doc = mongo_db.get_document_by_id(document_id=doc_id)
+    
+            if (updated_doc.get('last_modified_by') is not None) and (updated_doc.get('invoice_type') in ['invoice 1', 'invoice 2']) :
+                # Get all documents modified this month
+                start_of_month = get_current_time(timezone=config['timezone']).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                modified_documents, _ = mongo_db.get_documents(
+                    filters={
+                        "last_modified_by": {"$ne": None},
+                        "last_modified_at": {"$gte": start_of_month},
+                        "invoice_type": {"$in": ["invoice 1", "invoice 2"]} 
+                    }
+                )
+                msg = f"modified_documents update change streams: {len(modified_documents)}"
+                print(modified_documents[0]['invoice_type'])
+                logger.info(msg = msg)
+                
+                for document in modified_documents:
+                    # Process each modified document
+                    # You might want to add specific logic here based on your requirements
+                    logger.info(f"Processing modified document: {document['_id']}")
+                    # For example, you could re-extract invoice info if needed:
+                    # extract_and_update_invoice_info(document, ocr_reader, invoice_extractor, config, logger)
+            else:
+                print('\n TRIGGER BUT THAT IS MODEL MODIFIED')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -142,6 +172,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         logger.debug(f"Error during login for username: {form_data.username} - {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+
 @app.get("/users/me")
 async def read_users_me(current_user: User = Depends(get_current_user_dependency)):
     logger.info(f"Fetching user info for username: {current_user.username}")
@@ -192,7 +223,30 @@ async def get_frontend_defines():
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=msg)
-    
+
+@app.get("/api/v1/excel")
+async def trigger_export(request: Request):
+    try:
+        import json
+        with open("config/data1.json", 'r') as file:
+            invoice_1 = json.load(file)  
+
+        with open("config/data2.json", 'r') as file:
+            invoice_2 = json.load(file)  
+
+        export_json_to_excel(invoice_1, invoice_2)
+        msg='run Done'
+        print (msg)
+        return JSONResponse(
+                status_code=status.HTTP_201_CREATED,
+                content=msg
+            )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred: {str(e)}"
+        )
+
 
 @app.post("/api/v1/invoices/upload")
 async def upload_invoice(

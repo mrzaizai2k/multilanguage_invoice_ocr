@@ -7,6 +7,16 @@ from src.Utils.utils import *
 from dotenv import load_dotenv
 load_dotenv()
 
+
+def test_excel():
+    url = f"{root_url}/api/v1/excel"
+    response = requests.get(url, params={})
+    
+    # Print the response for debugging (optional)
+    print(f"Status code: {response.status_code}")
+  
+
+
 def test_upload_invoice(img_path, user_uuid):
     # Define the payload
     url = f"{root_url}/api/v1/invoices/upload"
@@ -94,6 +104,17 @@ def test_get_invoices(user_uuid: Optional[str] = None,
     # Print the response for debugging (optional)
     print(f"Status code: {response.status_code}")
     invoices = response.json()["invoices"]
+
+    print("\nkey",response.json()["invoices"][0].keys())
+
+    invoice = response.json()["invoices"][0]
+
+    # Print all data excluding 'invoice_image_base64'
+    for key, value in invoice.items():
+        if key in ['last_modified_by', 'last_modified_at']:
+            print(f"{key}: {value}")
+
+
     invoice_ids = [invoice['_id'] for invoice in invoices]
     print(f"Number of invoices: {len(invoices)}")
     print(f"Number of matching docs: {response.json()['total']}")
@@ -140,20 +161,21 @@ if __name__ == "__main__":
     config = read_config(path=config_path)
 
     SERVER_IP = os.getenv('SERVER_IP')
-    root_url = f"http://{SERVER_IP}/api" # aws
+    # root_url = f"http://{SERVER_IP}/api" # aws
 
-    # root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
+    root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
 
 
-    img_path = "test/images/japan_1.png"
+    img_path = "test/images/008_1.png"
     user_uuid = "gauss"
     # user_uuid = "2111_1111_1111_1111"
-    invoice_uuid = "66f3d0eb898e7aaf3dd6e00b"
-    invoice_info = {"amount": "1111",} 
+    invoice_uuid = "6702335fd82111591aa92d9f"
+    invoice_info = {"land": "Laos",} 
 
+    test_excel()
     # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', status="not extracted")
+    # _, invoice_ids = test_get_invoices(user_uuid=user_uuid, invoice_type="invoice 2", created_at='desc', status='completed')
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
     # test_get_frontend_defines(root_url=root_url)

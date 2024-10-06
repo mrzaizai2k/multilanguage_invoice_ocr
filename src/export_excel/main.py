@@ -2,9 +2,9 @@ import sys
 sys.path.append("") 
 
 import os
-from importData import update_excel
-from importData import copy_excel_file, rename_vorlagespesen_to_emp_name
-from copy_data import copy_data_individual_to_group
+from src.export_excel.importData import update_excel
+from src.export_excel.importData import copy_excel_file, rename_vorlagespesen_to_emp_name
+from src.export_excel.copy_data import copy_data_individual_to_group
 from src.export_excel.config import (MAIN_SHEET, PROGRESS, PROGRESS_2, 
                                     output_2_excel, output_1_excel)
 
