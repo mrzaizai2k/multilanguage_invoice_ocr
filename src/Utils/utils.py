@@ -400,6 +400,32 @@ def convert_datetime_to_iso(data):
         for item in data:
             convert_datetime_to_iso(item)
 
+def convert_iso_to_dmY(data):
+    """
+    Convert ISO format datetime strings or datetime objects to 'dd/MM/YYYY' format
+    """
+    def convert_single_value(value):
+        if isinstance(value, str):
+            try:
+                # Try to parse the string as an ISO format datetime
+                dt = datetime.fromisoformat(value)
+                return dt.strftime('%d/%m/%Y')
+            except ValueError:
+                # If it's not a valid ISO format, return the original string
+                return value
+        elif isinstance(value, datetime):
+            # If it's already a datetime object, just format it
+            return value.strftime('%d/%m/%Y')
+        else:
+            # For any other type, return as is
+            return value
+
+    if isinstance(data, dict):
+        return {key: convert_iso_to_dmY(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [convert_iso_to_dmY(item) for item in data]
+    else:
+        return convert_single_value(data)
 
 def get_currencies_from_txt(file_path:str ="config/currencies.txt"):
     # Read the file and return a list of currency codes

@@ -20,9 +20,9 @@ from src.base_extractors import OpenAIExtractor
 from src.ldap_authen import (User, get_current_user, ldap_authen, 
                              Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
-                             valid_base64_image, convert_datetime_to_iso,
+                             valid_base64_image, convert_datetime_to_iso, convert_iso_to_dmY,
                              get_land_and_city_list, get_currencies_from_txt)
-from src.invoice_extraction import extract_invoice_info
+from src.invoice_extraction import extract_invoice_info, validate_invoice
 from src.Utils.logger import create_logger
 from src.export_excel.main import export_json_to_excel
 
@@ -351,9 +351,20 @@ async def modify_invoice(invoice_uuid: str, request: Request):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content=msg)
         
+        logger.debug(msg = f"invoice_info.keys {invoice_info.keys()}")
+
+        invoice_info['invoice_info'] = convert_iso_to_dmY(invoice_info['invoice_info'])
+
+        invoice_dict = validate_invoice(invoice_info=invoice_info, 
+                                             invoice_type=invoice_info['invoice_type'], 
+                                             config=config)
+        
+        logger.debug(msg = f"invoice_dict['invoice_info']: {invoice_dict['invoice_info']}")
+
+
         # Prepare update fields
         update_fields = {
-            "invoice_info": invoice_info,
+            "invoice_info": invoice_dict['invoice_info'],
             "last_modified_at": get_current_time(timezone=config['timezone']),
             "last_modified_by": user_uuid
         }

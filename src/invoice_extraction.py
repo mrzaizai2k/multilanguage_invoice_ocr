@@ -2,6 +2,7 @@ import sys
 sys.path.append("") 
 import re
 import numpy as np
+from copy import deepcopy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from typing import List, Optional
@@ -133,23 +134,25 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader,
 
 
 
-def validate_invoice(invoice_info:dict, invoice_type:str, config:dict) ->dict:
-    
-    if invoice_type == "invoice 1":
-        valid_invoice = validate_invoice_1(invoice_data=invoice_info, config=config)
-        full_invoice = Invoice1(invoice_info=valid_invoice['invoice_info'])
+def validate_invoice(invoice_info: dict, invoice_type: str, config: dict) -> dict:
+    # Create a deep copy of the invoice_info to avoid modifying the original
+    invoice_info_copy = deepcopy(invoice_info)
 
-    
-    elif invoice_type == "invoice 2":
-        valid_invoice = validate_invoice_2(invoice_data=invoice_info, config=config)
-        full_invoice = Invoice2(invoice_info=valid_invoice['invoice_info'])
-    
-    elif invoice_type == "invoice 3":
-        valid_invoice = validate_invoice_3(invoice_data=invoice_info, config=config)
-        full_invoice = Invoice3(invoice_info=valid_invoice['invoice_info'])
+    invoice_types = {
+        "invoice 1": (validate_invoice_1, Invoice1),
+        "invoice 2": (validate_invoice_2, Invoice2),
+        "invoice 3": (validate_invoice_3, Invoice3)
+    }
 
-    full_invoice_dict = full_invoice.model_dump(exclude_unset=False)
-    return full_invoice_dict
+    if invoice_type not in invoice_types:
+        raise ValueError(f"Invalid invoice type: {invoice_type}")
+
+    validate_func, invoice_class = invoice_types[invoice_type]
+
+    valid_invoice = validate_func(invoice_data=invoice_info_copy, config=config)
+    full_invoice = invoice_class(invoice_info=valid_invoice['invoice_info'])
+    
+    return full_invoice.model_dump(exclude_unset=False)
 
 
 if __name__ == "__main__":
