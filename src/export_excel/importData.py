@@ -15,23 +15,32 @@ from src.export_excel.config import input_3_exel, output_path, MAIN_SHEET, FORMA
 
 def copy_excel_file():
     '''
-    Remove all file at output folder
-    Copy 2 file template at Example folder
+    Ensure output folder exists, remove all files in it, 
+    and copy 2 template files from the Example folder.
     '''
-    # Remove all file in output folder
-    files = glob.glob(os.path.join(output_path, '*'))
-    for file in files:
-        try:
-            os.remove(file)
-            print(f"Remove: {file}")
-        except Exception as e:
-            print(f"Error whenr remove {file}: {e}")
+    # Check if output_path exists; if not, create it
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+        print(f"Created output directory: {output_path}")
+    else:
+        # Remove all files in the output folder
+        files = glob.glob(os.path.join(output_path, '*'))
+        for file in files:
+            try:
+                os.remove(file)
+                print(f"Removed: {file}")
+            except Exception as e:
+                print(f"Error when removing {file}: {e}")
 
-    shutil.copy(input_1_excel, output_1_excel)
-    print(f"{input_1_excel} file copied!")
- 
-    shutil.copy(input_2_excel, output_2_excel)
-    print(f"{input_2_excel} file copied!")
+    # Copy template files
+    try:
+        shutil.copy(input_1_excel, output_1_excel)
+        print(f"Copied: {input_1_excel} to {output_1_excel}")
+
+        shutil.copy(input_2_excel, output_2_excel)
+        print(f"Copied: {input_2_excel} to {output_2_excel}")
+    except Exception as e:
+        print(f"Error when copying files: {e}")
 
 
 def rename_vorlagespesen_to_emp_name(excel_path:str = "output/VorlageSpesenabrechnung.xlsx"):
