@@ -216,6 +216,7 @@ def handle_add_service(json_data, excel_des_path, sheet_name):
     date = json_data['invoice_info']['sign_date']
     date_obj = datetime.strptime(date, '%Y-%m-%d')
     date = date_obj.strftime('%d.%m.%Y')
+
     line = get_line_from_date(excel_des_path, sheet_name, date)
 
     # Handle with hotel

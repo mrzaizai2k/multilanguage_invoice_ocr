@@ -400,7 +400,17 @@ def convert_datetime_to_iso(data):
         for item in data:
             convert_datetime_to_iso(item)
 
-def convert_iso_to_dmY(data):
+def convert_datetime_to_string(data, format: str = "%Y-%m-%d"):
+    if isinstance(data, dict):
+        return {key: convert_datetime_to_string(value, format) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [convert_datetime_to_string(item, format) for item in data]
+    elif isinstance(data, datetime):  # Accessing datetime correctly
+        return data.strftime(format)
+    else:
+        return data
+    
+def convert_iso_to_string(data, format:str = '%d/%m/%Y'):
     """
     Convert ISO format datetime strings or datetime objects to 'dd/MM/YYYY' format
     """
@@ -409,21 +419,21 @@ def convert_iso_to_dmY(data):
             try:
                 # Try to parse the string as an ISO format datetime
                 dt = datetime.fromisoformat(value)
-                return dt.strftime('%d/%m/%Y')
+                return dt.strftime(format)
             except ValueError:
                 # If it's not a valid ISO format, return the original string
                 return value
         elif isinstance(value, datetime):
             # If it's already a datetime object, just format it
-            return value.strftime('%d/%m/%Y')
+            return value.strftime(format)
         else:
             # For any other type, return as is
             return value
 
     if isinstance(data, dict):
-        return {key: convert_iso_to_dmY(value) for key, value in data.items()}
+        return {key: convert_iso_to_string(value) for key, value in data.items()}
     elif isinstance(data, list):
-        return [convert_iso_to_dmY(item) for item in data]
+        return [convert_iso_to_string(item) for item in data]
     else:
         return convert_single_value(data)
 
@@ -487,7 +497,18 @@ def find_best_match_fuzzy(string_list: list[str], text:str):
     # Return the index of the original name in the list, the best match, and the score
     original_name = string_list[best_idx]
     return best_idx, original_name, best_score
-        
+
+def is_partner_document(partner_doc, reference_doc):
+    """Find the partner doc that has same sign_date but diffent invoice_type
+    partner_doc: the doc to check if it's parter with the reference_doc or not
+    """
+    if partner_doc['invoice_info']['sign_date'] == reference_doc['invoice_info']['sign_date']:
+        if reference_doc['invoice_type'] == 'invoice 1' and partner_doc['invoice_type'] == 'invoice 2':
+            return True
+        elif reference_doc['invoice_type'] == 'invoice 2' and partner_doc['invoice_type'] == 'invoice 1':
+            return True
+    return False
+
 if __name__ == "__main__":
     config_path = "config/config.yaml"
     config = read_config(config_path)

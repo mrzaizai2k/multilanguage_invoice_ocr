@@ -20,8 +20,8 @@ from src.base_extractors import OpenAIExtractor
 from src.ldap_authen import (User, get_current_user, ldap_authen, 
                              Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
-                             valid_base64_image, convert_datetime_to_iso, convert_iso_to_dmY,
-                             get_land_and_city_list, get_currencies_from_txt)
+                             valid_base64_image, convert_datetime_to_iso, convert_iso_to_string,
+                             get_land_and_city_list, get_currencies_from_txt, is_partner_document)
 from src.invoice_extraction import extract_invoice_info, validate_invoice
 from src.Utils.logger import create_logger
 from src.export_excel.main import export_json_to_excel
@@ -73,32 +73,61 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
 
         elif change['operationType'] == 'update':
             # Process modified documents
-            #  'documentKey': {'_id': ObjectId('67023140275ae654b6ff8387')}
             doc_id = str(change['documentKey']['_id']) 
             updated_doc = mongo_db.get_document_by_id(document_id=doc_id)
-    
-            if (updated_doc.get('last_modified_by') is not None) and (updated_doc.get('invoice_type') in ['invoice 1', 'invoice 2']) :
-                # Get all documents modified this month
-                start_of_month = get_current_time(timezone=config['timezone']).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-                modified_documents, _ = mongo_db.get_documents(
-                    filters={
-                        "last_modified_by": {"$ne": None},
-                        "last_modified_at": {"$gte": start_of_month},
-                        "invoice_type": {"$in": ["invoice 1", "invoice 2"]} 
-                    }
-                )
-                msg = f"modified_documents update change streams: {len(modified_documents)}"
-                print(modified_documents[0]['invoice_type'])
-                logger.info(msg = msg)
-                
-                for document in modified_documents:
-                    # Process each modified document
-                    # You might want to add specific logic here based on your requirements
-                    logger.info(f"Processing modified document: {document['_id']}")
-                    # For example, you could re-extract invoice info if needed:
-                    # extract_and_update_invoice_info(document, ocr_reader, invoice_extractor, config, logger)
+            logger.info(msg = "trigger modified")
+
+            if not ((updated_doc.get('last_modified_by') is not None) and 
+                    (updated_doc.get('invoice_type') in ['invoice 1', 'invoice 2'])):
+                continue
+
+            # Get all documents modified this month
+            start_of_month = get_current_time(timezone=config['timezone']).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            modified_documents, _ = mongo_db.get_documents(
+                filters={
+                    "last_modified_by": {"$ne": None},
+                    "last_modified_at": {"$gte": start_of_month},
+                    "invoice_type": {"$in": ["invoice 1", "invoice 2"]},
+                    "invoice_info.name": updated_doc['invoice_info']['name'],
+                    "invoice_info.project_number": updated_doc['invoice_info']['project_number']
+                }
+            )
+
+            if not modified_documents:
+                continue
+
+            msg = f"modified_documents update change streams: {len(modified_documents)}"
+            logger.info(msg = msg)
+
+            partner_doc = None
+            for doc in modified_documents:
+                if is_partner_document(partner_doc=doc, reference_doc=updated_doc):
+                    partner_doc = doc
+                    break
+            
+            if not partner_doc:
+                continue
+            # export_excel(updated_doc, partner_doc)
+            print(modified_documents[0]['invoice_type'])
+            logger.info(msg = "found partner doc")
+
+            if updated_doc['invoice_type'] == 'invoice 1':
+                invoice_1 = updated_doc
+                invoice_2 = partner_doc
             else:
-                print('\n TRIGGER BUT THAT IS MODEL MODIFIED')
+                invoice_1 = partner_doc
+                invoice_2 = updated_doc
+
+            export_json_to_excel(invoice_1=invoice_1, invoice_2=invoice_2, logger=logger)
+            
+            # for document in modified_documents:
+            #     # Process each modified document
+            #     # You might want to add specific logic here based on your requirements
+            #     logger.info(f"Processing modified document: {document['_id']}")
+            #     # For example, you could re-extract invoice info if needed:
+            #     # extract_and_update_invoice_info(document, ocr_reader, invoice_extractor, config, logger)
+            # else:
+            #     print('\n TRIGGER BUT THAT IS MODEL MODIFIED')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -353,7 +382,7 @@ async def modify_invoice(invoice_uuid: str, request: Request):
         
         logger.debug(msg = f"invoice_info.keys {invoice_info.keys()}")
 
-        invoice_info['invoice_info'] = convert_iso_to_dmY(invoice_info['invoice_info'])
+        invoice_info['invoice_info'] = convert_iso_to_string(invoice_info['invoice_info'], format='%d/%m/%Y')
 
         invoice_dict = validate_invoice(invoice_info=invoice_info, 
                                              invoice_type=invoice_info['invoice_type'], 
