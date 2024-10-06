@@ -241,8 +241,8 @@ def validate_invoice_2(invoice_data: dict, config: dict) -> dict:
                     data[key] = validate_currency(value, config=config)
                 elif key == 'fixed_lines':
                     fixed_lines = []
-                    if 'lines' not in data:
-                        data['lines'] = []
+                    # if 'lines' not in data:
+                    #     data['lines'] = []
                     for line in value:
                         normalized_title = normalize_title(line['title'])
                         if normalized_title in fixed_line_titles:
@@ -251,7 +251,8 @@ def validate_invoice_2(invoice_data: dict, config: dict) -> dict:
                                 line['payment_method'] = normalize_payment_method(line['payment_method'])
                             fixed_lines.append(line)
                         else:
-                            data['lines'].append(line)
+                            if 'lines' in data:
+                                data['lines'].append(line)
                     data[key] = fixed_lines
                 
                 elif key in ['lines', 'fixed_lines']:
