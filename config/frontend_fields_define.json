@@ -21,13 +21,6 @@
     "required": true
   },
   {
-    "key": "kunde",
-    "key_name_user": "Kunde",
-    "type": "input",
-    "data_type": "string",
-    "required": true
-  },
-  {
     "key": "customer",
     "key_name_user": "Customer",
     "type": "input",

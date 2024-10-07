@@ -283,7 +283,6 @@ class InvoiceInfo1(BaseModel):
     customer: Optional[str] = ""
     city: Optional[str] = ""
     kw: Optional[str] = ""
-    kunde: Optional[str] = ""
     land: Optional[str] = ""
     lines: List[Line1] = Field(default_factory=lambda: [Line1()])
     is_process_done: Optional[bool] = False

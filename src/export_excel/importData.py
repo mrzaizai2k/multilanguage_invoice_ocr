@@ -2,75 +2,83 @@
 import sys
 sys.path.append("") 
 
-import json
 import openpyxl
 import os
 import shutil
 from datetime import datetime
-import glob
 
-from src.export_excel.config import input_1_excel, output_1_excel, input_1_json
-from src.export_excel.config import input_2_excel, output_2_excel, input_2_json
-from src.export_excel.config import input_3_exel, output_path, MAIN_SHEET, FORMAT_NUMBER
+from src.export_excel.config import (input_1_excel, input_2_excel, output_2_excel,
+                                    input_3_exel, FORMAT_NUMBER)
 
-def copy_excel_file():
-    '''
-    Ensure output folder exists, remove all files in it, 
-    and copy 2 template files from the Example folder.
-    '''
-    # Check if output_path exists; if not, create it
+def choose_sheet_to_write(excel_path:str, invoice_1:dict):
+    """Choose sheet name Vorgang in VorlageSpesenabrechnung.xlsx to write data to"""
+    # Load the workbook
+    workbook = openpyxl.load_workbook(excel_path)
+    
+    project_number = invoice_1.get('project_number', '').strip().lower()
+    
+    # Check existing sheets
+    for i in range(1, 6):
+        sheet_name = f'Vorgang {i}'
+        if sheet_name in workbook.sheetnames:
+            sheet = workbook[sheet_name]
+            cell_value = sheet['B4'].value
+            
+            # Check if project number matches
+            if cell_value and str(cell_value).lower() == project_number:
+                return sheet_name
+    
+    # If no match found, find the first empty sheet
+    for i in range(1, 6):
+        sheet_name = f'Vorgang {i}'
+        if sheet_name in workbook.sheetnames:
+            sheet = workbook[sheet_name]
+            cell_value = sheet['B4'].value
+            
+            # Check if the sheet is empty (B4 is None or empty)
+            if cell_value is None or cell_value == '':
+                return sheet_name
+    
+    # If all sheets are full, return None or raise an exception
+    return None
+    
+
+def prepare_excel_files(employee_expense_report_path: str, output_path: str = "output"):
+    """
+    Prepare Excel files in the specified output directory.
+    
+    - Ensure the output directory exists.
+    - Copy the input_2_excel file to output_2_excel if not already present.
+    - If employee_expense_report_path does not exist, copy input_1_excel to output_path and rename it.
+    """
+
+    # Ensure output_path exists; if not, create it
     if not os.path.exists(output_path):
         os.makedirs(output_path)
         print(f"Created output directory: {output_path}")
-    else:
-        # Remove all files in the output folder
-        files = glob.glob(os.path.join(output_path, '*'))
-        for file in files:
-            try:
-                os.remove(file)
-                print(f"Removed: {file}")
-            except Exception as e:
-                print(f"Error when removing {file}: {e}")
-
-    # Copy template files
-    try:
-        shutil.copy(input_1_excel, output_1_excel)
-        print(f"Copied: {input_1_excel} to {output_1_excel}")
-
-        shutil.copy(input_2_excel, output_2_excel)
-        print(f"Copied: {input_2_excel} to {output_2_excel}")
-    except Exception as e:
-        print(f"Error when copying files: {e}")
-
-
-def rename_vorlagespesen_to_emp_name(excel_path:str = "output/VorlageSpesenabrechnung.xlsx"):
-    '''
-    Rename output file excel VorlageSpesenabrechnung to the new file name based on the employee's name
-    '''
-    wb = openpyxl.load_workbook(excel_path)
-
-    # Access the specified sheet
-    if MAIN_SHEET in wb.sheetnames:
-        ws = wb[MAIN_SHEET]
-    else:
-        print(f"Sheet '{MAIN_SHEET}' not found in the Excel file.")
-        return
     
-    full_name = ws['B1'].value
-    name_parts = full_name.split()
-    initials = ''.join([part[:2] for part in name_parts])
+    # Check if output_2_excel exists, if not, copy from input_2_excel
+    if not os.path.exists(output_2_excel):
+        try:
+            shutil.copy(input_2_excel, output_2_excel)
+            print(f"Copied: {input_2_excel} to {output_2_excel}")
+        except Exception as e:
+            print(f"Error when copying {input_2_excel} to {output_2_excel}: {e}")
+    
+    # Check if employee_expense_report_path exists, if not, copy input_1_excel to output_path and rename it
+    if not os.path.exists(employee_expense_report_path):
+        try:
+            # Define the destination path for the employee expense report
+            dest_employee_path = os.path.join(output_path, os.path.basename(employee_expense_report_path))
+            
+            # Copy the input_1_excel to the destination and rename it
+            shutil.copy(input_1_excel, dest_employee_path)
+            print(f"Copied and renamed: {input_1_excel} to {dest_employee_path}")
+        except Exception as e:
+            print(f"Error when copying {input_1_excel} to {employee_expense_report_path}: {e}")
+    else:
+        print(f"{employee_expense_report_path} already exists, no need to copy.")
 
-    date = ws['E3'].value
-    month_year = date.strftime("%m_%y")
-
-    new_filename = f"{initials}_{month_year}.xlsx" 
-    new_path = os.path.join(output_path, new_filename)
-
-    # Đổi tên tệp
-    os.rename(output_1_excel, new_path)
-    print(f"Rename {output_1_excel} to {new_path}")
-    wb.close()
-    return new_path
 
 def update_excel(json_data:dict, excel_des_path:str="output/VorlageSpesenabrechnung.xlsx", 
                  sheet_name:str="", cell:str="", value:str=""):
@@ -88,13 +96,13 @@ def update_excel(json_data:dict, excel_des_path:str="output/VorlageSpesenabrechn
         handle_lines_value(json_data, sheet_name, excel_des_path)
         return
     elif value == 'cost_hour':
-        handle_number_hour_value(excel_des_path, sheet_name, cell)
+        handle_number_hour_value(excel_des_path, sheet_name)
         return
     elif value == 'service':
         handle_add_service(json_data, excel_des_path, sheet_name)
         return
-    elif value in json_data['invoice_info']:
-        value_to_write = json_data['invoice_info'][value]
+    elif value in json_data:
+        value_to_write = json_data[value]
         # Write the existing Excel workbook
         write_data(excel_des_path, sheet_name, cell, value_to_write)
     else:
@@ -150,7 +158,7 @@ def handle_lines_value(json_data, sheet_name, excel_des_path):
     excel_index: index excel - config at config.py
     '''
     number = get_last_row(excel_des_path, sheet_name, 'A', 11)
-    for line in json_data['invoice_info']['lines']:
+    for line in json_data['lines']:
         cell_des = f'A{number}'
         value_to_write = line['date']
         date_obj = datetime.strptime(value_to_write, '%Y-%m-%d')
@@ -167,60 +175,75 @@ def handle_lines_value(json_data, sheet_name, excel_des_path):
 
         number += 1
 
-def handle_number_hour_value(excel_des_path, sheet_name, cell):
+def handle_number_hour_value(excel_des_path, sheet_name):
     '''
     sheet_name: sheet want to write data
-    excel_index: index excel - config at config.py
-    cell: cell to write data
+    excel_des_path: path to the destination Excel file
+    cell: cell to write data (not used in this function)
     '''
-    # Load the existing Excel workbook
-    
-    target_file = excel_des_path
-    
     # Load the source workbook and sheet
     source_workbook = openpyxl.load_workbook(input_3_exel)
     source_sheet = source_workbook['Table 1']
     
     # Load the target workbook and sheet
-    target_workbook = openpyxl.load_workbook(target_file)
+    target_workbook = openpyxl.load_workbook(excel_des_path)
     target_sheet = target_workbook[sheet_name]
 
-    # Find value
+    # Find land and city
     land = target_sheet['B8'].value
     city = target_sheet['B6'].value
-    index = 0
-    for row in range(4, source_sheet.max_row + 1):
-        name = source_sheet[f'A{row}'].value
-        if name != None and (land == name or city in name):
-            index = row
-    
-    if index == 0:
-        print(f"Not found land and city")
-        return
-    
+
+    values_to_write = None
+
+    for row in range(1, source_sheet.max_row + 1):
+        current_land = source_sheet[f'A{row}'].value
+        
+        if current_land == land:
+            # If land matches and has values, use these values
+            if source_sheet[f'B{row}'].value:
+                values_to_write = [source_sheet[f'B{row}'].value, 
+                                   source_sheet[f'C{row}'].value, 
+                                   source_sheet[f'D{row}'].value]
+                break
+            # If land matches but has no values, look for city or "im Übrigen"
+            else:
+                for sub_row in range(row + 1, source_sheet.max_row + 1):
+                    sub_entry = source_sheet[f'A{sub_row}'].value
+                    if sub_entry and sub_entry.strip().startswith('–'):
+                        if city in sub_entry:
+                            values_to_write = [source_sheet[f'B{sub_row}'].value, 
+                                               source_sheet[f'C{sub_row}'].value, 
+                                               source_sheet[f'D{sub_row}'].value]
+                            break
+                        elif "im Übrigen" in sub_entry:
+                            values_to_write = [source_sheet[f'B{sub_row}'].value, 
+                                               source_sheet[f'C{sub_row}'].value, 
+                                               source_sheet[f'D{sub_row}'].value]
+                    elif sub_entry and not sub_entry.strip().startswith('–'):
+                        break  # We've reached the next main entry
+                break  # Exit the outer loop as we've processed this land
+
     source_workbook.close()
     target_workbook.close()
 
-    # Set value
-    value_to_write = source_sheet[f'B{index}'].value
-    write_data(excel_des_path, sheet_name, 'F2', value_to_write, True)
-
-    value_to_write = source_sheet[f'C{index}'].value
-    write_data(excel_des_path, sheet_name, 'G2', value_to_write, True)
-
-    value_to_write = source_sheet[f'D{index}'].value
-    write_data(excel_des_path, sheet_name, 'H2', value_to_write, True)
+    if values_to_write:
+        write_data(excel_des_path, sheet_name, 'F2', values_to_write[0], True)
+        write_data(excel_des_path, sheet_name, 'G2', values_to_write[1], True)
+        write_data(excel_des_path, sheet_name, 'H2', values_to_write[2], True)
+        print("land, city values:",values_to_write[0], values_to_write[1], values_to_write[2])
+    else:
+        print(f"No matching data found for land: {land}, city: {city}")
 
 
 def handle_add_service(json_data, excel_des_path, sheet_name):
-    date = json_data['invoice_info']['sign_date']
+    date = json_data['sign_date']
     date_obj = datetime.strptime(date, '%Y-%m-%d')
     date = date_obj.strftime('%d.%m.%Y')
 
     line = get_line_from_date(excel_des_path, sheet_name, date)
 
     # Handle with hotel
-    for fixed_line in json_data['invoice_info']['fixed_lines']:
+    for fixed_line in json_data['fixed_lines']:
         if fixed_line['title'] == 'Hotel':
             if fixed_line['payment_method'] == 'self paid':
                 value_to_write = fixed_line['amount']
@@ -239,7 +262,7 @@ def handle_add_service(json_data, excel_des_path, sheet_name):
     title = ''
     last_line = get_last_row(excel_des_path, sheet_name, 'H', 11)
 
-    for row in json_data['invoice_info']['lines']:
+    for row in json_data['lines']:
         value = row['amount']
         title = row['title'] 
 
