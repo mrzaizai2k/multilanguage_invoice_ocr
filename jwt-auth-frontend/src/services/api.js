@@ -36,7 +36,7 @@ export const getInvoicesByUser = async (user_uuid, filterDate, filterType, curre
 
     const result = await axios.get(`${API_URL}/api/v1/invoices?`, {
         params: {
-            status: 'completed',
+            invoice_status: 'completed',
             created_by: user_uuid,
             created_at: sortOrder,
             invoice_type: invoiceType,
@@ -53,7 +53,7 @@ export const getAllInvoices = async (filterDate, filterType, currentPage, pageSi
 
     const result = await axios.get(`${API_URL}/api/v1/invoices?`, {
         params: {
-            status: 'completed',
+            invoice_status: 'completed',
             created_at: sortOrder,
             invoice_type: invoiceType,
             page: currentPage,

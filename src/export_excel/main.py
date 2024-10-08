@@ -83,48 +83,104 @@ def update_project(employee_expense_report_path:str, invoice_1:dict, invoice_2:d
     update_excel(json_data=invoice_2, excel_des_path=employee_expense_report_path, 
                     sheet_name=working_sheet_name, cell='', value = 'service')
 
+def replace_sheet_in_excel(src_file: str, dest_file: str, sheet_name: str):
+    import openpyxl
+    """
+    Replaces a sheet in the destination Excel file with a sheet from the source Excel file.
+    
+    :param src_file: Path to the source Excel file.
+    :param dest_file: Path to the destination Excel file.
+    :param sheet_name: The name of the sheet to copy from the source file and replace in the destination file.
+    """
+    try:
+        # Load the source workbook and get the sheet to copy
+        src_wb = openpyxl.load_workbook(src_file)
+        if sheet_name not in src_wb.sheetnames:
+            print(f"Sheet {sheet_name} not found in the source file.")
+            return
+        src_sheet = src_wb[sheet_name]
 
-def export_json_to_excel(invoice_1:dict, invoice_2:dict, logger = None):
+        # Load the destination workbook
+        dest_wb = openpyxl.load_workbook(dest_file)
+
+        # If the sheet already exists in the destination, remove it
+        if sheet_name in dest_wb.sheetnames:
+            dest_wb.remove(dest_wb[sheet_name])
+            print(f"Removed existing sheet {sheet_name} in the destination file.")
+
+        # Create a new sheet in the destination workbook and copy the contents
+        dest_sheet = dest_wb.create_sheet(title=sheet_name)
+
+        # Copy the values from the source sheet to the destination sheet
+        for row in src_sheet.iter_rows(values_only=True):
+            dest_sheet.append(row)
+
+        # Save the destination workbook with the updated sheet
+        dest_wb.save(dest_file)
+        print(f"Successfully replaced sheet {sheet_name} in the destination file.")
+
+    except Exception as e:
+        print(f"Error occurred: {e}")
+
+
+def export_json_to_excel(invoice_pairs: list[tuple[dict, dict]], logger=None):
+    """
+    Process a list of invoice pairs and export them to Excel.
+    
+    :param invoice_pairs: List of tuples. Each tuple contains two dictionaries (invoice_1, invoice_2).
+    :param logger: Logger for logging messages.
+    """
     try:
         from src.export_excel.config import MAIN_SHEET, output_path, output_2_excel
-        invoice_1 = invoice_1['invoice_info']
-        invoice_2 = invoice_2['invoice_info']
-        invoice_1 = convert_datetime_to_string(invoice_1)
-        invoice_2 = convert_datetime_to_string(invoice_2)
+        for idx, (invoice_1, invoice_2) in enumerate(invoice_pairs):
+            
+            invoice_1 = invoice_1['invoice_info']
+            invoice_2 = invoice_2['invoice_info']
+            invoice_1 = convert_datetime_to_string(invoice_1)
+            invoice_2 = convert_datetime_to_string(invoice_2)
 
-        employee_expense_report_name = create_filename_from_dict(invoice_1=invoice_1)
-        print('employee_expense_report_file_name', employee_expense_report_name)
+            if idx == 0:
+                print('idx', idx)
 
-
-        employee_expense_report_path = f"{output_path}/{employee_expense_report_name}"
-        print(employee_expense_report_path)
-
-        # Call the function
-        prepare_excel_files(output_path=output_path, 
-                            employee_expense_report_path=employee_expense_report_path)
-        
-        if logger:
-            logger.debug(msg = 'Done prepareing excel')        
-
-        new_sheet_name = choose_sheet_to_write(excel_path=employee_expense_report_path, 
-                                               invoice_1=invoice_1)
-        print("new_sheet_name", new_sheet_name)
-        # Process data from data1.json
-        
-        update_project(employee_expense_report_path=employee_expense_report_path,
-                       invoice_1=invoice_1, invoice_2=invoice_2,
-                       main_sheet_name=MAIN_SHEET, 
-                       working_sheet_name=new_sheet_name)
-        if logger:
-            logger.debug(msg = 'Done update json')
+                employee_expense_report_name = create_filename_from_dict(invoice_1=invoice_1)
+                print('employee_expense_report_file_name', employee_expense_report_name)
 
 
-        # Copy data to output2
-        copy_data_individual_to_group(src_file_path=employee_expense_report_path, src_sheet=MAIN_SHEET, 
-                                    des_file_path=output_2_excel, des_sheet='April 24_0')
+                employee_expense_report_path = f"{output_path}/{employee_expense_report_name}"
+                print(employee_expense_report_path)
 
-        if logger:
-            logger.debug(msg = 'run Done')
+                # Call the function
+                prepare_excel_files(output_path=output_path, 
+                                    employee_expense_report_path=employee_expense_report_path)
+                
+                if logger:
+                    logger.debug(msg = 'Done prepareing excel')        
+
+                new_sheet_name, is_modified = choose_sheet_to_write(excel_path=employee_expense_report_path, 
+                                                    invoice_1=invoice_1)
+                
+                print('is_modified', is_modified)
+                print("new_sheet_name", new_sheet_name)
+
+            
+
+            # Process data from data1.json
+            
+            update_project(employee_expense_report_path=employee_expense_report_path,
+                        invoice_1=invoice_1, invoice_2=invoice_2,
+                        main_sheet_name=MAIN_SHEET, 
+                        working_sheet_name=new_sheet_name)
+            if logger:
+                logger.debug(msg = 'Done update json')
+
+
+            # Copy data to output2
+            if idx == len(invoice_pairs) - 1: 
+                copy_data_individual_to_group(src_file_path=employee_expense_report_path, src_sheet=MAIN_SHEET, 
+                                            des_file_path=output_2_excel, des_sheet='April 24_0')
+
+            if logger:
+                logger.debug(msg = 'run Done')
     except Exception as e:
         print("error", e)
         if logger:
@@ -138,6 +194,13 @@ if __name__ == "__main__":
 
     with open("config/data2.json", 'r') as file:
         invoice_2 = json.load(file)  
+
+    with open("config/data3.json", 'r') as file:
+        invoice_1_b = json.load(file)  
+
+    with open("config/data4.json", 'r') as file:
+        invoice_2_b = json.load(file)  
+
     
     # from src.mongo_database import MongoDatabase
     config_path='config/config.yaml'
@@ -150,4 +213,7 @@ if __name__ == "__main__":
     # print(invoice_1['invoice_info'])
     # print(invoice_2['invoice_info'])
 
-    export_json_to_excel(invoice_1 = invoice_1, invoice_2=invoice_2,)
+
+    # export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2), (invoice_1_b, invoice_2_b)],)
+    # export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2)],)
+    replace_sheet_in_excel(src_file="config/VorlageSpesenabrechnung.xlsx", dest_file="output/Stdi_08_24.xlsx", sheet_name="Vorgang 1")

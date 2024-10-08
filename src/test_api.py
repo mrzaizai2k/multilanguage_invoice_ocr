@@ -75,7 +75,7 @@ def test_delete_invoice(invoice_uuid, user_uuid):
 def test_get_invoices(user_uuid: Optional[str] = None, 
                       invoice_type: Optional[str] = None,
                       invoice_uuid: Optional[str] = None,
-                      status: Optional[Literal['not extracted', 'completed']] = None,
+                      invoice_status: Optional[Literal['not extracted', 'completed']] = None,
                       created_at: Literal["asc", "desc"] = "asc",
                       page: int = 1, limit: int = 10):
 
@@ -95,8 +95,8 @@ def test_get_invoices(user_uuid: Optional[str] = None,
         params["invoice_type"] = invoice_type
     if invoice_uuid:
         params["invoice_uuid"] = invoice_uuid
-    if status:
-        params["status"] = status
+    if invoice_status:
+        params["status"] = invoice_status
 
     # Send the GET request with query parameters
     response = requests.get(url, params=params)
@@ -166,16 +166,16 @@ if __name__ == "__main__":
     root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
 
 
-    img_path = "test/images/008_1.png"
+    img_path = "test/images/007_2.png"
     user_uuid = "gauss"
     # user_uuid = "2111_1111_1111_1111"
-    invoice_uuid = "6702335fd82111591aa92d9f"
+    invoice_uuid = "6702803020af02d7f38e4238"
     invoice_info = {"land": "Laos",} 
 
-    test_excel()
+    # test_excel()
     # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
-    # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    # _, invoice_ids = test_get_invoices(user_uuid=user_uuid, invoice_type="invoice 2", created_at='desc', status='completed')
+    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
+    # _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', status='not extracted')
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
     # test_get_frontend_defines(root_url=root_url)

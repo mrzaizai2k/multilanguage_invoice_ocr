@@ -1,6 +1,8 @@
 import sys
 sys.path.append("") 
 
+import uvicorn
+import time
 import os
 import json
 from fastapi import (FastAPI, Request, Header, Depends,
@@ -118,7 +120,8 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                 invoice_1 = partner_doc
                 invoice_2 = updated_doc
 
-            export_json_to_excel(invoice_1=invoice_1, invoice_2=invoice_2, logger=logger)
+            logger.debug('Create pair of json')
+            # export_json_to_excel(invoice_1=invoice_1, invoice_2=invoice_2, logger=logger)
             
             # for document in modified_documents:
             #     # Process each modified document
@@ -439,7 +442,7 @@ async def get_invoices(
     created_by: Optional[str] = Query(None, description="Filter by user_uuid of the invoice creator"),
     invoice_type: Optional[str] = Query(None, description="Filter by type of invoice"),
     invoice_uuid: Optional[str] = Query(None, description="Filter by id of invoice"),
-    status: Optional[Literal['not extracted', 'completed']] = Query(None, description="Filter by invoice status"),
+    invoice_status: Optional[Literal['not extracted', 'completed']] = Query(None, description="Filter by invoice invoicestatus"),
     page: int = Query(1, description="Page number for pagination", gt=0),
     limit: int = Query(10, description="Number of invoices per page", gt=0),
 ):
@@ -452,8 +455,8 @@ async def get_invoices(
             query["invoice_type"] = invoice_type
         if invoice_uuid:
             query["invoice_uuid"] = invoice_uuid
-        if status:
-            query["status"] = status
+        if invoice_status:
+            query["status"] = invoice_status
 
         logger.debug(msg=f"query:{query}")
         
@@ -491,15 +494,23 @@ async def get_invoices(
     except Exception as e:
         # Handle errors
         msg = {
-            "status": "error",
-            "message": str(e)
-        }
+                "status": "error",
+                "message": str(e)
+            }
         logger.debug(msg = msg)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=msg
-        )
+            content=msg)
+    
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host=config['IES_host'], port=config['IES_port'])
+    # import uvicorn
+    # uvicorn.run(app, host=config['IES_host'], port=config['IES_port'])
+    while True:
+        try:
+            logger.info("Starting the server...")
+            uvicorn.run(app, host=config['IES_host'], port=config['IES_port'])
+        except Exception as e:
+            logger.error(f"An error occurred: {str(e)}")
+            logger.info("Restarting the server in 5 seconds...")
+            time.sleep(5)

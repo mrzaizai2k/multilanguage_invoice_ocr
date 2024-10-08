@@ -158,39 +158,6 @@ def get_full_name(name_tuple):
     """
     return ' '.join(f"{part}" for part in name_tuple)
 
-def generate_new_config(config: dict):
-    # Simplify config access
-    config = config['excel']['export']
-
-    # Reading paths from config
-    input_path = config['input_path']
-    output_path = config['output_path']
-    
-    # Collecting all filenames from the config
-    excel_1_file = config['excel_1_file']
-    excel_2_file = config['excel_2_file']
-    excel_3_file = config['excel_3_file']
-    json_1_file = config['json_1_file']
-    json_2_file = config['json_2_file']
-    
-    # Generating input/output paths for excel and json files
-    paths = {
-        'input_1_excel': os.path.join(input_path, excel_1_file),
-        'output_1_excel': os.path.join(output_path, excel_1_file),
-        'input_1_json': os.path.join(input_path, json_1_file),
-
-        'input_2_excel': os.path.join(input_path, excel_2_file),
-        'output_2_excel': os.path.join(output_path, excel_2_file),
-        'input_2_json': os.path.join(input_path, json_2_file),
-
-        'input_3_excel': os.path.join(input_path, excel_3_file)
-    }
-
-    # Merge the generated paths into the original config
-    new_config = {**config, **paths}
-    
-    return new_config
-
 
 if __name__ == "__main__":
     # Example usage:
@@ -212,5 +179,4 @@ if __name__ == "__main__":
     for ocr_name in ocr_output:
         print(processor.find_best_matching_name(name = ocr_name, ))
 
-    print(generate_new_config(config=config))
 

@@ -10,14 +10,18 @@ from datetime import datetime
 from src.export_excel.config import (input_1_excel, input_2_excel, output_2_excel,
                                     input_3_exel, FORMAT_NUMBER)
 
-def choose_sheet_to_write(excel_path:str, invoice_1:dict):
-    """Choose sheet name Vorgang in VorlageSpesenabrechnung.xlsx to write data to"""
+def choose_sheet_to_write(excel_path: str, invoice_1: dict):
+    """
+    Choose sheet name 'Vorgang' in VorlageSpesenabrechnung.xlsx to write data to.
+    Returns a tuple (sheet_name, is_modified) where is_modified is True if modifying an existing sheet,
+    and False if writing data to a new (empty) sheet.
+    """
     # Load the workbook
     workbook = openpyxl.load_workbook(excel_path)
     
     project_number = invoice_1.get('project_number', '').strip().lower()
     
-    # Check existing sheets
+    # Check existing sheets to see if we are modifying a sheet
     for i in range(1, 6):
         sheet_name = f'Vorgang {i}'
         if sheet_name in workbook.sheetnames:
@@ -26,9 +30,10 @@ def choose_sheet_to_write(excel_path:str, invoice_1:dict):
             
             # Check if project number matches
             if cell_value and str(cell_value).lower() == project_number:
-                return sheet_name
+                # Return sheet name and flag as True (sheet will be modified)
+                return sheet_name, True
     
-    # If no match found, find the first empty sheet
+    # If no match is found, find the first empty sheet
     for i in range(1, 6):
         sheet_name = f'Vorgang {i}'
         if sheet_name in workbook.sheetnames:
@@ -37,11 +42,12 @@ def choose_sheet_to_write(excel_path:str, invoice_1:dict):
             
             # Check if the sheet is empty (B4 is None or empty)
             if cell_value is None or cell_value == '':
-                return sheet_name
+                # Return sheet name and flag as False (writing to a new sheet)
+                return sheet_name, False
     
-    # If all sheets are full, return None or raise an exception
-    return None
-    
+    # If all sheets are full, return None for the sheet name and False for the flag
+    return None, False
+
 
 def prepare_excel_files(employee_expense_report_path: str, output_path: str = "output"):
     """

@@ -9,7 +9,7 @@
         "fixed_lines": [
             {
                 "title": "Hotel",
-                "amount": 412.5,
+                "amount": 500,
                 "payment_method": "self paid",
                 "with_breakfast": true,
                 "can_book_again": true
@@ -37,12 +37,12 @@
         ],
         "lines": [
             {
-                "title": "Bal ticket",
+                "title": "Bal ticket 2",
                 "amount": 24.5,
                 "payment_method": "self paid"
             },
             {
-                "title": "Fahrkarten ticket",
+                "title": "Fahrkarten ticket 2",
                 "amount": 9.8,
                 "payment_method": "self paid"
             }
