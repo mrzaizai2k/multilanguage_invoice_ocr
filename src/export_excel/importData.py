@@ -10,6 +10,42 @@ from datetime import datetime
 from src.export_excel.config import (input_1_excel, input_2_excel, output_2_excel,
                                     input_3_exel, FORMAT_NUMBER)
 
+def clear_sheet(src_file: str, dest_file: str, sheet_name: str):
+    """
+    Replaces a sheet in the destination Excel file with a sheet from the source Excel file. 
+    Clear the current sheet by copying the sheet from template
+    
+    :param src_file: Path to the source Excel file.
+    :param dest_file: Path to the destination Excel file.
+    :param sheet_name: The name of the sheet to copy from the source file and replace in the destination file.
+    """
+    try:
+        # Load the source workbook and get the sheet to copy
+        src_wb = openpyxl.load_workbook(src_file)
+        if sheet_name not in src_wb.sheetnames:
+            return
+        src_sheet = src_wb[sheet_name]
+
+        # Load the destination workbook
+        dest_wb = openpyxl.load_workbook(dest_file)
+
+        # If the sheet already exists in the destination, remove it
+        if sheet_name in dest_wb.sheetnames:
+            dest_wb.remove(dest_wb[sheet_name])
+
+        # Create a new sheet in the destination workbook and copy the contents
+        dest_sheet = dest_wb.create_sheet(title=sheet_name)
+
+        # Copy the values from the source sheet to the destination sheet
+        for row in src_sheet.iter_rows(values_only=True):
+            dest_sheet.append(row)
+
+        # Save the destination workbook with the updated sheet
+        dest_wb.save(dest_file)
+
+    except Exception as e:
+        print(f"Error occurred: {e}")
+
 def choose_sheet_to_write(excel_path: str, invoice_1: dict):
     """
     Choose sheet name 'Vorgang' in VorlageSpesenabrechnung.xlsx to write data to.
@@ -144,7 +180,6 @@ def write_data(excel_des_path, sheet_name, cell, value_to_write, is_money = Fals
     # Save the updated Excel workbook
     wb.save(excel_des)
     wb.close()
-    print(f"Added value '{value_to_write}' from JSON to cell {cell} in sheet '{sheet_name}'.")
 
 def conver_number_hour(time):
     '''
@@ -236,7 +271,6 @@ def handle_number_hour_value(excel_des_path, sheet_name):
         write_data(excel_des_path, sheet_name, 'F2', values_to_write[0], True)
         write_data(excel_des_path, sheet_name, 'G2', values_to_write[1], True)
         write_data(excel_des_path, sheet_name, 'H2', values_to_write[2], True)
-        print("land, city values:",values_to_write[0], values_to_write[1], values_to_write[2])
     else:
         print(f"No matching data found for land: {land}, city: {city}")
 

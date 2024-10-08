@@ -121,8 +121,11 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                 invoice_2 = updated_doc
 
             logger.debug('Create pair of json')
-            # export_json_to_excel(invoice_1=invoice_1, invoice_2=invoice_2, logger=logger)
-            
+            try:
+                export_json_to_excel(invoice_pairs=[(invoice_1, invoice_2)], logger=logger)
+            except Exception as e:
+                logger.debug(f"error: {e}")
+
             # for document in modified_documents:
             #     # Process each modified document
             #     # You might want to add specific logic here based on your requirements
@@ -504,8 +507,7 @@ async def get_invoices(
     
 
 if __name__ == "__main__":
-    # import uvicorn
-    # uvicorn.run(app, host=config['IES_host'], port=config['IES_port'])
+
     while True:
         try:
             logger.info("Starting the server...")

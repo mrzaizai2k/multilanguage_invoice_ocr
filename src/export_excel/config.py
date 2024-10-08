@@ -11,7 +11,6 @@ config = read_config(path = config_path)
 config = config['excel']['export']
 input_path = config['input_path']
 output_path = config['output_path']
-example_path = config['input_path']
 
 # Define the name file
 excel_1_file = config['excel_1_file']
@@ -19,10 +18,10 @@ excel_2_file = config['excel_2_file']
 excel_3_file = config['excel_3_file']
 
 # Create file paths
-input_1_excel = os.path.join(example_path, excel_1_file)
+input_1_excel = os.path.join(input_path, excel_1_file)
 output_1_excel = os.path.join(output_path, excel_1_file)
 
-input_2_excel = os.path.join(example_path, excel_2_file)
+input_2_excel = os.path.join(input_path, excel_2_file)
 output_2_excel = os.path.join(output_path, excel_2_file)
 
 input_3_exel = os.path.join(input_path, excel_3_file)
