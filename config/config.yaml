@@ -81,7 +81,28 @@ excel:
     vorname_key: 'vorname'
     name_thresh: 20
 
-  
+mail:
+  smtp_server: smtp.gmail.com
+  port: 587
+  modify_invoice_remind:
+    subject: "[No Reply - Done extracting Invoice Information]"
+    body: |
+      Dear Sir/Madam,
+
+      This is an email to notify you that your invoices have been processed by the system. 
+      Please visit the website to modify the invoice information you've uploaded.
+
+      Best regards,
+
+  send_excel:
+    subject: "[No Reply - Final Expense Report]"
+    body: |
+      Dear Sir/Madam,
+
+      This is an email to notify you that your final expense report has been generated and is attached to this email.
+
+      Best regards,
+
 
 ldap:
   ldap_server: ldap.forumsys.com

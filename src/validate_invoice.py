@@ -4,7 +4,7 @@ import re
 from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Any, Union
 from datetime import date, datetime
-from employee_name import EmployeeNameRetriever, get_full_name
+from src.employee_name import EmployeeNameRetriever, get_full_name
 from src.Utils.utils import (read_config, get_currencies_from_txt,
                               get_land_and_city_list, find_best_match_fuzzy)
 

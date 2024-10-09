@@ -5,7 +5,7 @@ import uvicorn
 import time
 import os
 import json
-from fastapi import (FastAPI, Request, Header, Depends,
+from fastapi import (FastAPI, Request, Depends,
                      status, HTTPException, Query)
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,10 +23,11 @@ from src.ldap_authen import (User, get_current_user, ldap_authen,
                              Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
                              valid_base64_image, convert_datetime_to_iso, convert_iso_to_string,
-                             get_land_and_city_list, get_currencies_from_txt, is_partner_document)
+                             get_land_and_city_list, get_currencies_from_txt, find_pairs_of_docs)
 from src.invoice_extraction import extract_invoice_info, validate_invoice
 from src.Utils.logger import create_logger
 from src.export_excel.main import export_json_to_excel
+from src.mail import EmailSender
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -50,6 +51,7 @@ change_stream_thread = None
 ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator(), logger=logger)
 invoice_extractor = OpenAIExtractor(config_path=config_path)
 
+email_sender = EmailSender(logger=logger)
 
 def process_change_stream(ocr_reader, invoice_extractor, config):
     global change_stream
@@ -69,6 +71,8 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                     
                     # Update the processed document
                     mongo_db.update_document_by_id(str(document_id), new_data)
+
+
                     
                 except Exception as e:
                     logger.error(f"Error processing document {document_id}: {str(e)}")
@@ -95,45 +99,27 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                 }
             )
 
-            if not modified_documents:
+            if not modified_documents or (len(modified_documents)<=1): #just have 1 doc, no partner doc there
                 continue
 
             msg = f"modified_documents update change streams: {len(modified_documents)}"
             logger.info(msg = msg)
 
-            partner_doc = None
-            for doc in modified_documents:
-                if is_partner_document(partner_doc=doc, reference_doc=updated_doc):
-                    partner_doc = doc
-                    break
-            
-            if not partner_doc:
-                continue
-            # export_excel(updated_doc, partner_doc)
-            print(modified_documents[0]['invoice_type'])
-            logger.info(msg = "found partner doc")
+            msg = f"modified_documents update change streams: {len(modified_documents)}"
+            logger.info(msg=msg)
 
-            if updated_doc['invoice_type'] == 'invoice 1':
-                invoice_1 = updated_doc
-                invoice_2 = partner_doc
-            else:
-                invoice_1 = partner_doc
-                invoice_2 = updated_doc
+            invoice_pairs = find_pairs_of_docs(modified_documents)
+
+            if not invoice_pairs:
+                logger.info(msg="No matching invoice pairs found")
+                return
 
             logger.debug('Create pair of json')
             try:
-                export_json_to_excel(invoice_pairs=[(invoice_1, invoice_2)], logger=logger)
+                export_json_to_excel(invoice_pairs=invoice_pairs, logger=logger)
             except Exception as e:
                 logger.debug(f"error: {e}")
 
-            # for document in modified_documents:
-            #     # Process each modified document
-            #     # You might want to add specific logic here based on your requirements
-            #     logger.info(f"Processing modified document: {document['_id']}")
-            #     # For example, you could re-extract invoice info if needed:
-            #     # extract_and_update_invoice_info(document, ocr_reader, invoice_extractor, config, logger)
-            # else:
-            #     print('\n TRIGGER BUT THAT IS MODEL MODIFIED')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

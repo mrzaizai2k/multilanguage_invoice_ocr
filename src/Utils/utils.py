@@ -21,6 +21,7 @@ from collections import Counter
 from io import BytesIO
 import openpyxl
 from fuzzywuzzy import fuzz
+from collections import defaultdict
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -498,16 +499,39 @@ def find_best_match_fuzzy(string_list: list[str], text:str):
     original_name = string_list[best_idx]
     return best_idx, original_name, best_score
 
-def is_partner_document(partner_doc, reference_doc):
-    """Find the partner doc that has same sign_date but diffent invoice_type
-    partner_doc: the doc to check if it's parter with the reference_doc or not
-    """
-    if partner_doc['invoice_info']['sign_date'] == reference_doc['invoice_info']['sign_date']:
-        if reference_doc['invoice_type'] == 'invoice 1' and partner_doc['invoice_type'] == 'invoice 2':
-            return True
-        elif reference_doc['invoice_type'] == 'invoice 2' and partner_doc['invoice_type'] == 'invoice 1':
-            return True
-    return False
+# def is_partner_document(partner_doc, reference_doc):
+#     """Find the partner doc that has same sign_date but diffent invoice_type
+#     partner_doc: the doc to check if it's parter with the reference_doc or not
+#     """
+#     if partner_doc['invoice_info']['sign_date'] == reference_doc['invoice_info']['sign_date']:
+#         if reference_doc['invoice_type'] == 'invoice 1' and partner_doc['invoice_type'] == 'invoice 2':
+#             return True
+#         elif reference_doc['invoice_type'] == 'invoice 2' and partner_doc['invoice_type'] == 'invoice 1':
+#             return True
+#     return False
+
+def find_pairs_of_docs(documents):
+    # Create two dictionaries to store documents by sign_date
+    invoice_1_dict = defaultdict(list)
+    invoice_2_dict = defaultdict(list)
+
+    # Populate the dictionaries
+    for doc in documents:
+        sign_date = doc['invoice_info']['sign_date']
+        if doc['invoice_type'] == 'invoice 1':
+            invoice_1_dict[sign_date].append(doc)
+        elif doc['invoice_type'] == 'invoice 2':
+            invoice_2_dict[sign_date].append(doc)
+
+    # Find matching pairs
+    pairs = []
+    for sign_date, invoice_1_docs in invoice_1_dict.items():
+        if sign_date in invoice_2_dict:
+            for invoice_1 in invoice_1_docs:
+                for invoice_2 in invoice_2_dict[sign_date]:
+                    pairs.append((invoice_1, invoice_2))
+
+    return pairs
 
 if __name__ == "__main__":
     config_path = "config/config.yaml"
