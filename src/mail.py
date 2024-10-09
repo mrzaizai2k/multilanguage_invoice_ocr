@@ -23,13 +23,16 @@ class EmailSender:
         self.logger = logger
 
     def send_email(self, email_type: Literal['modify_invoice_remind', 'send_excel'], 
-                   receiver: str, 
+                   receiver: str = None, 
                    attachment_paths: Optional[List[str]] = None):
         try:
             # Connect to the SMTP server for each email
             server = smtplib.SMTP(self.smtp_server, self.port)
             server.starttls()
             server.login(self.login, self.password)
+
+            if not receiver:
+                receiver = self.config["receiver"]    
 
             message = self._prepare_email(email_type=email_type, receiver=receiver, attachment_paths=attachment_paths)
             server.send_message(message)
@@ -48,9 +51,9 @@ class EmailSender:
             server.quit()
 
     def _prepare_email(self, email_type: Literal['modify_invoice_remind', 'send_excel'], 
-                   receiver: str, 
-                   attachment_paths: Optional[List[str]] = None):
-        
+                       receiver: str = None, 
+                       attachment_paths: Optional[List[str]] = None):
+
         config = self.config[email_type]
         subject = config['subject']
         body = config['body']
@@ -59,28 +62,44 @@ class EmailSender:
         message["Subject"] = subject
         message["From"] = self.login
         message["To"] = receiver
-
         message.attach(MIMEText(body, "plain"))
 
         # Add attachments
         if attachment_paths:
-            part = self._prepare_attached_files(attachment_paths=attachment_paths)
-            message.attach(part)
+            self._attach_files(message, attachment_paths=attachment_paths)
+            
         return message
 
-    def _prepare_attached_files(self, attachment_paths):
+    def _attach_files(self, message, attachment_paths):
         for file_path in attachment_paths:
-            with open(file_path, "rb") as attachment:
-                part = MIMEBase("application", "octet-stream")
-                part.set_payload(attachment.read())
+            try:
+                with open(file_path, "rb") as attachment:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(attachment.read())
 
-            encoders.encode_base64(part)
+                encoders.encode_base64(part)
 
-            part.add_header(
-                "Content-Disposition",
-                f"attachment; filename= {os.path.basename(file_path)}",
-            )
-        return part
+                part.add_header(
+                    "Content-Disposition",
+                    f"attachment; filename= {os.path.basename(file_path)}",
+                )
+                # Attach each file part to the message
+                message.attach(part)
+
+            except FileNotFoundError:
+                # Log or print a message that the file was not found
+                error_msg = f"File not found: {file_path}. Skipping attachment."
+                print(error_msg)
+                if self.logger:
+                    self.logger.debug(error_msg)
+
+            except Exception as e:
+                # Handle other potential errors, such as permission issues
+                error_msg = f"Error attaching file {file_path}: {str(e)}. Skipping attachment."
+                print(error_msg)
+                if self.logger:
+                    self.logger.debug(error_msg)
+
 
 
 # Example usage:
@@ -101,5 +120,5 @@ if __name__ == "__main__":
     email_sender.send_email(
         email_type="send_excel",
         receiver="mrzaizai2k@gmail.com",
-        attachment_paths=["output/Stdi_08_24.xlsx"],  # List of file paths
+        attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm", "notfoundfile.txt"],  # List of file paths
     )

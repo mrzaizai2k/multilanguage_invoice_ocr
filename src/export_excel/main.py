@@ -133,12 +133,17 @@ def export_json_to_excel(invoice_pairs: list[tuple[dict, dict]], logger=None):
 
             if logger:
                 logger.debug(msg = f'Done update invoice data from {employee_expense_report_path} to {output_2_excel}')
+        
+        return employee_expense_report_path, output_2_excel
 
     except Exception as e:
         msg = f"error: {e}"
         print(msg)
         if logger:
             logger.debug(msg =msg)
+    
+        return None, None
+
     
 
 if __name__ == "__main__":
@@ -167,4 +172,6 @@ if __name__ == "__main__":
     # print(invoice_1['invoice_info'])
     # print(invoice_2['invoice_info'])
     for i in range(2):
-        export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2), (invoice_1_b, invoice_2_b)],)
+        employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2), (invoice_1_b, invoice_2_b)],)
+        print("employee_expense_report_path, output_2_excel", employee_expense_report_path, output_2_excel)
+

@@ -51,7 +51,7 @@ change_stream_thread = None
 ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator(), logger=logger)
 invoice_extractor = OpenAIExtractor(config_path=config_path)
 
-email_sender = EmailSender(logger=logger)
+email_sender = EmailSender(config=config, logger=logger)
 
 def process_change_stream(ocr_reader, invoice_extractor, config):
     global change_stream
@@ -72,7 +72,9 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                     # Update the processed document
                     mongo_db.update_document_by_id(str(document_id), new_data)
 
-
+                    email_sender.send_email(email_type='modify_invoice_remind',
+                                            receiver=None,
+                                            )
                     
                 except Exception as e:
                     logger.error(f"Error processing document {document_id}: {str(e)}")
@@ -116,7 +118,12 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
 
             logger.debug('Create pair of json')
             try:
-                export_json_to_excel(invoice_pairs=invoice_pairs, logger=logger)
+                employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs=invoice_pairs, logger=logger)
+                if employee_expense_report_path or output_2_excel:
+                    email_sender.send_email(email_type='send_excel',
+                                            receiver=None,
+                                            attachment_paths=[employee_expense_report_path, output_2_excel])
+                    logger.debug(f"attachment_paths: {[employee_expense_report_path, output_2_excel]}")
             except Exception as e:
                 logger.debug(f"error: {e}")
 

@@ -84,6 +84,8 @@ excel:
 mail:
   smtp_server: smtp.gmail.com
   port: 587
+  receiver: mrzaizai2k@gmail.com # For demo only
+
   modify_invoice_remind:
     subject: "[No Reply - Done extracting Invoice Information]"
     body: |
