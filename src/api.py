@@ -73,7 +73,7 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                     mongo_db.update_document_by_id(str(document_id), new_data)
 
                     email_sender.send_email(email_type='modify_invoice_remind',
-                                            receiver=None,
+                                            receivers=None,
                                             )
                     
                 except Exception as e:
@@ -121,7 +121,7 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                 employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs=invoice_pairs, logger=logger)
                 if employee_expense_report_path or output_2_excel:
                     email_sender.send_email(email_type='send_excel',
-                                            receiver=None,
+                                            receivers=None,
                                             attachment_paths=[employee_expense_report_path, output_2_excel])
                     logger.debug(f"attachment_paths: {[employee_expense_report_path, output_2_excel]}")
             except Exception as e:

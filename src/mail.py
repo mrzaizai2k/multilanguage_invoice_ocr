@@ -23,22 +23,30 @@ class EmailSender:
         self.logger = logger
 
     def send_email(self, email_type: Literal['modify_invoice_remind', 'send_excel'], 
-                   receiver: str = None, 
+                   receivers: list[str] = None, 
                    attachment_paths: Optional[List[str]] = None):
+        """
+        Function to send email
+        email_type: 
+        - 'modify_invoice_remind': To remind the employees that the invoices have been extracted, go to website and modify the info
+        - 'send_excel': Send email to admin with excel files
+        receivers: List of email string
+        attachment_paths: List of path to attachment files
+        """
         try:
             # Connect to the SMTP server for each email
             server = smtplib.SMTP(self.smtp_server, self.port)
             server.starttls()
             server.login(self.login, self.password)
 
-            if not receiver:
-                receiver = self.config["receiver"]    
+            if not receivers:
+                receivers = self.config["receivers"]    
 
-            message = self._prepare_email(email_type=email_type, receiver=receiver, attachment_paths=attachment_paths)
+            message = self._prepare_email(email_type=email_type, receivers=receivers, attachment_paths=attachment_paths)
             server.send_message(message)
-            print(f"Email sent successfully to {receiver}")
+            print(f"Email sent successfully to {receivers}")
             if self.logger:
-                self.logger.debug(f"Email sent to {receiver}")
+                self.logger.debug(f"Email sent to {receivers}")
 
         except Exception as e:
             msg = f"Error sending email: {str(e)}"
@@ -51,7 +59,7 @@ class EmailSender:
             server.quit()
 
     def _prepare_email(self, email_type: Literal['modify_invoice_remind', 'send_excel'], 
-                       receiver: str = None, 
+                       receivers: str = None, 
                        attachment_paths: Optional[List[str]] = None):
 
         config = self.config[email_type]
@@ -61,7 +69,7 @@ class EmailSender:
         message = MIMEMultipart()
         message["Subject"] = subject
         message["From"] = self.login
-        message["To"] = receiver
+        message["To"] = ', '.join(receivers)
         message.attach(MIMEText(body, "plain"))
 
         # Add attachments
@@ -112,13 +120,12 @@ if __name__ == "__main__":
 
     email_sender.send_email(
         email_type="modify_invoice_remind",
-        receiver="mrzaizai2k@gmail.com",
+        receivers=None,
         # attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm"],  # List of file paths
     )
     
-
     email_sender.send_email(
         email_type="send_excel",
-        receiver="mrzaizai2k@gmail.com",
+        receivers=["mrzaizai2k@gmail.com"],
         attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm", "notfoundfile.txt"],  # List of file paths
     )
