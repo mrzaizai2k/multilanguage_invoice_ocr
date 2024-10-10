@@ -61,8 +61,8 @@ country_and_city:
 
 excel:
   export:
-    input_path: 'config/'
-    output_path: 'output/'
+    input_path: 'config'
+    output_path: 'output'
 
     # Define the name file
     excel_1_file: VorlageSpesenabrechnung.xlsx
