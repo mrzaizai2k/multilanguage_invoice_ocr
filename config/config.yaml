@@ -87,6 +87,7 @@ mail:
   receivers: # For demo only
     - mrzaizai2k@gmail.com
     - chibao24.12.1999@gmail.com
+    - alexander.brosinger@gmail.com
 
   modify_invoice_remind:
     subject: "[No Reply - Done extracting Invoice Information]"
