@@ -252,30 +252,6 @@ async def get_frontend_defines():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=msg)
 
-@app.get("/api/v1/excel")
-async def trigger_export(request: Request):
-    try:
-        import json
-        with open("config/data1.json", 'r') as file:
-            invoice_1 = json.load(file)  
-
-        with open("config/data2.json", 'r') as file:
-            invoice_2 = json.load(file)  
-
-        export_json_to_excel(invoice_1, invoice_2)
-        msg='run Done'
-        print (msg)
-        return JSONResponse(
-                status_code=status.HTTP_201_CREATED,
-                content=msg
-            )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}"
-        )
-
-
 @app.post("/api/v1/invoices/upload")
 async def upload_invoice(
     request: Request,

@@ -10,6 +10,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from typing import Literal, Optional, List
 from email.mime.text import MIMEText
+from email.header import Header
 
 load_dotenv()
 
@@ -87,27 +88,28 @@ class EmailSender:
 
                 encoders.encode_base64(part)
 
+                # Get the filename and encode it properly
+                filename = os.path.basename(file_path)
+                encoded_filename = Header(filename).encode()
+
                 part.add_header(
                     "Content-Disposition",
-                    f"attachment; filename= {os.path.basename(file_path)}",
+                    f"attachment; filename=\"{encoded_filename}\"",
                 )
                 # Attach each file part to the message
                 message.attach(part)
 
             except FileNotFoundError:
-                # Log or print a message that the file was not found
                 error_msg = f"File not found: {file_path}. Skipping attachment."
                 print(error_msg)
                 if self.logger:
                     self.logger.debug(error_msg)
 
             except Exception as e:
-                # Handle other potential errors, such as permission issues
                 error_msg = f"Error attaching file {file_path}: {str(e)}. Skipping attachment."
                 print(error_msg)
                 if self.logger:
                     self.logger.debug(error_msg)
-
 
 
 # Example usage:
@@ -118,14 +120,14 @@ if __name__ == "__main__":
     config = read_config(path=config_path)
     email_sender = EmailSender(config=config, logger=None)
 
-    email_sender.send_email(
-        email_type="modify_invoice_remind",
-        receivers=None,
-        # attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm"],  # List of file paths
-    )
+    # email_sender.send_email(
+    #     email_type="modify_invoice_remind",
+    #     receivers=None,
+    #     # attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm"],  # List of file paths
+    # )
     
     email_sender.send_email(
         email_type="send_excel",
         receivers=["mrzaizai2k@gmail.com"],
-        attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm", "notfoundfile.txt"],  # List of file paths
+        attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm", "notfoundfile.txt", "output/Tüdi_08_24.xlsx"],  # List of file paths
     )
