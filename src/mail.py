@@ -120,14 +120,14 @@ if __name__ == "__main__":
     config = read_config(path=config_path)
     email_sender = EmailSender(config=config, logger=None)
 
-    # email_sender.send_email(
-    #     email_type="modify_invoice_remind",
-    #     receivers=None,
-    #     # attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm"],  # List of file paths
-    # )
-    
     email_sender.send_email(
-        email_type="send_excel",
-        receivers=["mrzaizai2k@gmail.com"],
-        attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm", "notfoundfile.txt", "output/Tüdi_08_24.xlsx"],  # List of file paths
+        email_type="modify_invoice_remind",
+        receivers=None,
+        # attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm"],  # List of file paths
     )
+    
+    # email_sender.send_email(
+    #     email_type="send_excel",
+    #     receivers=["mrzaizai2k@gmail.com"],
+    #     attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm", "notfoundfile.txt", "output/Tüdi_08_24.xlsx"],  # List of file paths
+    # )

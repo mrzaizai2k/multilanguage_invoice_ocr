@@ -284,7 +284,7 @@ def handle_add_service(json_data, excel_des_path, sheet_name):
 
     # Handle with hotel
     for fixed_line in json_data['fixed_lines']:
-        if fixed_line['title'] == 'Hotel':
+        if fixed_line['title'] == 'Hotel' and float(fixed_line['amount']) != 0.0:
             if fixed_line['payment_method'] == 'self paid':
                 value_to_write = fixed_line['amount']
                 cell = f'E{line}'
@@ -376,12 +376,13 @@ def fix_date_with_hotel(excel_des_path, sheet_name, line):
     '''
     Fixed date if hotel enable
     '''
+    row = line
     last_line = get_last_row(excel_des_path, sheet_name, 'A', line)
 
     value_to_write = 24
     cell = f'C{line}'
     write_data(excel_des_path, sheet_name, cell, value_to_write)
-
+    
     for row in range(line + 1, last_line - 1):
         value_to_write = 0
         cell = f'B{row}'
