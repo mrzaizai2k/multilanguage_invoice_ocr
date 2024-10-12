@@ -70,11 +70,11 @@ function InvoiceList({ userData }) {
         <>
             {contextHolder}
             <Helmet>
-                <title>Invoice List</title>
+                <title>Liste Belege & Rechnungen</title>
             </Helmet>
 
             <div className="invoice__header">
-                <h2 className="invoice__title">Invoice List</h2>
+                <h2 className="invoice__title">Liste Belege & Rechnungen</h2>
                 <div className="invoice__filter">
                     <select
                         className="invoice__filter-date"
@@ -82,9 +82,9 @@ function InvoiceList({ userData }) {
                         value={filterDate}
                         onChange={(e) => setFilterDate(e.target.value)}
                     >
-                        <option value="">All</option>
-                        <option value="desc">Newest First</option>
-                        <option value="asc">Oldest First</option>
+                        <option value="">Alle</option>
+                        <option value="desc">Neueste zuerst</option>
+                        <option value="asc">Ältere zuerst</option>
                     </select>
                     <select
                         className="invoice__filter-type"
@@ -92,10 +92,10 @@ function InvoiceList({ userData }) {
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
                     >
-                        <option value="">All</option>
-                        <option value="invoice 1">Invoice 1</option>
-                        <option value="invoice 2">Invoice 2</option>
-                        <option value="invoice 3">Invoice 3</option>
+                        <option value="">Alle</option>
+                        <option value="invoice 1">Erfassung Seite 1</option>
+                        <option value="invoice 2">Erfassung Seite 2</option>
+                        <option value="invoice 3">Belege und Rechnungen</option>
                     </select>
                 </div>
             </div>

@@ -74,7 +74,7 @@ function UserDashboard() {
   return (
     <>
       <Helmet>
-        <title>Invoice Extract System - UserInfo</title>
+        <title>System zur Spesenabrechnung V 1.0</title>
       </Helmet>
 
       <div className="dashboard">
@@ -93,7 +93,7 @@ function UserDashboard() {
 
 const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
   <div className="sidebar">
-    <h1 style={{ cursor: "default" }}>Invoice Extract System</h1>
+    <h1 style={{ cursor: "default" }}>System zur Spesenabrechnung V 1.0</h1>
     <div className="menu__list">
       <SidebarButton
         active={activeTab === 'userInfo'}
@@ -105,13 +105,13 @@ const Sidebar = memo(({ activeTab, onTabChange, onLogout }) => (
         active={activeTab === 'invoice'}
         onClick={() => onTabChange('invoice')}
         icon={<BsFileEarmarkRichtext />}
-        text="Invoice"
+        text="Belege und Rechnungen"
       />
       <SidebarButton
         active={activeTab === 'addInvoice'}
         onClick={() => onTabChange('addInvoice')}
         icon={<MdUploadFile />}
-        text="Add Invoice"
+        text="Beleg hinzufügen"
       />
       <SidebarButton
         className="logout"

@@ -86,7 +86,7 @@ const fieldLabels = {
     hash_duplicate: "Hash Duplicate",
     raw_text: "Raw Text",
     name: "Name",
-    project_number: "Project Number",
+    project_number: "Vorgangs-Nr",
     customer: "Customer",
     city: "City",
     land: "Land",
