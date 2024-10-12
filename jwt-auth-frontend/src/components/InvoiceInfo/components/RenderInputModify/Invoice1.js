@@ -142,12 +142,12 @@ function ModifyFieldsInvoice1({ info, keyPath = [], onChange, validationErrors }
     const renderLineItem = (item, index, keyPath) => {
         const newKeyPath = [...keyPath, index];
         const fields = [
-            { label: 'Date', key: 'date', type: 'date', required: true },
-            { label: 'Start Time', key: 'start_time', type: 'time', required: true },
-            { label: 'End Time', key: 'end_time', type: 'time', required: true },
-            { label: 'Break Time', key: 'break_time', type: 'number', required: true },
-            { label: 'Description', key: 'description', type: 'string', required: false },
-            { label: 'Has Customer Signature', key: 'has_customer_signature', type: 'boolean', required: false }
+            { label: 'Datum', key: 'date', type: 'date', required: true },
+            { label: 'Start Uhrzeit', key: 'start_time', type: 'time', required: true },
+            { label: 'Ende Uhrzeit', key: 'end_time', type: 'time', required: true },
+            { label: 'Pausenzeit', key: 'break_time', type: 'number', required: true },
+            { label: 'Beschreibung', key: 'description', type: 'string', required: false },
+            { label: 'Ist die Unterschrift des Kunden vorhanden?', key: 'has_customer_signature', type: 'boolean', required: false }
         ];
 
         return (

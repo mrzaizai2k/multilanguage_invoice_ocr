@@ -193,17 +193,17 @@ function ModifyFieldsInvoice3({ info, keyPath = [], onChange, validationErrors }
     const renderLineItem = (item, lineIndex, itemIndex, keyPath) => {
         const newKeyPath = [...keyPath, lineIndex, 'lineitems', itemIndex];
         const fields = [
-            { label: 'Title', key: 'title', type: 'string' },
-            { label: 'Description', key: 'description', type: 'string' },
-            { label: 'Amount', key: 'amount', type: 'number' },
-            { label: 'Amount Each', key: 'amount_each', type: 'number' },
-            { label: 'Amount Ex VAT', key: 'amount_ex_vat', type: 'number' },
-            { label: 'VAT Amount', key: 'vat_amount', type: 'number' },
-            { label: 'VAT Percentage (%)', key: 'vat_percentage', type: 'percentage' },
+            { label: 'Bezeichnung', key: 'title', type: 'string' },
+            { label: 'Beschreibung', key: 'description', type: 'string' },
+            { label: 'Betrag', key: 'amount', type: 'number' },
+            { label: 'Amount / Item', key: 'amount_each', type: 'number' },
+            { label: 'Betrag ohne MwSt', key: 'amount_ex_vat', type: 'number' },
+            { label: 'Betrag MwSt', key: 'vat_amount', type: 'number' },
+            { label: 'Prozent MwSt', key: 'vat_percentage', type: 'percentage' },
             { label: 'Quantity', key: 'quantity', type: 'number' },
-            { label: 'Unit of Measurement', key: 'unit_of_measurement', type: 'string' },
+            { label: 'Messeinheit', key: 'unit_of_measurement', type: 'string' },
             { label: 'SKU', key: 'sku', type: 'string' },
-            { label: 'VAT Code', key: 'vat_code', type: 'string' }
+            { label: 'MwSt. Code', key: 'vat_code', type: 'string' }
         ];
 
         return (

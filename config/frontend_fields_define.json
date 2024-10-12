@@ -8,7 +8,7 @@
   },
   {
     "key": "project_number",
-    "key_name_user": "Vorgangs-Nr.",
+    "key_name_user": "Vorgangs-Nr",
     "type": "input",
     "data_type": "string",
     "required": true
@@ -595,21 +595,21 @@
   },
   {
     "key": "amount_ex_vat",
-    "key_name_user": "Betrag ohne MwSt.",
+    "key_name_user": "Betrag ohne MwSt",
     "type": "input",
     "data_type": "number",
     "required": false
   },
   {
     "key": "vat_amount",
-    "key_name_user": "Betrag MwSt.",
+    "key_name_user": "Betrag MwSt",
     "type": "input",
     "data_type": "number",
     "required": false
   },
   {
     "key": "vat_percentage",
-    "key_name_user": "Prozent MwSt.",
+    "key_name_user": "Prozent MwSt",
     "type": "input",
     "data_type": "number",
     "note": "%",

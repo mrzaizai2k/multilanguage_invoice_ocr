@@ -186,10 +186,10 @@ function ModifyFieldsInvoice2({ info, keyPath = [], onChange, validationErrors }
 
             if (key === 'fixed_lines' && Array.isArray(field.value)) {
                 const fields = [
-                    { label: 'Title', key: 'title', type: 'string', disabled: true },
-                    { label: 'Amount', key: 'amount', type: 'number' },
+                    { label: 'Bezeichnung', key: 'title', type: 'string', disabled: true },
+                    { label: 'Betrag', key: 'amount', type: 'number' },
                     {
-                        label: 'Payment Method', key: 'payment_method', type: 'select', options: [
+                        label: 'Zahlungsart', key: 'payment_method', type: 'select', options: [
                             "Visa",
                             "Self Paid",
                             "Invoice to Company",
@@ -213,13 +213,13 @@ function ModifyFieldsInvoice2({ info, keyPath = [], onChange, validationErrors }
                                 ))}
                                 {item.with_breakfast !== undefined && (
                                     <div className='invoice__overlay-input' style={{ marginLeft: '20px' }}>
-                                        <label>With Breakfast</label>
+                                        <label>Mit Frühstück?</label>
                                         {renderInputModify([...newKeyPath, index, 'with_breakfast'], item.with_breakfast, 'boolean')}
                                     </div>
                                 )}
                                 {item.can_book_again !== undefined && (
                                     <div className='invoice__overlay-input' style={{ marginLeft: '20px' }}>
-                                        <label>Can Book Again</label>
+                                        <label>Kann man wieder buchen?</label>
                                         {renderInputModify([...newKeyPath, index, 'can_book_again'], item.can_book_again, 'boolean')}
                                     </div>
                                 )}
@@ -231,10 +231,10 @@ function ModifyFieldsInvoice2({ info, keyPath = [], onChange, validationErrors }
 
             if (key === 'lines' && Array.isArray(field)) {
                 const fields = [
-                    { label: 'Title', key: 'title', type: 'string' },
-                    { label: 'Amount', key: 'amount', type: 'number' },
+                    { label: 'Bezeichnung', key: 'title', type: 'string' },
+                    { label: 'Betrag', key: 'amount', type: 'number' },
                     {
-                        label: 'Payment Method', key: 'payment_method', type: 'select', options: [
+                        label: 'Zahlungsart', key: 'payment_method', type: 'select', options: [
                             "Visa",
                             "Self Paid",
                             "Invoice to Company",
