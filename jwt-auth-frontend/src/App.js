@@ -13,7 +13,7 @@ function App() {
   return (
     <Router>
       <Suspense fallback={<div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", height: "100vh" }}>
-        <h1 style={{color: "#0099ff"}}>Invoice Extract System</h1><br/>
+        <h1 style={{color: "#0099ff"}}>System zur Spesenabrechnung V 1.0</h1><br/>
         <Spin size="large"/>
       </div>}>
         <Routes>

@@ -8,7 +8,7 @@
   },
   {
     "key": "project_number",
-    "key_name_user": "Project Number",
+    "key_name_user": "Vorgangs-Nr.",
     "type": "input",
     "data_type": "string",
     "required": true
@@ -22,21 +22,21 @@
   },
   {
     "key": "customer",
-    "key_name_user": "Customer",
+    "key_name_user": "Kunde",
     "type": "input",
     "data_type": "string",
     "required": true
   },
   {
     "key": "city",
-    "key_name_user": "City",
+    "key_name_user": "Stadt",
     "type": "select",
     "data": [],
     "required": true
   },
   {
     "key": "description",
-    "key_name_user": "Description",
+    "key_name_user": "Beschreibung",
     "type": "input",
     "data_type": "string",
     "required": false
@@ -50,25 +50,25 @@
   },
   {
     "key": "is_process_done",
-    "key_name_user": "Is Process Completed",
+    "key_name_user": "Ist der Vorgang erledigt?",
     "type": "checkbox",
     "required": false
   },
   {
     "key": "is_commissioned_work",
-    "key_name_user": "Is Commissioned Work ?",
+    "key_name_user": "Auftragsarbeit",
     "type": "checkbox",
     "required": false
   },
   {
     "key": "is_without_measuring_technology",
-    "key_name_user": "Is Without Measuring Technology ?",
+    "key_name_user": "Ohne Messtechnik?",
     "type": "checkbox",
     "required": false
   },
   {
     "key": "sign_date",
-    "key_name_user": "Sign Date",
+    "key_name_user": "Datum der Unterschrift",
     "type": "input",
     "data_type": "date",
     "note": "dd/mm/YYYY",
@@ -76,19 +76,19 @@
   },
   {
     "key": "has_employee_signature",
-    "key_name_user": "Has Employee Signature ?",
+    "key_name_user": "Ist die Unterschrift des Mitarbeiters vorhanden?",
     "type": "checkbox",
     "required": false
   },
   {
     "key": "has_customer_signature",
-    "key_name_user": "Has Customer Signature ?",
+    "key_name_user": "Ist die Unterschrift des Kunden vorhanden?",
     "type": "checkbox",
     "required": false
   },
   {
     "key": "date",
-    "key_name_user": "Date",
+    "key_name_user": "Datum",
     "type": "input",
     "data_type": "date",
     "note": "dd/mm/YYYY",
@@ -96,7 +96,7 @@
   },
   {
     "key": "start_time",
-    "key_name_user": "Start Time",
+    "key_name_user": "Start Uhrzeit",
     "type": "input",
     "data_type": "time",
     "note": "HH:mm:ss",
@@ -104,7 +104,7 @@
   },
   {
     "key": "end_time",
-    "key_name_user": "End Time",
+    "key_name_user": "Ende Uhrzeit",
     "type": "input",
     "data_type": "time",
     "note": "HH:mm:ss",
@@ -112,41 +112,41 @@
   },
   {
     "key": "break_time",
-    "key_name_user": "Break Time",
+    "key_name_user": "Pausenzeit",
     "type": "input",
     "data_type": "number",
     "required": false
   },
   {
     "key": "is_in_egw",
-    "key_name_user": "Is In EGW",
+    "key_name_user": "Stundenzettel im EWG erstellt?",
     "type": "checkbox",
     "required": false
   },
   {
     "key": "currency",
-    "key_name_user": "Currency",
+    "key_name_user": "Währung",
     "type": "select",
     "required": true, 
     "data": []
   },
   {
     "key": "invoice_type",
-    "key_name_user": "Invoice Type",
+    "key_name_user": "Zahlungsart",
     "type": "select",
     "required": false, 
     "data": ["invoice 1", "invoice 2", "invoice 3"]
   },
   {
     "key": "amount",
-    "key_name_user": "Amount",
+    "key_name_user": "Betrag",
     "type": "input",
     "data_type": "number",
     "required": true
   },
   {
     "key": "amount_change",
-    "key_name_user": "Amount Change",
+    "key_name_user": "Betragsänderung",
     "type": "input",
     "data_type": "number",
     "required": false
@@ -443,173 +443,173 @@
   },
   {
     "key": "merchant_bank_domestic_account_number",
-    "key_name_user": "Merchant Bank Domestic Account Number",
+    "key_name_user": "Händlerkontonummer",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "merchant_bank_domestic_bank_code",
-    "key_name_user": "Merchant Bank Domestic Bank Code",
+    "key_name_user": "Händler Bank-Code",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "merchant_website",
-    "key_name_user": "Merchant Website",
+    "key_name_user": "Händlerwebseite",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "merchant_email",
-    "key_name_user": "Merchant Email",
+    "key_name_user": "Händler-Email",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "merchant_address",
-    "key_name_user": "Merchant Address",
+    "key_name_user": "Händleradresse",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "merchant_phone",
-    "key_name_user": "Merchant Phone",
+    "key_name_user": "Telefonnumer des Händlers",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_name",
-    "key_name_user": "Customer Name",
+    "key_name_user": "Kundennname",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_number",
-    "key_name_user": "Customer Number",
+    "key_name_user": "Kundennummer",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_reference",
-    "key_name_user": "Customer Reference",
+    "key_name_user": "Kundenreferenz",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_address",
-    "key_name_user": "Customer Address",
+    "key_name_user": "Kundenadresse",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_phone",
-    "key_name_user": "Customer Phone",
+    "key_name_user": "Telefonnumer des Kunden",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_vat_number",
-    "key_name_user": "Customer VAT Number",
+    "key_name_user": "MwSt. Nummer des Kunden",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_coc_number",
-    "key_name_user": "Customer CoC Number",
+    "key_name_user": "COC Kundennummer",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_bank_account_number",
-    "key_name_user": "Customer Bank Account Number",
+    "key_name_user": "Kontonummer Kunde",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_bank_account_number_bic",
-    "key_name_user": "Customer Bank Account Number BIC",
+    "key_name_user": "BIC Kundenkonto",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_website",
-    "key_name_user": "Customer Website",
+    "key_name_user": "Kunden-Webseite",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "customer_email",
-    "key_name_user": "Customer Email",
+    "key_name_user": "Kunden-Email",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "document_language",
-    "key_name_user": "Document Language",
+    "key_name_user": "Dokumentsprache",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "title",
-    "key_name_user": "Title",
+    "key_name_user": "Bezeichnung",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "payment_method",
-    "key_name_user": "Payment Method",
+    "key_name_user": "Zahlungsart",
     "type": "select",
     "data": ["visa", "self paid", "invoice to the company"],
     "required": false
   },
   {
     "key": "with_breakfast",
-    "key_name_user": "Is with Breakfast ?",
+    "key_name_user": "Mit Frühstück?",
     "type": "checkbox",
     "required": false
   },
   {
     "key": "can_book_again",
-    "key_name_user": "Can you book again ?",
+    "key_name_user": "Kann man wieder buchen?",
     "type": "checkbox",
     "required": false
   },
   {
     "key": "amount_ex_vat",
-    "key_name_user": "Amount Excluding VAT",
+    "key_name_user": "Betrag ohne MwSt.",
     "type": "input",
     "data_type": "number",
     "required": false
   },
   {
     "key": "vat_amount",
-    "key_name_user": "VAT Amount",
+    "key_name_user": "Betrag MwSt.",
     "type": "input",
     "data_type": "number",
     "required": false
   },
   {
     "key": "vat_percentage",
-    "key_name_user": "VAT Percentage",
+    "key_name_user": "Prozent MwSt.",
     "type": "input",
     "data_type": "number",
     "note": "%",
@@ -617,28 +617,28 @@
   },
   {
     "key": "unit_of_measurement",
-    "key_name_user": "Unit of Measurement",
+    "key_name_user": "Messeinheit",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "vat_code",
-    "key_name_user": "VAT Code",
+    "key_name_user": "MwSt. Code",
     "type": "input",
     "data_type": "string",
     "required": false
   },
   {
     "key": "amount_excl_vat",
-    "key_name_user": "Amount Exclude VAT",
+    "key_name_user": "Betrag ohne MwSt.",
     "type": "input",
     "data_type": "number",
     "required": false
   },
   {
     "key": "amount_incl_vat",
-    "key_name_user": "Amount Include VAT",
+    "key_name_user": "Betrag inkl. MwSt.",
     "type": "input",
     "data_type": "number",
     "required": false

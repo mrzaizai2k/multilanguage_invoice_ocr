@@ -8,32 +8,39 @@
 }
 
 .login-box {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 420px;
-    height: 460px;
+background-color: white;
+padding: 2rem;
+border-radius: 8px;
+box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+width: 100%;
+max-width: 479px;
+height: auto; /* Changed from fixed height to auto */
 }
 
 .login-header {
-    display: flex;
-    align-items: center; /* Aligns logo and header in a row */
-    margin-bottom: 2rem;
+display: flex;
+flex-direction: column; /* Changed to column layout */
+align-items: center;
+margin-bottom: 2rem;
+}
+
+.logo-container {
+margin-bottom: 1rem; /* Space between logo and header */
+width: 100%;
+display: flex;
+justify-content: center;
 }
 
 .logo {
-    margin-right: 1rem; /* Space between logo and header */
-    width: 10%; /* Relative width for responsiveness */
-    min-width: 40px; /* Minimum width for logo */
+width: 120px; /* Increased size of logo */
+height: auto; /* Maintain aspect ratio */
 }
 
 h1 {
-    font-size: 1.7rem; /* Larger font size */
-    color: #0e7caf;
-    margin: 0; /* Removes default margin */
-    text-align: center;
+font-size: 2.0rem; /* Slightly smaller font size to accommodate larger logo */
+color: #0e7caf;
+margin: 0;
+text-align: center;
 }
 
 h2 {

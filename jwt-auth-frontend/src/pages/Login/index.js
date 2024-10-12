@@ -5,6 +5,7 @@ import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
 import { Spin } from 'antd';
 import Helmet from "react-helmet";
 import './Login.css';
+import Logo from '../../a3ds-logo-blue.svg';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -43,13 +44,10 @@ function Login() {
       <div className="login-container">
         <div className="login-box">
           <div className="login-header">
-            <div className="logo">
-              <svg viewBox="0 0 24 24" width="45" height="45">
-                <path d="M3 3h18v18H3z" fill="#0099ff" />
-                <path d="M7 7h10v2H7zm0 4h10v2H7zm0 4h7v2H7z" fill="white" />
-              </svg>
+            <div className="logo-container">
+              <img src={Logo} alt="A3DS Logo" className="logo" />
             </div>
-            <h1>Invoice Extract System</h1>
+            <h1>System zur Spesenabrechnung V 1.0</h1>
           </div>
           <h2>Log in</h2>
           <form onSubmit={handleSubmit}>
