@@ -46,10 +46,12 @@ def strip_strings(value):
 
 # Normalize date by converting it from string to date object
 def normalize_date(value):
+    date = None
     try:
-        return datetime.strptime(value, '%d/%m/%Y').date()
-    except ValueError:
-        return None
+        date = datetime.strptime(value, '%d/%m/%Y').date()
+        return date
+    except Exception as e:
+        return date
 
 # Normalize time by converting it from string to time object
 def normalize_time(value):
@@ -586,7 +588,7 @@ if __name__ == "__main__":
             'land': 'Vietna',
             'lines': [
                 {
-                    'date': '07/08/2024',
+                    'date': None,
                     'start_time': '06:45',
                     'end_time': '07:30',
                     'break_time': '0.0',
