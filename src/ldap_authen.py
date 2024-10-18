@@ -25,27 +25,44 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+#Real LDAP
+# def ldap_authen(username: str, password: str, config:dict):
+#     config = config['ldap']
+#     ldap_server = config['ldap_server']
+#     ldap_port = config['ldap_port']
+#     base_dn = config['base_dn']
+
+#     try:
+#         server = Server(ldap_server, port=ldap_port, get_info=ALL)
+#         user_dn = f"uid={username},{base_dn}"
+
+#         with Connection(server, user=user_dn, password=password) as conn:
+#             if conn.bind():
+#                 print(f"Authentication successful for user {username}")
+#                 is_admin = username.lower() == 'tesla'
+#                 return True, is_admin, username
+#             else:
+#                 print(f"Authentication failed for user {username}")
+#                 return False, False, None
+#     except Exception as e:
+#         print(f"LDAP authentication error: {str(e)}")
+#         return False, False, None
+
 def ldap_authen(username: str, password: str, config:dict):
-    config = config['ldap']
-    ldap_server = config['ldap_server']
-    ldap_port = config['ldap_port']
-    base_dn = config['base_dn']
+    import os
+    from dotenv import load_dotenv
+    load_dotenv()
+    USERNAME = os.getenv('USERNAME')
+    PASSWORD = os.getenv('PASSWORD')
 
-    try:
-        server = Server(ldap_server, port=ldap_port, get_info=ALL)
-        user_dn = f"uid={username},{base_dn}"
-
-        with Connection(server, user=user_dn, password=password) as conn:
-            if conn.bind():
-                print(f"Authentication successful for user {username}")
-                is_admin = username.lower() == 'tesla'
-                return True, is_admin, username
-            else:
-                print(f"Authentication failed for user {username}")
-                return False, False, None
-    except Exception as e:
-        print(f"LDAP authentication error: {str(e)}")
+    if username == USERNAME and password==PASSWORD:
+        print(f"Authentication successful for user {username}")
+        # return is_valid, is_admin, username
+        return True, False, username
+    else:
+        print(f"Authentication failed for user {username}")
         return False, False, None
+
 
 def create_access_token(secret_key, algorithm, data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
@@ -77,7 +94,7 @@ def get_current_user(token: str, secret_key: str, algorithm: str) -> User:
 
 if __name__ == "__main__":  
     config_path = "config/config.yaml"
-    ldap_authen(username='tesla', password='password', config=read_config(path=config_path))
+    ldap_authen(username='gauss', password='password', config=read_config(path=config_path))
 
     # username: tesla
     # password: password 
