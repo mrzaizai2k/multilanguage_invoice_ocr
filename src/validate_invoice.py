@@ -164,6 +164,14 @@ def normalize_float(value):
     except (ValueError, TypeError):
         return None
     
+def validate_project_number(value):
+    if isinstance(value, float):
+        # Convert float to string and remove spaces
+        return str(int(value)).replace(' ', '')
+    elif isinstance(value, str):
+        # Remove spaces if it's already a string
+        return value.replace(' ', '')
+
 def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
 
     # Recursive function to apply normalizations and validations to the data
@@ -191,8 +199,8 @@ def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
                 if key == 'city':
                     data[key] = validate_city(value, config)
 
-                if key == 'project_number' and isinstance(value, str):
-                    data[key] = value.replace(' ', '')
+                if key == 'project_number':
+                    data[key]=validate_project_number(value=value)
                 
                 # Recursively normalize nested dictionaries or lists
                 if isinstance(value, dict) or isinstance(value, list):
@@ -240,8 +248,9 @@ def validate_invoice_2(invoice_data: dict, config: dict) -> dict:
                     data[key] = normalize_date(data[key])
                 elif 'amount' in key:
                     data[key] = normalize_float(data[key])
-                if key == 'project_number' and isinstance(value, str):
-                    data[key] = value.replace(' ', '')
+
+                if key == 'project_number':
+                    data[key]=validate_project_number(value=value)
 
                 elif key == 'name':
                     data[key] = map_name(value, config)
@@ -588,7 +597,7 @@ if __name__ == "__main__":
     data1 = {
         'invoice_info': {
             'name': 'Tümmler Dirk',
-            'project_number': 'V24 004 5',
+            'project_number': 240045.0,
             'customer': 'Magua',
             'city': 'Othe',
             'land': 'Vietna',

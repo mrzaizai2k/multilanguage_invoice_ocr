@@ -186,7 +186,8 @@ if __name__ == "__main__":
     # # Test retrieving the document
     # Define filter criteria (example: using `user_uuid`)
     filter_criteria = {"created_by": "1111_1111_1111_1111",
-                       "status": "completed"}
+                       "status": "completed",
+                       "created_at": 'desc'}
     retrieved_docs, total_count = mongo_db.get_documents(filter_criteria)
     print(f"Retrieved Document: {len(retrieved_docs)}")
     print(f"total_count: {total_count}")

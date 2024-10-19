@@ -71,7 +71,7 @@ def test_delete_invoice(invoice_uuid, user_uuid):
     else:
         print("Failed to delete invoice.")
 
-
+@timeit
 def test_get_invoices(user_uuid: Optional[str] = None, 
                       invoice_type: Optional[str] = None,
                       invoice_uuid: Optional[str] = None,
@@ -174,8 +174,9 @@ if __name__ == "__main__":
 
     # test_excel()
     # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
-    test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    # _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', status='not extracted')
+
+    # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
+    _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='completed')
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
     # test_get_frontend_defines(root_url=root_url)
