@@ -190,6 +190,9 @@ def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
                 
                 if key == 'city':
                     data[key] = validate_city(value, config)
+
+                if key == 'project_number' and isinstance(value, str):
+                    data[key] = value.replace(' ', '')
                 
                 # Recursively normalize nested dictionaries or lists
                 if isinstance(value, dict) or isinstance(value, list):
@@ -237,6 +240,9 @@ def validate_invoice_2(invoice_data: dict, config: dict) -> dict:
                     data[key] = normalize_date(data[key])
                 elif 'amount' in key:
                     data[key] = normalize_float(data[key])
+                if key == 'project_number' and isinstance(value, str):
+                    data[key] = value.replace(' ', '')
+
                 elif key == 'name':
                     data[key] = map_name(value, config)
                 elif key == 'currency':
@@ -582,7 +588,7 @@ if __name__ == "__main__":
     data1 = {
         'invoice_info': {
             'name': 'Tümmler Dirk',
-            'project_number': 'V240045',
+            'project_number': 'V24 004 5',
             'customer': 'Magua',
             'city': 'Othe',
             'land': 'Vietna',
@@ -614,7 +620,7 @@ if __name__ == "__main__":
     data2 = {
         'invoice_info': {
             'name': 'Schmidt, Timo',
-            'project_number': 'V123023',
+            'project_number': 'V1 230 23',
             'is_in_egw': True,
             'currency': 'EURk',
             'fixed_lines': [
