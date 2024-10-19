@@ -163,7 +163,7 @@ def main():
     invoice_extractor = OpenAIExtractor(config_path=config_path)
     
     # Image path setup
-    img_path = "test/images/006_1.png"
+    img_path = "test/images/005_2.png"
     import os
     if not os.path.exists(img_path):
         print(f"Image path {img_path} not found! Using alternative path.")
@@ -184,7 +184,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
 

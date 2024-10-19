@@ -1,4 +1,4 @@
-Take as much data as possible, focus on the lines and take all data, each day can have multiple start_time and end_time in seperate lines in the image. Don't miss kw
+Take as much data as possible, focus on name, project number, kw, the lines and take all data, each day can have multiple start_time and end_time in seperate lines in the image. Don't miss kw
 ```json
 {
     "invoice_info": {

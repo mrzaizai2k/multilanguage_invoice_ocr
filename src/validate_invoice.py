@@ -172,6 +172,14 @@ def validate_project_number(value):
         # Remove spaces if it's already a string
         return str(value).replace(' ', '')
 
+def validate_kw(value):
+    if isinstance(value, float):
+        # Convert float to string and remove spaces
+        return str(int(value)).replace(' ', '')
+    elif isinstance(value, str) or isinstance(value, int):
+        # Remove spaces if it's already a string
+        return str(value).replace(' ', '')
+
 def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
 
     # Recursive function to apply normalizations and validations to the data
@@ -201,6 +209,9 @@ def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
 
                 if key == 'project_number':
                     data[key]=validate_project_number(value=value)
+
+                if key == "kw":
+                    data[key]=validate_kw(value=value)
                 
                 # Recursively normalize nested dictionaries or lists
                 if isinstance(value, dict) or isinstance(value, list):
@@ -600,6 +611,7 @@ if __name__ == "__main__":
             'project_number': 240045,
             'customer': 'Magua',
             'city': 'Othe',
+            'kw': " 12",
             'land': 'Vietna',
             'lines': [
                 {

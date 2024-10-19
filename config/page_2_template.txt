@@ -1,35 +1,36 @@
-payment_method has 3 values self paid, visa, invoice
+The payment_method fields should have one of four values: self paid, Visa, invoice (if having box with tick mark) or an empty string (no tick mark, empty box). 
+Don't hallucinate on payment_method. Take as much data as possible. Focus on name, project number, the payment_method for each item and with_breakfast for hotel, fixed lines and lines.   
 ```json
 {
   "invoice_info": {
     "name": "",
     "project_number": "",
-    "is_in_egw": True,
+    "is_in_egw": False,
     "currency": "",
-    "has_employee_signature": True,
+    "has_employee_signature": False,
     "sign_date": "",
     "fixed_lines": [
       {
         "title": "Hotel",
-        "with_breakfast": True,
-        "can_book_again": True,
+        "with_breakfast": False,
+        "can_book_again": False,
         "amount": ,
         "payment_method": ""
       },
       {
         "title": "Fuel",
         "amount": ,
-        "payment_method": ""
+        "payment_method": "self paid"
       },
       {
         "title": "Parking fees",
         "amount": ,
-        "payment_method": ""
+        "payment_method": "visa"
       },
       {
         "title": "Rental car",
         "amount": ,
-        "payment_method": ""
+        "payment_method": "invoice"
       },
       {
         "title": "Toll",
