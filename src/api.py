@@ -452,7 +452,7 @@ async def get_invoices(
             invoice["_id"] = str(invoice["_id"])
             convert_datetime_to_iso(invoice)
 
-        logger.debug(msg=f"Sample invoice created_at: {invoices[0]['created_at']}")
+        logger.debug(msg=f"Sample invoice keys: {invoices[0].keys()}")
 
         # Return the invoices in the expected format
         return JSONResponse(
