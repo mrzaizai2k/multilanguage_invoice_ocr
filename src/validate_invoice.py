@@ -168,9 +168,9 @@ def validate_project_number(value):
     if isinstance(value, float):
         # Convert float to string and remove spaces
         return str(int(value)).replace(' ', '')
-    elif isinstance(value, str):
+    elif isinstance(value, str) or isinstance(value, int):
         # Remove spaces if it's already a string
-        return value.replace(' ', '')
+        return str(value).replace(' ', '')
 
 def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
 
@@ -597,7 +597,7 @@ if __name__ == "__main__":
     data1 = {
         'invoice_info': {
             'name': 'Tümmler Dirk',
-            'project_number': 240045.0,
+            'project_number': 240045,
             'customer': 'Magua',
             'city': 'Othe',
             'land': 'Vietna',

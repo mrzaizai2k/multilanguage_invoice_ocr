@@ -6,8 +6,6 @@ import os
 import cv2
 import numpy as np
 from typing import Union
-import asyncio
-from openai import AsyncOpenAI
 from llama_index.llms.ollama import Ollama
 from PIL import Image
 from src.Utils.utils import read_config, timeit, retry_on_failure, valid_base64_image
@@ -94,7 +92,6 @@ class InvoicePostProcessing:
         else:
             raise KeyError(f"No such key: {item}")
     
-
 class OpenAIExtractor(BaseExtractor):
     def __init__(self, config_path: str = "config/config.yaml"):
         super().__init__(config_path)
@@ -105,10 +102,11 @@ class OpenAIExtractor(BaseExtractor):
         self.max_tokens = self.config['max_tokens']
 
         self.OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-        self.client = AsyncOpenAI(api_key=self.OPENAI_API_KEY)
+        from openai import OpenAI
+        self.client = OpenAI(api_key=self.OPENAI_API_KEY)
 
-    async def _extract_invoice_llm(self, ocr_text, base64_image: str, invoice_template: str):
-        response = await self.client.chat.completions.create(
+    def _extract_invoice_llm(self, ocr_text, base64_image:str, invoice_template:str):
+        response = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": """You are a helpful assistant that responds in JSON format with the invoice information in English. 
@@ -134,40 +132,13 @@ class OpenAIExtractor(BaseExtractor):
         return result
 
     @retry_on_failure(max_retries=3, delay=1.0)
-    async def extract_invoice(self, ocr_text, image: Union[str, np.ndarray], invoice_template: str) -> list:
+    def extract_invoice(self, ocr_text, image: Union[str, np.ndarray], invoice_template:str) -> dict:
         base64_image = self.encode_image(image)
-
-        async def process_response():
-            response = await self._extract_invoice_llm(ocr_text, base64_image, invoice_template=invoice_template)
-            json_response = self.extract_json(response)
-            print(f"Response: {json_response}")
-            return json_response
-
-        tasks = [process_response() for _ in range(3)]
-        results = await asyncio.gather(*tasks)
-        # combined_result = self.combine_results(results)
-        combined_result = await self.combine_results_AI(ocr_text=ocr_text, results = results)
-        combined_result = self.extract_json(combined_result)
-        return combined_result
+        invoice_info = self._extract_invoice_llm(ocr_text, base64_image, 
+                                                 invoice_template=invoice_template)
+        invoice_info = self.extract_json(invoice_info)
+        return invoice_info
     
-    async def combine_results_AI(self, ocr_text, results:list[str]):
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": """You are a helpful assistant that responds in JSON format with the invoice information in English. 
-                                            Don't add any annotations there. Remember to close any bracket. And just output the field that has value, 
-                                            don't return field that are empty. number, price and amount should be number, date should be convert to dd/mm/yyyy, 
-                                            time should be convert to HH:mm:ss, currency should be 3 chracters like VND, USD, EUR"""},
-                {"role": "user", "content": [
-                    {"type": "text", "text": f"From the image of the model answers and the text from OCR, combine the information and return only 1 final json of invoice_info, not a list. The ocr text is: {ocr_text} \n. Return the key names as in the template is a MUST. The results are: \n {str(results)}"},
-                ]}
-            ],
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-        )
-        return response.choices[0].message.content
-
-
     def __getitem__(self, item):
         if item == "llm_extractor":
             return self.model
@@ -175,59 +146,7 @@ class OpenAIExtractor(BaseExtractor):
             return self.model
         else:
             raise KeyError(f"No such key: {item}")
-    
-    def combine_results(self, results: list) -> dict:
-        if not results:
-            return {}
 
-        def merge_dicts(dicts):
-            if not dicts:
-                return {}
-
-            merged = {}
-            for key in dicts[0].keys():
-                values = [d[key] for d in dicts if key in d]
-                if isinstance(values[0], dict):
-                    merged[key] = merge_dicts(values)
-                elif isinstance(values[0], list):
-                    merged[key] = merge_lists(values)
-                else:
-                    value_counts = {}
-                    for value in values:
-                        value_counts[str(value)] = value_counts.get(str(value), 0) + 1
-                    most_common = max(value_counts, key=value_counts.get)
-                    if len(set(values)) == len(values):
-                        merged[key] = values[0]
-                    else:
-                        merged[key] = parse_value(most_common)
-            return merged
-
-        def merge_lists(lists):
-            if not lists:
-                return []
-
-            max_length = max(len(lst) for lst in lists)
-            merged = []
-            for i in range(max_length):
-                items = [lst[i] for lst in lists if i < len(lst)]
-                if items and isinstance(items[0], dict):
-                    merged.append(merge_dicts(items))
-                else:
-                    # Just return the first item as the merged result or None if items are empty
-                    merged.append(parse_value(items[0]) if items else None)
-            return merged
-
-        def parse_value(value):
-            if isinstance(value, (int, float)):
-                return value
-            if isinstance(value, str):
-                if value.replace('.', '', 1).isdigit():  # Check if it's a valid float
-                    return float(value)
-                if value.isdigit():  # Check if it's a valid int
-                    return int(value)
-            return value  # Return as is if it's not a number
-
-        return merge_dicts([result for result in results])
 
 def test_post_processing():
     ocr_text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
@@ -257,7 +176,7 @@ def test_post_processing():
     print(result_json)
 
 
-async def test_openai_invoice():
+def test_openai_invoice():
     config_path = "config/config.yaml"
     ocr_text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
     image_path = "fr_1.png"
@@ -269,16 +188,11 @@ async def test_openai_invoice():
         invoice_template = file.read()
 
     extractor = OpenAIExtractor(config_path=config_path)
-    invoice_data = await extractor.extract_invoice(ocr_text=ocr_text, image=image_path, 
+    invoice_data = extractor.extract_invoice(ocr_text=ocr_text, image=image_path, 
                                              invoice_template=invoice_template)
-    print("\ninvoice_data", invoice_data)
-
+    print(invoice_data)
 
 if __name__ == "__main__":
-    import time
-    start = time.time()
-    asyncio.run(test_openai_invoice())
-    end = time.time()
-    print("process", end-start)
 
-    # test_post_processing()
+    test_openai_invoice()
+    test_post_processing()

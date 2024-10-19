@@ -102,7 +102,7 @@ def get_document_template(document_type:str, config:dict):
     invoice_template = read_txt_file(invoice_dict[document_type])
     return invoice_template
 
-async def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, 
+def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, 
                          invoice_extractor:BaseExtractor, config:dict, logger = None) -> dict:
     result = {}
     pil_img = convert_base64_to_pil_image(base64_img)
@@ -112,7 +112,7 @@ async def extract_invoice_info(base64_img:str, ocr_reader:OcrReader,
     invoice_template = get_document_template(invoice_type, config=config)
 
     rotate_image = ocr_reader.get_rotated_image(pil_img)
-    invoice_info = await invoice_extractor.extract_invoice(ocr_text=ocr_result['text'], image=rotate_image, 
+    invoice_info = invoice_extractor.extract_invoice(ocr_text=ocr_result['text'], image=rotate_image, 
                                                         invoice_template=invoice_template)
     print('\ninvoice_info-1', invoice_info)
     invoice_info = validate_invoice(invoice_info=invoice_info, 
@@ -155,7 +155,7 @@ def validate_invoice(invoice_info: dict, invoice_type: str, config: dict) -> dic
     
     return full_invoice.model_dump(exclude_unset=False)
 
-async def main():
+def main():
     config_path = "config/config.yaml"
     config = read_config(config_path)
 
@@ -163,7 +163,7 @@ async def main():
     invoice_extractor = OpenAIExtractor(config_path=config_path)
     
     # Image path setup
-    img_path = "test/images/007_1.png"
+    img_path = "test/images/006_1.png"
     import os
     if not os.path.exists(img_path):
         print(f"Image path {img_path} not found! Using alternative path.")
@@ -173,7 +173,7 @@ async def main():
     base64_img = convert_img_path_to_base64(img_path)
 
     # Run the invoice extraction asynchronously
-    result = await extract_invoice_info(base64_img=base64_img, 
+    result = extract_invoice_info(base64_img=base64_img, 
                                         ocr_reader=ocr_reader,
                                         invoice_extractor=invoice_extractor, 
                                         config=config)
@@ -183,7 +183,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
 
 
 
