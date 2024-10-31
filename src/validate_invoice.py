@@ -174,11 +174,12 @@ def validate_project_number(value):
 
 def validate_kw(value):
     if isinstance(value, float):
-        # Convert float to string and remove spaces
+        # Convert float to integer, then to string, and remove spaces
         return str(int(value)).replace(' ', '')
-    elif isinstance(value, str) or isinstance(value, int):
-        # Remove spaces if it's already a string
-        return str(value).replace(' ', '')
+    elif isinstance(value, (str, int)):
+        # Remove spaces if it's a string, and ensure it's a number
+        return ''.join(filter(str.isdigit, str(value)))
+
 
 def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
 
@@ -611,7 +612,7 @@ if __name__ == "__main__":
             'project_number': 240045,
             'customer': 'Magua',
             'city': 'Othe',
-            'kw': " 12",
+            'kw': " V12",
             'land': 'Vietna',
             'lines': [
                 {
