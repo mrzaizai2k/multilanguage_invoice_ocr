@@ -15,9 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && python -m venv /app/venv \
     && . /app/venv/bin/activate \
     && pip install --no-cache-dir -r requirements-cpu.txt \
-    && pip install torch --index-url https://download.pytorch.org/whl/cpu 
-    # && pip uninstall opencv-python -y \
-    # && pip install opencv-python-headless
+    && pip install torch --index-url https://download.pytorch.org/whl/cpu \
+    && pip uninstall opencv-python -y \
+    && pip install opencv-contrib-python-headless
 
 # Final stage
 FROM python:3.10-slim
