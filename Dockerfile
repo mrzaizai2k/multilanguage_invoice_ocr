@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && pip install --no-cache-dir -r requirements-cpu.txt \
     && pip install torch --index-url https://download.pytorch.org/whl/cpu \
     && pip uninstall opencv-python -y \
-    && pip install opencv-python-headless
+    && pip install opencv-python-headless==4.10
 
 # Final stage
 FROM python:3.10-slim
