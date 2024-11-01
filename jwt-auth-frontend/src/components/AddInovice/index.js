@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useCallback } from 'react';
 import { pdfjs } from 'react-pdf';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
@@ -16,6 +15,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 function AddInvoice({ username }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [images, setImages] = useState([]);
+  const [fileNames, setFileNames] = useState([]); // New state to track original file names
   const [dragging, setDragging] = useState(false);
   const [loadingAddFile, setLoadingAddFile] = useState(false);
   const [loadingUpload, setLoadingUpload] = useState(false);
@@ -53,6 +53,7 @@ function AddInvoice({ username }) {
     setLoadingAddFile(true);
     let filesToAdd = [];
     let imagesToAdd = [];
+    let fileNamesToAdd = [];
 
     for (const file of newFiles) {
       if (file.size > MAX_FILE_SIZE) {
@@ -76,16 +77,19 @@ function AddInvoice({ username }) {
           }
           imagesToAdd.push(pdfImages[i]);
           filesToAdd.push(new File([blob], `${file.name}-page-${i + 1}.png`, { type: 'image/png' }));
+          fileNamesToAdd.push(file.name); // Store original PDF name for each extracted image
         }
       } else if (file.type.startsWith('image/')) {
         imagesToAdd.push(URL.createObjectURL(file));
         filesToAdd.push(file);
+        fileNamesToAdd.push(file.name); // Store original image name
       }
     }
 
     if (filesToAdd.length > 0) {
       setImages(prevImages => [...prevImages, ...imagesToAdd]);
       setSelectedFiles(prevFiles => [...prevFiles, ...filesToAdd]);
+      setFileNames(prevNames => [...prevNames, ...fileNamesToAdd]);
     }
 
     setLoadingAddFile(false);
@@ -113,11 +117,12 @@ function AddInvoice({ username }) {
 
     setLoadingUpload(true);
     try {
-      for (const file of selectedFiles) {
-        const base64Image = await imageToBase64(file);
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const base64Image = await imageToBase64(selectedFiles[i]);
         const payload = {
           img: base64Image,
-          user_uuid: username
+          user_uuid: username,
+          file_name: fileNames[i] // Add the original filename to the payload
         };
         await createInvoice(payload);
       }
@@ -128,6 +133,7 @@ function AddInvoice({ username }) {
       });
       setSelectedFiles([]);
       setImages([]);
+      setFileNames([]);
     } catch (error) {
       notification.error({
         message: 'Upload Failed',
@@ -139,8 +145,10 @@ function AddInvoice({ username }) {
   };
 
   const deleteImage = (imageToDelete) => {
+    const indexToDelete = images.indexOf(imageToDelete);
     setImages(prevImages => prevImages.filter(image => image !== imageToDelete));
-    setSelectedFiles(prevFiles => prevFiles.filter((_, index) => images[index] !== imageToDelete));
+    setSelectedFiles(prevFiles => prevFiles.filter((_, index) => index !== indexToDelete));
+    setFileNames(prevNames => prevNames.filter((_, index) => index !== indexToDelete));
   };
 
   const handleDragOver = (e) => {
