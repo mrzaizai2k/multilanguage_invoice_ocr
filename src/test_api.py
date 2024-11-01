@@ -17,7 +17,7 @@ def test_excel():
   
 
 
-def test_upload_invoice(img_path, user_uuid):
+def test_upload_invoice(img_path, user_uuid, file_name:str=None):
     # Define the payload
     url = f"{root_url}/api/v1/invoices/upload"
 
@@ -25,7 +25,8 @@ def test_upload_invoice(img_path, user_uuid):
 
     payload = {
         "img": base64_img,
-        "user_uuid": user_uuid
+        "user_uuid": user_uuid,
+        "file_name": file_name
     }
     
     # Send the POST request
@@ -173,10 +174,12 @@ if __name__ == "__main__":
     invoice_info = {"land": "Laos",} 
 
     # test_excel()
-    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid)
+    file_name = os.path.basename(img_path)
+
+    test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
 
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='completed')
+    # _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='completed')
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
     # test_get_frontend_defines(root_url=root_url)

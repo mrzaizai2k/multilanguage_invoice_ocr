@@ -118,7 +118,8 @@ curl -X POST "http://localhost:8000/api/v1/invoices/upload" \
 -H "Authorization: Bearer <auth_token>" \
 -d '{
   "img": "<base64_value>",
-  "user_uuid": "<user_uuid>"
+  "user_uuid": "<user_uuid>",
+  "file_name": "<file_name>"
 }'
 ```
 
@@ -128,6 +129,7 @@ curl -X POST "http://localhost:8000/api/v1/invoices/upload" \
 | Authorization | header       | string | required | Bearer `<auth_token>`            |
 | img           | body         | string | required | Invoice image in base64 format   |
 | user_uuid     | body         | string | optional | UUID of the user uploading the invoice |
+| file_name     | body         | string | optional | File name of the image, it can include name and project number |
 
 **Response on success**:  
 ```json

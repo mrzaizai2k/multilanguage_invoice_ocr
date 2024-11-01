@@ -262,6 +262,7 @@ async def upload_invoice(
         body = await request.json()
         img = body.get("img")
         user_uuid = body.get("user_uuid")
+        file_name = body.get("file_name", None)
         
         if not img or not is_base64(img):
             msg = {
@@ -284,6 +285,7 @@ async def upload_invoice(
             "last_modified_by": None,
             "status": "not extracted",
             "invoice_image_base64": img,
+            "file_name": file_name,
             "invoice_info": {}
         }
         
