@@ -99,7 +99,28 @@ def validate_city(city_text: str, config:dict) -> str:
     
     return city
 
+def check_file_name(file_name: str, invoice_data: dict) -> dict:
+    """Check file name for invoice 1 and 2 to extract project_number, kunde and name
+    ex: Ford_EEE_Filip_Witkowski_V230109 -> <customer>_EEE_<vorname>_<name>_<project_number>
+    """
+    if not file_name:
+        return invoice_data
+    
+    base_name = file_name.rsplit('.', 1)[0]  # Splits only once from the right
+    
+    parts = base_name.split("_")
+    
+    # Check if the file name format is correct
+    if not len(parts) == 5:
+        return invoice_data
+    
+    customer, label, vorname, name, project_number = parts        
+    # Populate extracted values in the invoice_data dictionary
+    invoice_data['invoice_info']["customer"] = customer
+    invoice_data['invoice_info']["name"] = str(name) + " " + str(vorname) 
+    invoice_data['invoice_info']["project_number"] = project_number
 
+    return invoice_data
 
 def validate_invoice_3(invoice_data: dict, config:dict) -> dict:
 
@@ -182,6 +203,8 @@ def validate_kw(value):
 
 
 def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
+    if "file_name" in invoice_data['invoice_info']:
+        invoice_data = check_file_name(invoice_data['invoice_info']["file_name"], invoice_data)
 
     # Recursive function to apply normalizations and validations to the data
     def validate_and_normalize(data: Any, reference_year=None):
@@ -229,6 +252,10 @@ def validate_invoice_1(invoice_data: dict, config:dict) -> dict:
 
 def validate_invoice_2(invoice_data: dict, config: dict) -> dict:
     fixed_line_titles = config['fixed_line_titles']
+
+    if "file_name" in invoice_data['invoice_info']:
+        invoice_data = check_file_name(invoice_data['invoice_info']["file_name"], invoice_data)
+
     def normalize_title(title: str) -> str:
         title_lower = title.lower()
         if 'hotel' in title_lower:
@@ -254,6 +281,7 @@ def validate_invoice_2(invoice_data: dict, config: dict) -> dict:
     def validate_and_normalize(data: Any, reference_year=None):
         if isinstance(data, dict):
             for key, value in data.items():
+
                 if isinstance(value, str):
                     data[key] = strip_strings(value)
                 if 'date' in key:
@@ -636,7 +664,8 @@ if __name__ == "__main__":
             'is_commissioned_work': True,
             'is_without_measuring_technology': False,
             'sign_date': '13/08/2024',
-            'has_employee_signature': True
+            'has_employee_signature': True, 
+            "file_name": "Ford_EEE_Filip_Wikos_V230109.pdf"
         }
     }
     data2 = {
@@ -658,7 +687,8 @@ if __name__ == "__main__":
                 {'title': 'line_1', 'amount': 20.0, 'payment_method': 'selfpayment'},
                 {'title': 'haha_2', 'amount': 2.0}
             ],
-            'has_employee_signature': True
+            'has_employee_signature': True, 
+            "file_name": "GOM_EEE_Tim_Schnadmann_V230309"
         }
     }
     data3 = {

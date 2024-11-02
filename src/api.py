@@ -63,11 +63,12 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
             for document in unprocessed_documents:
                 document_id = document['_id']
                 base64_img = document['invoice_image_base64']
+                file_name = document['file_name']
 
                 try:
                     new_data = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
                                                     invoice_extractor=invoice_extractor, config=config, 
-                                                    logger=logger)
+                                                    logger=logger, file_name = file_name)
                     
                     # Update the processed document
                     mongo_db.update_document_by_id(str(document_id), new_data)

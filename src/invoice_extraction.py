@@ -103,7 +103,8 @@ def get_document_template(document_type:str, config:dict):
     return invoice_template
 
 def extract_invoice_info(base64_img:str, ocr_reader:OcrReader, 
-                         invoice_extractor:BaseExtractor, config:dict, logger = None) -> dict:
+                         invoice_extractor:BaseExtractor, config:dict, 
+                         logger = None, file_name:str = None) -> dict:
     result = {}
     pil_img = convert_base64_to_pil_image(base64_img)
     ocr_result = ocr_reader.get_text(pil_img)
@@ -114,6 +115,7 @@ def extract_invoice_info(base64_img:str, ocr_reader:OcrReader,
     rotate_image = ocr_reader.get_rotated_image(pil_img)
     invoice_info = invoice_extractor.extract_invoice(ocr_text=ocr_result['text'], image=rotate_image, 
                                                         invoice_template=invoice_template)
+    invoice_info['invoice_info']['file_name'] = file_name
     print('\ninvoice_info-1', invoice_info)
     invoice_info = validate_invoice(invoice_info=invoice_info, 
                                     invoice_type=invoice_type, config=config)
@@ -163,7 +165,7 @@ def main():
     invoice_extractor = OpenAIExtractor(config_path=config_path)
     
     # Image path setup
-    img_path = "test/images/005_2.png"
+    img_path = "test/images/005_1.png"
     import os
     if not os.path.exists(img_path):
         print(f"Image path {img_path} not found! Using alternative path.")
@@ -176,7 +178,8 @@ def main():
     result = extract_invoice_info(base64_img=base64_img, 
                                         ocr_reader=ocr_reader,
                                         invoice_extractor=invoice_extractor, 
-                                        config=config)
+                                        config=config,)
+                                        # file_name = "Magua_EEE_Dirk_Tummler_V240046.pdf")
 
     print("\ninfo", result['invoice_info'])
     print("\nresult", result)
