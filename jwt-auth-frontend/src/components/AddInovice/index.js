@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { pdfjs } from 'react-pdf';
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import 'react-photo-view/dist/react-photo-view.css';
-import { notification, Spin } from 'antd';
+import { notification, Spin, Progress } from 'antd';
 import { BsFiletypeJpg, BsFiletypePdf, BsFiletypePng, BsTrash3Fill, BsUpload } from "react-icons/bs";
 import { MdAddToPhotos, MdOutlineZoomOutMap } from "react-icons/md";
 import { Helmet } from 'react-helmet';
@@ -15,10 +15,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 function AddInvoice({ username }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [images, setImages] = useState([]);
-  const [fileNames, setFileNames] = useState([]); // New state to track original file names
+  const [fileNames, setFileNames] = useState([]);
   const [dragging, setDragging] = useState(false);
   const [loadingAddFile, setLoadingAddFile] = useState(false);
   const [loadingUpload, setLoadingUpload] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   const imageToBase64 = (file) => {
@@ -106,38 +107,127 @@ function AddInvoice({ username }) {
     return new Blob([ab], { type: mimeString });
   };
 
+
   const handleUpload = async () => {
     if (!selectedFiles.length) {
       notification.warning({
         message: 'No Files Selected',
-        description: 'Please select a file to upload.',
+        description: 'Please select files to upload.',
       });
       return;
     }
-
+  
+    const MAX_BATCH_SIZE = 2;
+    const RETRY_LIMIT = 3;
+    let currentBatchIndex = 0;
+    
+    notification.warning({
+      message: 'Upload in Progress',
+      description: 'Please do not close this tab until the upload is complete.',
+      duration: 0,
+    });
+  
     setLoadingUpload(true);
-    try {
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const base64Image = await imageToBase64(selectedFiles[i]);
+    setUploadProgress(0);
+  
+    const uploadSingleFile = async (file, fileName, retryCount = 0) => {
+      try {
+        const base64Image = await imageToBase64(file);
         const payload = {
           img: base64Image,
           user_uuid: username,
-          file_name: fileNames[i] // Add the original filename to the payload
+          file_name: fileName
         };
         await createInvoice(payload);
+        return { success: true };
+      } catch (error) {
+        if (error?.response?.status === 429 && retryCount < RETRY_LIMIT) {
+          // Wait 60 seconds before retrying if we hit rate limit
+          await new Promise(resolve => setTimeout(resolve, 60000));
+          return uploadSingleFile(file, fileName, retryCount + 1);
+        }
+        return { success: false, error };
       }
+    };
 
+    const uploadBatch = async (batchFiles, batchFileNames) => {
+      const results = await Promise.all(
+        batchFiles.map((file, idx) => 
+          uploadSingleFile(file, batchFileNames[idx])
+        )
+      );
+
+      // Check if any uploads failed due to rate limiting
+      const failedUploads = results.map((result, idx) => ({
+        file: batchFiles[idx],
+        fileName: batchFileNames[idx],
+        success: result.success,
+        error: result.error
+      })).filter(item => !item.success);
+
+      if (failedUploads.length > 0) {
+        // Wait 60 seconds before retrying failed uploads
+        await new Promise(resolve => setTimeout(resolve, 60000));
+        
+        // Retry failed uploads
+        const retryResults = await Promise.all(
+          failedUploads.map(item => 
+            uploadSingleFile(item.file, item.fileName)
+          )
+        );
+
+        // If any retries still failed, throw error
+        const stillFailed = retryResults.some(result => !result.success);
+        if (stillFailed) {
+          throw new Error('Upload failed after retries');
+        }
+      }
+    };
+  
+    try {
+      while (currentBatchIndex < selectedFiles.length) {
+        const batchFiles = selectedFiles.slice(
+          currentBatchIndex,
+          currentBatchIndex + MAX_BATCH_SIZE
+        );
+        const batchFileNames = fileNames.slice(
+          currentBatchIndex,
+          currentBatchIndex + MAX_BATCH_SIZE
+        );
+  
+        await uploadBatch(batchFiles, batchFileNames);
+        
+        // Update progress
+        const progress = Math.min(
+          Math.round((currentBatchIndex + MAX_BATCH_SIZE) / selectedFiles.length * 100),
+          100
+        );
+        setUploadProgress(progress);
+  
+        currentBatchIndex += MAX_BATCH_SIZE;
+  
+        if (currentBatchIndex < selectedFiles.length) {
+          await new Promise(resolve => setTimeout(resolve, 60000));
+        }
+      }
+  
+      notification.destroy();
+      
       notification.success({
-        message: 'Upload Successful',
+        message: 'Upload Complete',
         description: 'All files uploaded successfully!',
       });
+  
       setSelectedFiles([]);
       setImages([]);
       setFileNames([]);
+      setUploadProgress(0);
     } catch (error) {
+      notification.destroy();
+      
       notification.error({
         message: 'Upload Failed',
-        description: 'Error uploading file: ' + error,
+        description: 'Error uploading files: ' + error,
       });
     } finally {
       setLoadingUpload(false);
@@ -239,19 +329,26 @@ function AddInvoice({ username }) {
           )}
         </div>
         {images.length > 0 && (
-          <button className="upload-btn" onClick={handleUpload} disabled={loadingUpload}>
-            {loadingUpload ? (
-              <>
-                <Spin size="small" />
-                <span style={{ marginLeft: '8px' }}>Uploading...</span>
-              </>
-            ) : (
-              <>
-                <BsUpload style={{ fontSize: "20px", marginRight: '8px' }} />
-                <span>Upload</span>
-              </>
+          <div className="upload-section">
+            {loadingUpload && (
+              <div className="upload-progress">
+                <Progress percent={uploadProgress} status="active" />
+              </div>
             )}
-          </button>
+            <button className="upload-btn" onClick={handleUpload} disabled={loadingUpload}>
+              {loadingUpload ? (
+                <>
+                  <Spin size="small" />
+                  <span style={{ marginLeft: '8px' }}>Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <BsUpload style={{ fontSize: "20px", marginRight: '8px' }} />
+                  <span>Upload</span>
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
     </>

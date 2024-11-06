@@ -227,3 +227,16 @@
   color: #1193D4;
   background-color: #fff;
 }
+
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+  margin: 20px auto 0;
+}
+
+.upload-progress {
+  width: 100%;
+}
