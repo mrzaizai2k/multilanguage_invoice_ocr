@@ -137,3 +137,6 @@ fixed_line_titles:
   - Rental car
   - Toll
   - Parking fees
+
+rate_limit:
+  max_files_per_min: 2 

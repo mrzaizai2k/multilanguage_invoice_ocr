@@ -27,6 +27,7 @@ from src.Utils.utils import (read_config, get_current_time, is_base64,
 from src.invoice_extraction import extract_invoice_info, validate_invoice
 from src.Utils.logger import create_logger
 from src.export_excel.main import export_json_to_excel
+from src.rate_limiter import RateLimiter
 from src.mail import EmailSender
 
 from dotenv import load_dotenv
@@ -52,6 +53,10 @@ ocr_reader = OcrReader(config_path=config_path, translator=GoogleTranslator(), l
 invoice_extractor = OpenAIExtractor(config_path=config_path)
 
 email_sender = EmailSender(config=config, logger=logger)
+
+max_files_per_min = config['rate_limit']['max_files_per_min']
+rate_limiter = RateLimiter(max_files_per_min)
+
 
 def process_change_stream(ocr_reader, invoice_extractor, config):
     global change_stream
@@ -179,6 +184,18 @@ def get_current_user_dependency(token: str = Depends(oauth2_scheme)) -> User:
 @app.post("/")
 async def hello():
     return {"message": "Hello, world!"}
+
+
+# Apply middleware for rate limiting
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    if request.url.path == "/api/v1/invoices/upload":
+        if not await rate_limiter.is_allowed():
+            return JSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                content={"status": "error", "message": "Rate limit exceeded. Try again later."}
+            )
+    return await call_next(request)
 
 
 @app.post("/token", response_model=Token)

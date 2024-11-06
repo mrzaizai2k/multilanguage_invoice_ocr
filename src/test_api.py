@@ -31,7 +31,6 @@ def test_upload_invoice(img_path, user_uuid, file_name:str=None):
     
     # Send the POST request
     response = requests.post(url, json=payload)
-
     # Print the response for debugging (optional)
     print(response.json())
 
@@ -109,6 +108,7 @@ def test_get_invoices(user_uuid: Optional[str] = None,
     print("\nkey",response.json()["invoices"][0].keys())
 
     invoice = response.json()["invoices"][0]
+    print('file_name', invoice['file_name'])
 
     # Print all data excluding 'invoice_image_base64'
     for key, value in invoice.items():
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     config_path='config/config.yaml'
     config = read_config(path=config_path)
 
-    SERVER_IP = os.getenv('SERVER_IP')
+    SERVER_IP = "52.76.178.14"
     # root_url = f"http://{SERVER_IP}/api" # aws
 
     root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
@@ -170,13 +170,14 @@ if __name__ == "__main__":
     img_path = "test/images/007_2.png"
     user_uuid = "gauss"
     # user_uuid = "2111_1111_1111_1111"
-    invoice_uuid = "6702803020af02d7f38e4238"
+    invoice_uuid = "67283754c979f87afe6711f9"
     invoice_info = {"land": "Laos",} 
 
     # test_excel()
     file_name = os.path.basename(img_path)
 
-    test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
+    for i in range (3):
+        test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
 
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
     # _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='completed')
