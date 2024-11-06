@@ -139,4 +139,4 @@ fixed_line_titles:
   - Parking fees
 
 rate_limit:
-  max_files_per_min: 2 
+  max_files_per_min: 10

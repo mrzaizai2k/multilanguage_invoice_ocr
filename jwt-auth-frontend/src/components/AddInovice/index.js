@@ -117,7 +117,7 @@ function AddInvoice({ username }) {
       return;
     }
   
-    const MAX_BATCH_SIZE = 2;
+    const MAX_BATCH_SIZE = 10;
     const RETRY_LIMIT = 3;
     let currentBatchIndex = 0;
     
