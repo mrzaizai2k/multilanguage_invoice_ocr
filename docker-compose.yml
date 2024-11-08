@@ -57,7 +57,6 @@ services:
     depends_on:
       - mongodb
       - mongodb-setup
-    restart: always
 
   jwt-frontend:
     image: multilanguage_invoice_ocr-jwt-frontend
@@ -82,11 +81,11 @@ services:
     container_name: nginx
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
-      - ./nginx/ssl:/etc/letsencrypt  # Persistent storage for certs
-      - ./nginx/www:/var/www/certbot  # Certbot challenge directory
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     ports:
       - "80:80"
-      - "443:443"  # Expose port 443 for HTTPS
+      - "443:443"
     networks:
       - app-network
     depends_on:
@@ -96,16 +95,18 @@ services:
     environment:
       - CLIENT_MAX_BODY_SIZE=${CLIENT_MAX_BODY_SIZE}
       - SERVER_IP=${SERVER_IP}
+      - DOMAIN_NAME=${DOMAIN_NAME}
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
 
   certbot:
     image: certbot/certbot
     container_name: certbot
     volumes:
-      - ./nginx/ssl:/etc/letsencrypt
-      - ./nginx/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h; done'"
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     networks:
       - app-network
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
 networks:
   app-network:
