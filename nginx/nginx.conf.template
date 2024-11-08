@@ -3,16 +3,19 @@ events {
 }
 
 http {
-    # Placeholder for max file transfer size
     client_max_body_size ${CLIENT_MAX_BODY_SIZE};
 
     server {
         listen 80;
         server_name localhost ${SERVER_IP};
-
+        
         # Redirect all HTTP requests to HTTPS
         location / {
             return 301 https://$host$request_uri;
+        }
+
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
         }
     }
 
@@ -22,9 +25,7 @@ http {
 
         ssl_certificate /etc/letsencrypt/live/${SERVER_IP}/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/${SERVER_IP}/privkey.pem;
-        ssl_protocols TLSv1.2 TLSv1.3;
-        ssl_ciphers HIGH:!aNULL:!MD5;
-
+        
         location / {
             proxy_pass http://jwt-frontend:3000/;
             proxy_set_header Host $host;

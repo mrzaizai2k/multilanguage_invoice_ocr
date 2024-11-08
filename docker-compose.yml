@@ -57,6 +57,7 @@ services:
     depends_on:
       - mongodb
       - mongodb-setup
+    restart: always
 
   jwt-frontend:
     image: multilanguage_invoice_ocr-jwt-frontend
@@ -77,14 +78,15 @@ services:
 
   nginx:
     build:
-      context: ./nginx  # Path to the directory where the Dockerfile is located
+      context: ./nginx
     container_name: nginx
     volumes:
-      - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro  # Mount the template
-      - certbot-etc:/etc/letsencrypt  # SSL certificates from Certbot
+      - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+      - ./nginx/ssl:/etc/letsencrypt  # Persistent storage for certs
+      - ./nginx/www:/var/www/certbot  # Certbot challenge directory
     ports:
       - "80:80"
-      - "443:443"  # Add HTTPS port
+      - "443:443"  # Expose port 443 for HTTPS
     networks:
       - app-network
     depends_on:
@@ -99,15 +101,11 @@ services:
     image: certbot/certbot
     container_name: certbot
     volumes:
-      - certbot-etc:/etc/letsencrypt
-      - certbot-var:/var/lib/letsencrypt
+      - ./nginx/ssl:/etc/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h; done'"
     networks:
       - app-network
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-
-volumes:
-  certbot-etc:
-  certbot-var:
 
 networks:
   app-network:
