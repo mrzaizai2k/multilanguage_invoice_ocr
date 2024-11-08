@@ -47,7 +47,6 @@ services:
       - ALGORITHM=${ALGORITHM}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
       - SERVER_IP=${SERVER_IP}
-
     volumes:
       - ./config:/app/config
       - ./src:/app/src
@@ -74,9 +73,7 @@ services:
     depends_on:
       - fastapi-app
     environment:
-    - REACT_APP_SERVER_IP=${SERVER_IP}
-    
-
+      - REACT_APP_SERVER_IP=${SERVER_IP}
 
   nginx:
     build:
@@ -84,8 +81,10 @@ services:
     container_name: nginx
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro  # Mount the template
+      - certbot-etc:/etc/letsencrypt  # SSL certificates from Certbot
     ports:
       - "80:80"
+      - "443:443"  # Add HTTPS port
     networks:
       - app-network
     depends_on:
@@ -95,6 +94,20 @@ services:
     environment:
       - CLIENT_MAX_BODY_SIZE=${CLIENT_MAX_BODY_SIZE}
       - SERVER_IP=${SERVER_IP}
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    networks:
+      - app-network
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  certbot-etc:
+  certbot-var:
 
 networks:
   app-network:

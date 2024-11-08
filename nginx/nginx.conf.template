@@ -8,7 +8,22 @@ http {
 
     server {
         listen 80;
-        server_name localhost ${SERVER_IP};  # Handles both localhost and server IP
+        server_name localhost ${SERVER_IP};
+
+        # Redirect all HTTP requests to HTTPS
+        location / {
+            return 301 https://$host$request_uri;
+        }
+    }
+
+    server {
+        listen 443 ssl;
+        server_name localhost ${SERVER_IP};
+
+        ssl_certificate /etc/letsencrypt/live/${SERVER_IP}/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/${SERVER_IP}/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers HIGH:!aNULL:!MD5;
 
         location / {
             proxy_pass http://jwt-frontend:3000/;

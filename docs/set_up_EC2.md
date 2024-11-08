@@ -179,3 +179,20 @@ If you want to SSH to EC2 instance you can do this:
    chmod 400 /path/to/your-key.pem && \
    ssh -i /path/to/your-key.pem username@public-ip
    ```
+
+## Setup elastic IPs
+
+You should setup elastic Ip as this [tutorial](https://www.geeksforgeeks.org/allocate-elastic-ip-address-to-ec2-instance-in-aws/).
+Because each instance running will have a different IP address, elastic IP help you fixed the IP Addess. Much better in production
+
+## Setup Https
+
+1. You should by a domain: can be from [Hostinger](https://hpanel.hostinger.com/)
+2. Then map your domain to your public IP as this [tutorial](https://srini-dev.hashnode.dev/adding-custom-domain-to-ec2-instance-with-nginx)
+3. Add certbot
+    ```
+    sudo snap install core; sudo snap refresh core
+    sudo snap install --classic certbot
+    sudo ln -s /snap/bin/certbot /usr/bin/certbot
+    sudo certbot --nginx
+    ```
