@@ -1,7 +1,6 @@
 #!/bin/bash
-
-# Substitute environment variables in the nginx template
-envsubst '${CLIENT_MAX_BODY_SIZE} ${DOMAIN_NAME}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+# Substitute environment variables in the nginx template and create the final config
+envsubst '${CLIENT_MAX_BODY_SIZE} ${SERVER_IP}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
 # Start NGINX
-exec nginx -g 'daemon off;'
+nginx -g 'daemon off;'

@@ -3,47 +3,13 @@ events {
 }
 
 http {
+    # Placeholder for max file transfer size
     client_max_body_size ${CLIENT_MAX_BODY_SIZE};
 
-    # Required for proper SSL/TLS configuration
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_prefer_server_ciphers off;
-    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
-    ssl_session_timeout 1d;
-    ssl_session_cache shared:SSL:50m;
-    ssl_session_tickets off;
-    ssl_stapling on;
-    ssl_stapling_verify on;
-    resolver 8.8.8.8 8.8.4.4 valid=300s;
-    resolver_timeout 5s;
-
-    # HTTP server (redirect to HTTPS)
     server {
         listen 80;
-        server_name ${DOMAIN_NAME};
+        server_name localhost ${SERVER_IP};  # Handles both localhost and server IP
 
-        # Certbot challenges
-        location /.well-known/acme-challenge/ {
-            root /var/www/certbot;
-        }
-
-        # Redirect all HTTP traffic to HTTPS
-        location / {
-            return 301 https://$host$request_uri;
-        }
-    }
-
-    # HTTPS server
-    server {
-        listen 443 ssl;
-        server_name ${DOMAIN_NAME};
-
-        # SSL configuration
-        ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
-        ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/chain.pem;
-
-        # Frontend
         location / {
             proxy_pass http://jwt-frontend:3000/;
             proxy_set_header Host $host;
@@ -52,7 +18,6 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
-        # Backend API
         location /api/ {
             proxy_pass http://fastapi-app:8149/;
             proxy_set_header Host $host;
@@ -63,7 +28,6 @@ http {
             proxy_connect_timeout 75s;
         }
 
-        # MongoDB
         location /mongo/ {
             proxy_pass http://mongodb:27017/;
             proxy_set_header Host $host;
