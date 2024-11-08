@@ -23,6 +23,8 @@ This document provides step-by-step instructions to set up the Multilanguage Inv
     - **SSH Key**: Set up `.pem` key for SSH access.
     - **Security Group**: Allow access from all IP addresses.
     - **Spot Instance**: Use spot instances for cost savings (optional).
+    - **Request type**: Persistant
+    - **Interrupt behavior**: Choose Stop
     - **Operating System**: Select **Ubuntu 22.04**.
     - **Instance Type**: Choose **t3.large** (must be t3, do not use t2 - Paddle error)
     - **Memory**: Set 16GB for optimal performance.
