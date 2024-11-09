@@ -20,7 +20,7 @@ http {
     # HTTP server (redirect to HTTPS)
     server {
         listen 80;
-        server_name ${DOMAIN_NAME};
+        server_name mrzaizai2k.xyz;
 
         # Certbot challenges
         location /.well-known/acme-challenge/ {
@@ -36,12 +36,12 @@ http {
     # HTTPS server
     server {
         listen 443 ssl;
-        server_name ${DOMAIN_NAME};
+        server_name mrzaizai2k.xyz;
 
         # SSL configuration
-        ssl_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem;
-        ssl_certificate_key /etc/letsencrypt/live/${DOMAIN_NAME}/privkey.pem;
-        ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_NAME}/chain.pem;
+        ssl_certificate /etc/letsencrypt/live/mrzaizai2k.xyz/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/mrzaizai2k.xyz/privkey.pem;
+        ssl_trusted_certificate /etc/letsencrypt/live/mrzaizai2k.xyz/chain.pem;
 
         # Frontend
         location / {
