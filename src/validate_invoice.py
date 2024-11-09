@@ -181,9 +181,20 @@ def validate_invoice_3(invoice_data: dict, config:dict) -> dict:
 # Normalize break_time to float
 def normalize_float(value):
     try:
-        return float(value)
+        # Handle both integer and float inputs directly
+        if isinstance(value, (int, float)):
+            return float(value)
+        elif isinstance(value, str):
+            # Remove whitespace and replace commas with periods
+            cleaned_value = value.strip().replace(',', '.')
+            # Check if cleaned_value is non-empty before conversion
+            if cleaned_value:
+                return float(cleaned_value)
+        # Return None if value is None, empty, or not convertible
+        return None
     except (ValueError, TypeError):
         return None
+
     
 def validate_project_number(value):
     if isinstance(value, float):
@@ -647,7 +658,7 @@ if __name__ == "__main__":
                     'date': None,
                     'start_time': '06:45',
                     'end_time': '07:30',
-                    'break_time': '0.0',
+                    'break_time': '',
                     'description': 'BS-SZ-Support',
                     'has_customer_signature': True
                 },
@@ -655,7 +666,7 @@ if __name__ == "__main__":
                     'date': '07/08/2024',
                     'start_time': '07:30:00',
                     'end_time': '16:00:00',
-                    'break_time': '0.5',
+                    'break_time': '0,5',
                     'description': '',
                     'has_customer_signature': True
                 }

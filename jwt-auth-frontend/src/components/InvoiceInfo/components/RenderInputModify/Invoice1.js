@@ -38,14 +38,13 @@ function ModifyFieldsInvoice1({ info, keyPath = [], onChange, validationErrors }
                     <div>
                         <input
                             key={key}
-                            type="number"
-                            step="0.1"
-                            value={value === null ? '' : value}
+                            type="text" // Changed type to "text" to allow string input, we will handle conversion later
+                            value={value === null ? '' : value.toString()} // Ensure value is a string
                             onChange={(e) => {
                                 const newValue = e.target.value;
                                 if (newValue === '' || /^\d*\.?\d*$/.test(newValue)) {
-                                    // Ensure we're sending a proper number, not a string
-                                    const parsedValue = newValue === '' ? null : Number(parseFloat(newValue).toFixed(1));
+                                    // Ensure we're sending a string representation of the number, not the number itself
+                                    const parsedValue = newValue === '' ? null : newValue; // Store as string
                                     handleInputChange(keyPath, parsedValue);
                                 }
                             }}
@@ -62,6 +61,7 @@ function ModifyFieldsInvoice1({ info, keyPath = [], onChange, validationErrors }
                         {error && <span className="error-message" style={{ color: 'red' }}>{error}</span>}
                     </div>
                 );
+
 
             case 'string':
                 return (
