@@ -185,14 +185,26 @@ If you want to SSH to EC2 instance you can do this:
 You should setup elastic Ip as this [tutorial](https://www.geeksforgeeks.org/allocate-elastic-ip-address-to-ec2-instance-in-aws/).
 Because each instance running will have a different IP address, elastic IP help you fixed the IP Addess. Much better in production
 
-## Setup Https
+## Setup https
 
 1. You should by a domain: can be from [Hostinger](https://hpanel.hostinger.com/)
 2. Then map your domain to your public IP as this [tutorial](https://srini-dev.hashnode.dev/adding-custom-domain-to-ec2-instance-with-nginx)
-3. Add certbot
-    ```
-    sudo snap install core; sudo snap refresh core
-    sudo snap install --classic certbot
-    sudo ln -s /snap/bin/certbot /usr/bin/certbot
-    sudo certbot --nginx
-    ```
+3. Because we are running docker nginx so it's a bit complicated. [reference](https://youtu.be/J9jKKeV1XVE?si=DhCVBHrH9ua82rAg)
+- in `nginx/nginx.conf.template` remove the 443 server part first, so we can take the cert
+- 
+
+```
+./init-letsencrypt.sh
+docker compose up -d
+```
+Then check if cert is downloaded in nginx docker
+```
+docker exec -it nginx /bin/bash
+cd /etc/letsencrypt/live/${DOMAIN_NAME}/chain.pem
+// or
+
+docker compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot     --email your-email@gmail.com --agree-tos --no-eff-email     -d your-domain.com
+```
+- Add the 443 server block to file `nginx/nginx.conf.template`
+- run `docker restart nginx`
+

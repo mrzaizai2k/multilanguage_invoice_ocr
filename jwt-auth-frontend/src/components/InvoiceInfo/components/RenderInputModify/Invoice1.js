@@ -39,14 +39,20 @@ function ModifyFieldsInvoice1({ info, keyPath = [], onChange, validationErrors }
                         <input
                             key={key}
                             type="number"
+                            step="0.1"
                             value={value === null ? '' : value}
                             onChange={(e) => {
                                 const newValue = e.target.value;
-                                if (newValue === '' || /^\d+$/.test(newValue)) {
-                                    handleInputChange(keyPath, newValue === '' ? null : Number(newValue));
+                                if (newValue === '' || /^\d*\.?\d*$/.test(newValue)) {
+                                    // Ensure we're sending a proper number, not a string
+                                    const parsedValue = newValue === '' ? null : Number(parseFloat(newValue).toFixed(1));
+                                    handleInputChange(keyPath, parsedValue);
                                 }
                             }}
                             onKeyDown={(e) => {
+                                if (e.key === '.' && e.target.value.includes('.')) {
+                                    e.preventDefault();
+                                }
                                 if (['e', 'E', '+', '-'].includes(e.key)) {
                                     e.preventDefault();
                                 }
@@ -56,6 +62,7 @@ function ModifyFieldsInvoice1({ info, keyPath = [], onChange, validationErrors }
                         {error && <span className="error-message" style={{ color: 'red' }}>{error}</span>}
                     </div>
                 );
+
             case 'string':
                 return (
                     <div>
