@@ -35,6 +35,9 @@ class EmailSender:
         attachment_paths: List of path to attachment files
         """
         try:
+            if attachment_paths:
+                attachment_paths = [path for path in attachment_paths if path is not None]
+
             # Connect to the SMTP server for each email
             server = smtplib.SMTP(self.smtp_server, self.port)
             server.starttls()
@@ -123,7 +126,7 @@ if __name__ == "__main__":
     email_sender.send_email(
         email_type="modify_invoice_remind",
         receivers=None,
-        # attachment_paths=["output/Stdi_08_24.xlsx", "output/1.4437_10578_A3DS GmbH_04_2024 .xlsm"],  # List of file paths
+        attachment_paths=["output/Stdi_08_24.xlsx", None],  # List of file paths
     )
     
     # email_sender.send_email(

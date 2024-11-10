@@ -26,9 +26,9 @@ from src.Utils.utils import (read_config, get_current_time, is_base64,
                              get_land_and_city_list, get_currencies_from_txt, find_pairs_of_docs)
 from src.invoice_extraction import extract_invoice_info, validate_invoice
 from src.Utils.logger import create_logger
-from src.export_excel.main import export_json_to_excel
 from src.rate_limiter import RateLimiter
 from src.mail import EmailSender
+from src.Utils.process_documents_utils import get_egw_file, get_excel_files
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -86,49 +86,51 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                                         )
 
         elif change['operationType'] == 'update':
-            # Process modified documents
-            doc_id = str(change['documentKey']['_id']) 
-            updated_doc = mongo_db.get_document_by_id(document_id=doc_id)
-            logger.info(msg = "trigger modified")
-
-            if not ((updated_doc.get('last_modified_by') is not None) and 
-                    (updated_doc.get('invoice_type') in ['invoice 1', 'invoice 2'])):
-                continue
-
-            # Get all documents modified this month
-            start_of_month = get_current_time(timezone=config['timezone']).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            modified_documents, _ = mongo_db.get_documents(
-                filters={
-                    "last_modified_by": {"$ne": None},
-                    "last_modified_at": {"$gte": start_of_month},
-                    "invoice_type": {"$in": ["invoice 1", "invoice 2"]},
-                    "invoice_info.name": updated_doc['invoice_info']['name'],
-                    "invoice_info.project_number": updated_doc['invoice_info']['project_number']
-                }
-            )
-
-            if not modified_documents or (len(modified_documents)<=1): #just have 1 doc, no partner doc there
-                continue
-
-            msg = f"modified_documents update change streams: {len(modified_documents)}"
-            logger.info(msg=msg)
-
-            invoice_pairs = find_pairs_of_docs(modified_documents)
-
-            if not invoice_pairs:
-                logger.info(msg="No matching invoice pairs found")
-                return
-
-            logger.debug('Create pair of json')
             try:
-                employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs=invoice_pairs, logger=logger)
-                if employee_expense_report_path or output_2_excel:
-                    email_sender.send_email(email_type='send_excel',
-                                            receivers=None,
-                                            attachment_paths=[employee_expense_report_path, output_2_excel])
-                    logger.debug(f"attachment_paths: {[employee_expense_report_path, output_2_excel]}")
+                # Process modified documents
+                doc_id = str(change['documentKey']['_id'])
+                updated_doc = mongo_db.get_document_by_id(document_id=doc_id)
+
+                if not updated_doc:
+                    logger.warning(f"Document with ID {doc_id} not found.")
+                    continue
+
+                # Check document properties before processing
+                if (updated_doc.get('last_modified_by') is None or 
+                        updated_doc.get('invoice_type') not in ['invoice 1', 'invoice 2']):
+                    logger.debug(f"Document {doc_id} does not meet update criteria.")
+                    continue
+
+                # Define the start of the month timestamp
+                start_of_month = get_current_time(timezone=config['timezone']).replace(
+                    day=1, hour=0, minute=0, second=0, microsecond=0
+                )
+
+                # Process Invoice 1 EGW file if applicable
+                if updated_doc['invoice_type'] == "invoice 1":
+                    output_egw_file_path = get_egw_file(
+                        mongo_db=mongo_db, start_of_month=start_of_month, config=config, logger=logger
+                    )
+
+                # Process Excel files for paired invoices
+                employee_expense_report_path, output_2_excel = get_excel_files(
+                    mongo_db=mongo_db, start_of_month=start_of_month, updated_doc=updated_doc, logger=logger
+                )
+
+                # Send email with attachments if any
+                attachment_paths = [employee_expense_report_path, output_2_excel, output_egw_file_path]
+                if attachment_paths:
+                    email_sender.send_email(
+                        email_type='send_excel',
+                        receivers=None,
+                        attachment_paths=attachment_paths
+                    )
+                    logger.debug(f"Sent email with attachments: {attachment_paths}")
+                else:
+                    logger.info("No attachments to send for this update.")
+
             except Exception as e:
-                logger.debug(f"error: {e}")
+                logger.error(f"Error in change stream processing: {e}")
 
 
 @asynccontextmanager
@@ -497,7 +499,7 @@ if __name__ == "__main__":
     while True:
         try:
             logger.info("Starting the server...")
-            uvicorn.run(app, host=config['IES_host'], port=config['IES_port'])
+            uvicorn.run(app, host=config['IES_host'], port=config['IES_port'],)
         except Exception as e:
             logger.error(f"An error occurred: {str(e)}")
             logger.info("Restarting the server in 5 seconds...")

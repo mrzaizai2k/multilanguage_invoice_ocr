@@ -4,6 +4,7 @@ sys.path.append("")
 import os
 import pandas as pd
 from datetime import datetime, timedelta
+from src.Utils.utils import convert_datetime_to_string
 
 def create_egw_filename() -> str:
     """
@@ -46,6 +47,9 @@ def handle_dauer(line: dict) -> int:
     
     if line['end_time'] == "24:00:00":
         end_time += timedelta(days=1)  # add one day if end_time was '24:00:00'
+    
+    if line['break_time'] == None:
+        line['break_time'] = 0
         
     break_duration = timedelta(hours=line['break_time'])
     work_duration = end_time - start_time - break_duration
@@ -92,7 +96,8 @@ def export_egw_file(config: dict, invoice_lists: list) -> str:
     
     # Process each invoice in invoice_lists once
     for invoice in invoice_lists:
-        invoice_info = invoice["invoice_info"]
+        invoice_info = convert_datetime_to_string(invoice['invoice_info'])
+        # invoice_info = invoice["invoice_info"]
         
         # Shared fields
         project_and_title = handle_project_and_title(invoice_info)
@@ -136,23 +141,21 @@ if __name__ == "__main__":
     from src.Utils.utils import read_config
 
     with open("config/data1.json", 'r') as file:
-        invoice_1 = json.load(file)  
+        invoice_1_a = json.load(file)  
 
     with open("config/data3.json", 'r') as file:
         invoice_1_b = json.load(file)  
 
     config = read_config(path = 'config/config.yaml')
+
     # from src.mongo_database import MongoDatabase
     # config_path='config/config.yaml'
     # mongo_db = MongoDatabase(config_path=config_path)
-    # invoice_1 = mongo_db.get_document_by_id(document_id='6702803020af02d7f38e4238')
-    # invoice_2 = mongo_db.get_document_by_id(document_id='67028a752d2ad07517a0c286')
-    # print(invoice_1['invoice_type'])
-    # print(invoice_2['invoice_type'])
-
-    # print(invoice_1['invoice_info'])
-    # print(invoice_2['invoice_info'])
+    # invoice_1_c = mongo_db.get_document_by_id(document_id='6725a93f2c68644740452586')
+    # invoice_1_d = mongo_db.get_document_by_id(document_id='672aef2af6a2c9961f7c9528')
+    # print(invoice_1_c['invoice_info'])
+    # print(invoice_1_d['invoice_info'])
     
-    output_egw_file_path = export_egw_file(config['egw'], invoice_lists =[invoice_1, invoice_1_b])
+    output_egw_file_path = export_egw_file(config['egw'], invoice_lists =[invoice_1_a, invoice_1_b])
     print("output_egw_file_path", output_egw_file_path)
 
