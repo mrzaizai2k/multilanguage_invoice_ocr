@@ -81,6 +81,11 @@ excel:
     vorname_key: 'vorname'
     name_thresh: 20
 
+egw:
+  output_path: output
+
+
+  
 mail:
   smtp_server: smtp.gmail.com
   port: 587

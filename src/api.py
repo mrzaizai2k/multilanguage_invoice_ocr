@@ -111,9 +111,6 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                 continue
 
             msg = f"modified_documents update change streams: {len(modified_documents)}"
-            logger.info(msg = msg)
-
-            msg = f"modified_documents update change streams: {len(modified_documents)}"
             logger.info(msg=msg)
 
             invoice_pairs = find_pairs_of_docs(modified_documents)
