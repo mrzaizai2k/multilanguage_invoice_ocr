@@ -1,6 +1,7 @@
 import sys
 sys.path.append("") 
 
+import os
 import pandas as pd
 from datetime import datetime, timedelta
 
@@ -77,8 +78,14 @@ def export_egw_file(config: dict, invoice_lists: list) -> str:
     Exports invoice data into a CSV file with specified columns.
     """
     # Prepare the filename and output path
+    output_path = config['output_path']
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+    
+    # Prepare the filename and output path
     file_name = create_egw_filename()
-    output_egw_file_path = f"{config['output_path']}/{file_name}"
+    output_egw_file_path = f"{output_path}/{file_name}"
+    
     
     # List to store all rows for DataFrame creation
     rows = []
@@ -134,7 +141,7 @@ if __name__ == "__main__":
     with open("config/data3.json", 'r') as file:
         invoice_1_b = json.load(file)  
 
-    config = read_config(path = 'config/config.yaml')['egw']
+    config = read_config(path = 'config/config.yaml')
     # from src.mongo_database import MongoDatabase
     # config_path='config/config.yaml'
     # mongo_db = MongoDatabase(config_path=config_path)
@@ -146,6 +153,6 @@ if __name__ == "__main__":
     # print(invoice_1['invoice_info'])
     # print(invoice_2['invoice_info'])
     
-    output_egw_file_path = export_egw_file(config, invoice_lists =[invoice_1, invoice_1_b])
+    output_egw_file_path = export_egw_file(config['egw'], invoice_lists =[invoice_1, invoice_1_b])
     print("output_egw_file_path", output_egw_file_path)
 
