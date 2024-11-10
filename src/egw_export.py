@@ -147,4 +147,5 @@ if __name__ == "__main__":
     # print(invoice_2['invoice_info'])
     
     output_egw_file_path = export_egw_file(config, invoice_lists =[invoice_1, invoice_1_b])
+    print("output_egw_file_path", output_egw_file_path)
 

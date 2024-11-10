@@ -3,6 +3,7 @@ install:
 	pip install --no-cache-dir -r requirements.txt
 
 unit_test:
+	python src/egw_export.py
 	python src/employee_name.py
 	python src/export_excel/main.py
 	python src/ldap_authen.py
