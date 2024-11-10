@@ -81,9 +81,9 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                 except Exception as e:
                     logger.error(f"Error processing document {document_id}: {str(e)}")
                 
-            email_sender.send_email(email_type='modify_invoice_remind',
-                                        receivers=None,
-                                        )
+            # email_sender.send_email(email_type='modify_invoice_remind',
+            #                             receivers=None,
+            #                             )
 
         elif change['operationType'] == 'update':
             try:
