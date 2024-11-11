@@ -23,7 +23,7 @@ For detailed instructions, refer to this AWS knowledge center article:
 
 - Reboot instance
 - Wait 1 2 mins
-- Try access the instacen via SSH
+- Try access the instance via SSH
     
     ```shell
     ssh -i /path/to/your-key.pem username@public-ip

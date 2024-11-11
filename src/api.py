@@ -70,6 +70,7 @@ def process_change_stream(config):
             # Instead of processing just the inserted document, we'll fetch all unprocessed documents
             unprocessed_documents, _ = mongo_db.get_documents(
                     filters={"status": "not extracted"},
+                    limit=10,
                 )
                 
             for document in unprocessed_documents:
