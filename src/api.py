@@ -23,12 +23,11 @@ from src.ldap_authen import (User, get_current_user, ldap_authen,
                              Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
                              valid_base64_image, convert_datetime_to_iso, convert_iso_to_string,
-                             get_land_and_city_list, get_currencies_from_txt, find_pairs_of_docs)
-from src.invoice_extraction import extract_invoice_info, validate_invoice
+                             get_land_and_city_list, get_currencies_from_txt)
+from src.invoice_extraction import validate_invoice
 from src.Utils.logger import create_logger
-from src.rate_limiter import RateLimiter
 from src.mail import EmailSender
-from src.Utils.process_documents_utils import get_egw_file, get_excel_files
+from src.Utils.process_documents_utils import get_egw_file, get_excel_files, BatchProcessor
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -54,36 +53,28 @@ invoice_extractor = OpenAIExtractor(config_path=config_path)
 
 email_sender = EmailSender(config=config, logger=logger)
 
-max_files_per_min = config['rate_limit']['max_files_per_min']
-rate_limiter = RateLimiter(max_files_per_min)
+batch_processor = BatchProcessor(
+    ocr_reader=ocr_reader,
+    invoice_extractor=invoice_extractor,
+    config=config,
+    email_sender=email_sender,
+    mongo_db=mongo_db,
+    logger=logger,
+)
 
-
-def process_change_stream(ocr_reader, invoice_extractor, config):
+def process_change_stream(config):
     global change_stream
+    batch_processor.start()
     for change in change_stream:
         if change['operationType'] == 'insert':
             # Instead of processing just the inserted document, we'll fetch all unprocessed documents
-            unprocessed_documents, _ = mongo_db.get_documents(filters={"status": "not extracted"})
-            
-            for document in unprocessed_documents:
-                document_id = document['_id']
-                base64_img = document['invoice_image_base64']
-                file_name = document['file_name']
-
-                try:
-                    new_data = extract_invoice_info(base64_img=base64_img, ocr_reader=ocr_reader,
-                                                    invoice_extractor=invoice_extractor, config=config, 
-                                                    logger=logger, file_name = file_name)
-                    
-                    # Update the processed document
-                    mongo_db.update_document_by_id(str(document_id), new_data)
-                    
-                except Exception as e:
-                    logger.error(f"Error processing document {document_id}: {str(e)}")
+            unprocessed_documents, _ = mongo_db.get_documents(
+                    filters={"status": "not extracted"},
+                )
                 
-            # email_sender.send_email(email_type='modify_invoice_remind',
-            #                             receivers=None,
-            #                             )
+            for document in unprocessed_documents:
+                batch_processor.add_to_queue(document)
+
 
         elif change['operationType'] == 'update':
             try:
@@ -98,7 +89,6 @@ def process_change_stream(ocr_reader, invoice_extractor, config):
                 # Check document properties before processing
                 if (updated_doc.get('last_modified_by') is None or 
                         updated_doc.get('invoice_type') not in ['invoice 1', 'invoice 2']):
-                    logger.debug(f"Document {doc_id} does not meet update criteria.")
                     continue
 
                 # Define the start of the month timestamp
@@ -139,7 +129,7 @@ async def lifespan(app: FastAPI):
     global change_stream, change_stream_thread
     change_stream = mongo_db.start_change_stream()
     change_stream_thread = threading.Thread(target=process_change_stream, 
-                                            args=(ocr_reader, invoice_extractor, config))
+                                            args=(config,))
     change_stream_thread.start()
     
     yield  # This is where the FastAPI app runs
@@ -183,18 +173,6 @@ def get_current_user_dependency(token: str = Depends(oauth2_scheme)) -> User:
 @app.post("/")
 async def hello():
     return {"message": "Hello, world!"}
-
-
-# Apply middleware for rate limiting
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    if request.url.path == "/api/v1/invoices/upload":
-        if not await rate_limiter.is_allowed():
-            return JSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content={"status": "error", "message": "Rate limit exceeded. Try again later."}
-            )
-    return await call_next(request)
 
 
 @app.post("/token", response_model=Token)
@@ -275,6 +253,16 @@ async def upload_invoice(
     ):
 
     try:
+        if batch_processor.process_queue.qsize() >= config['batch_processor']['queue_size']:  # Adjust queue size limit as needed
+            msg = {
+                "status": "error",
+                "message": "Server is currently processing too many documents. Please try again later."
+            }
+            return JSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                content=msg
+            )
+        
         # Parse JSON body
         body = await request.json()
         img = body.get("img")

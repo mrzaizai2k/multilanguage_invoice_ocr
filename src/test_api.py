@@ -176,7 +176,7 @@ if __name__ == "__main__":
     # test_excel()
     file_name = os.path.basename(img_path)
 
-    for i in range (3):
+    for i in range(5):
         test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
 
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)

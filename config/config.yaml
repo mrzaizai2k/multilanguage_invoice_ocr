@@ -143,5 +143,7 @@ fixed_line_titles:
   - Toll
   - Parking fees
 
-rate_limit:
-  max_files_per_min: 10
+batch_processor:
+  queue_size: 2
+  batch_size: 3  # Process batch_size documents at a time
+  processing_interval: 60  # Wait at least processing_interval seconds between batches
