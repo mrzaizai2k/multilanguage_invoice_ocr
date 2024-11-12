@@ -16,6 +16,7 @@ from typing import Optional, Literal
 from contextlib import asynccontextmanager
 from src.mongo_database import MongoDatabase
 import threading
+import gc
 from src.ocr_reader import OcrReader, GoogleTranslator
 from src.base_extractors import OpenAIExtractor 
 # from src.qwen2_extract import Qwen2Extractor
@@ -61,26 +62,27 @@ max_files_per_min = config['rate_limit']['max_files_per_min']
 rate_limiter = RateLimiter(max_files_per_min)
 
 
+
 def process_change_stream(config):
     global change_stream
     
     for change in change_stream:
         if change['operationType'] == 'insert':
             if is_another_instance_running(config['lock_file']):
-                # Another process is already running, skip this one
+                # Another process is already running, so skip this one
                 continue
             
             # Create a lock file to indicate this process is running
             create_lock_file(config['lock_file'])
             
             try:
-                
                 # Start processing in batches of 3
                 while True:
                     documents, _ = mongo_db.get_documents(filters={"status": "not extracted"}, limit=3)
                     
                     # If no documents are left, exit the loop
                     if not documents:
+                        # Send email only once after all documents are processed
                         break
                     
                     # Process each document one at a time
@@ -93,9 +95,16 @@ def process_change_stream(config):
                             logger=logger, 
                             document=document
                         )
+                        
+                        # Explicitly delete large data and run garbage collection
+                        del document
+                        gc.collect()
+
             finally:
                 # Always remove the lock file at the end of processing
                 remove_lock_file(config['lock_file'])
+                # Final garbage collection to release memory
+                gc.collect()
 
 
         elif change['operationType'] == 'update':
