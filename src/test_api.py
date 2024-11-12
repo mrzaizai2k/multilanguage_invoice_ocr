@@ -82,7 +82,7 @@ def test_get_invoices(user_uuid: Optional[str] = None,
     # Define the endpoint URL
     url = f"{root_url}/api/v1/invoices"
     
-    # Define the query parameters
+    # Define the query parameters with corrected names
     params = {
         "page": page,
         "limit": limit,
@@ -96,15 +96,16 @@ def test_get_invoices(user_uuid: Optional[str] = None,
     if invoice_uuid:
         params["invoice_uuid"] = invoice_uuid
     if invoice_status:
-        params["status"] = invoice_status
+        params["invoice_status"] = invoice_status  # Corrected key here
 
+    print("params", params)
     # Send the GET request with query parameters
     response = requests.get(url, params=params)
     
     # Print the response for debugging (optional)
     print(f"Status code: {response.status_code}")
     invoices = response.json()["invoices"]
-
+    print('len(invoices)', len(invoices))
     print("\nkey",response.json()["invoices"][0].keys())
 
     invoice = response.json()["invoices"][0]
@@ -162,9 +163,11 @@ if __name__ == "__main__":
     config = read_config(path=config_path)
 
     SERVER_IP = "52.76.178.14"
+
+    root_url = f"https://mrzaizai2k.xyz/api" # aws
     # root_url = f"http://{SERVER_IP}/api" # aws
 
-    root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
+    # root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
 
 
     img_path = "test/images/007_2.png"
@@ -176,11 +179,11 @@ if __name__ == "__main__":
     # test_excel()
     file_name = os.path.basename(img_path)
 
-    for i in range(5):
-        test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
+    # for i in range(5):
+    #     test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
 
     # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    # _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='completed')
+    _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='not extracted',)
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
     # test_get_frontend_defines(root_url=root_url)
