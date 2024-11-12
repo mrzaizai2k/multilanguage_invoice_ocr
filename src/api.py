@@ -61,6 +61,7 @@ batch_processor = BatchProcessor(
     mongo_db=mongo_db,
     logger=logger,
 )
+batch_processor.start()
 
 def process_change_stream(config):
     global change_stream

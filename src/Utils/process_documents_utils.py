@@ -78,6 +78,7 @@ def get_excel_files(mongo_db, start_of_month, updated_doc, logger):
 
     return employee_expense_report_path, output_2_excel
 
+
 class BatchProcessor:
     def __init__(self, ocr_reader, invoice_extractor, 
                  mongo_db, config: dict, email_sender, logger=None):
@@ -86,17 +87,18 @@ class BatchProcessor:
         self.invoice_extractor = invoice_extractor
         self.mongo_db = mongo_db
         self.config = config
-        self.email_sender = email_sender  # Added email_sender
+        self.email_sender = email_sender
         self.logger = logger
         
         self.process_queue = queue.Queue()
         self.batch_size = self.config['batch_processor']["batch_size"]
-        self.processing_interval = self.config['batch_processor']["processing_interval"]  # in seconds
+        self.processing_interval = self.config['batch_processor']["processing_interval"]
         self.processing_thread = None
         self.is_running = False
         self.last_processed_time = datetime.now()
         self.currently_processing = set()
         self.lock = threading.Lock()
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=self.batch_size)
 
     def start(self):
         if not self.is_running:
@@ -109,6 +111,7 @@ class BatchProcessor:
         self.is_running = False
         if self.processing_thread:
             self.processing_thread.join()
+        self.executor.shutdown(wait=True)
 
     def add_to_queue(self, document: Dict):
         self.process_queue.put(document)
@@ -116,52 +119,47 @@ class BatchProcessor:
     def _process_queue(self):
         while self.is_running:
             try:
-                batch = []
-                # Collect up to batch_size items or wait for processing_interval
-                while len(batch) < self.batch_size and self.is_running:
+                # Process documents one at a time, but maintain concurrent execution
+                current_batch_size = 0
+                
+                while current_batch_size < self.batch_size and self.is_running:
                     try:
-                        # Wait for 1 second for new items
-                        item = self.process_queue.get(timeout=1)
-                        batch.append(item)
+                        # Try to get a document with a 1-second timeout
+                        document = self.process_queue.get(timeout=1)
+                        
+                        # Only process if not already processing
+                        if document['_id'] not in self.currently_processing:
+                            with self.lock:
+                                self.currently_processing.add(document['_id'])
+                            
+                            # Submit to thread pool and increment batch size
+                            self.executor.submit(self._process_single_document, document)
+                            current_batch_size += 1
+                            
                     except queue.Empty:
-                        # If we have any items and enough time has passed, process them
-                        if batch and (datetime.now() - self.last_processed_time).seconds >= self.processing_interval:
+                        # If we have processed anything and enough time has passed, break
+                        if current_batch_size > 0 and (datetime.now() - self.last_processed_time).seconds >= self.processing_interval:
                             break
                         continue
-
-                if batch:
-                    self._process_batch(batch)
+                    
+                # Update last processed time if we processed anything
+                if current_batch_size > 0:
                     self.last_processed_time = datetime.now()
 
-                # Check if queue is empty after processing
+                # Check if queue is empty and send email if needed
                 if self.process_queue.empty():
-                    # Send email notification
                     self.email_sender.send_email(
                         email_type='modify_invoice_remind',
                         receivers=None
                     )
+                    
+                # Small sleep to prevent tight loop
+                time.sleep(0.1)
 
             except Exception as e:
                 if self.logger:
                     self.logger.error(f"Error in batch processing: {str(e)}")
-                time.sleep(5)  # Wait before retrying
-
-    def _process_batch(self, batch: List[Dict]):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.batch_size) as executor:
-            futures = []
-            for document in batch:
-                if document['_id'] not in self.currently_processing:
-                    with self.lock:
-                        self.currently_processing.add(document['_id'])
-                    futures.append(
-                        executor.submit(
-                            self._process_single_document,
-                            document
-                        )
-                    )
-            
-            # Wait for all futures to complete
-            concurrent.futures.wait(futures)
+                time.sleep(5)
 
     def _process_single_document(self, document: Dict):
         try:
@@ -186,4 +184,3 @@ class BatchProcessor:
         finally:
             with self.lock:
                 self.currently_processing.remove(document_id)
-

@@ -144,6 +144,6 @@ fixed_line_titles:
   - Parking fees
 
 batch_processor:
-  queue_size: 10
+  queue_size: 2
   batch_size: 2  # Process batch_size documents at a time
   processing_interval: 60  # Wait at least processing_interval seconds between batches
