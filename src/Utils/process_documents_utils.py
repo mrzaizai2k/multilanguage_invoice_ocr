@@ -201,3 +201,8 @@ class BatchProcessor:
             with self.lock:
                 self.currently_processing.remove(document_id)
                 self.queued_documents.remove(document_id)
+    
+    def get_total_docs(self) -> int:
+        """Returns the total number of documents in the queue plus those currently processing."""
+        with self.lock:
+            return self.process_queue.qsize() + len(self.currently_processing)

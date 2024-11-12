@@ -270,9 +270,9 @@ async def upload_invoice(
 
     try:
        
-        queue = batch_processor.process_queue.qsize()
+        queue = batch_processor.get_total_docs()
         logger.debug(f'number of docs in queue {queue}')
-        if batch_processor.process_queue.qsize() >= config['batch_processor']['queue_size']:  # Adjust queue size limit as needed
+        if batch_processor.get_total_docs() >= config['batch_processor']['queue_size']:  # Adjust queue size limit as needed
             msg = {
                 "status": "error",
                 "message": "Server is currently processing too many documents. Please try again later."
