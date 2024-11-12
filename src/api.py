@@ -63,33 +63,33 @@ batch_processor = BatchProcessor(
     logger=logger,
 )
 
+def process_in_batches(batch_size=2):
+    while True:
+        # Get the next batch of "not extracted" documents, up to the batch size
+        documents, _ = mongo_db.get_documents(filters={"status": "not extracted"}, limit=batch_size)
+        
+        # If no documents are left, exit the loop
+        if not documents:
+            break
+        
+        # Process each document one at a time
+        for document in documents:
+            batch_processor.process_single_document(document)
+
+
 def process_change_stream(config):
     global change_stream
     batch_processor.start()
     
     for change in change_stream:
         if change['operationType'] == 'insert':
-            # Only process the newly inserted document
-            document_id = change['documentKey']['_id']
-            document = mongo_db.get_document_by_id(document_id)
+            # Get the current count of "not extracted" documents
+            _, total_matching_docs = mongo_db.get_documents(filters={"status": "not extracted"})
             
-            if document and document.get('status') == 'not extracted':
-                # Try to add to queue, log if queue is full
-                if not batch_processor.add_to_queue(document):
-                    logger.warning(f"Could not add document {document_id} to queue - queue full or document already queued")
-
-            # Optionally, check for any missed documents periodically
-            if random.random() < 0.1:  # 10% chance to check for missed documents
-                unprocessed_docs, _ = mongo_db.get_documents(
-                    filters={
-                        "status": "not extracted",
-                        "_id": {"$nin": list(batch_processor.queued_documents.union(batch_processor.currently_processing))}
-                    },
-                    limit=5
-                )
-                
-                for doc in unprocessed_docs:
-                    batch_processor.add_to_queue(doc)
+            # Only proceed if there are fewer than 3 "not extracted" documents
+            if total_matching_docs < 3:
+                # Start processing in batches of 3
+                process_in_batches(batch_size=2)
 
 
         elif change['operationType'] == 'update':
@@ -270,17 +270,17 @@ async def upload_invoice(
 
     try:
        
-        queue = batch_processor.get_total_docs()
-        logger.debug(f'number of docs in queue {queue}')
-        if batch_processor.get_total_docs() >= config['batch_processor']['queue_size']:  # Adjust queue size limit as needed
-            msg = {
-                "status": "error",
-                "message": "Server is currently processing too many documents. Please try again later."
-            }
-            return JSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content=msg
-            )
+        # queue = batch_processor.get_total_docs()
+        # logger.debug(f'number of docs in queue {queue}')
+        # if batch_processor.get_total_docs() >= config['batch_processor']['queue_size']:  # Adjust queue size limit as needed
+        #     msg = {
+        #         "status": "error",
+        #         "message": "Server is currently processing too many documents. Please try again later."
+        #     }
+        #     return JSONResponse(
+        #         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        #         content=msg
+        #     )
         
         # Parse JSON body
         body = await request.json()

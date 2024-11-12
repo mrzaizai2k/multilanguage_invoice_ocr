@@ -201,6 +201,28 @@ class BatchProcessor:
             with self.lock:
                 self.currently_processing.remove(document_id)
                 self.queued_documents.remove(document_id)
+
+    def process_single_document(self, document: Dict):
+        try:
+            document_id = document['_id']
+            base64_img = document['invoice_image_base64']
+            file_name = document['file_name']
+
+            new_data = extract_invoice_info(
+                base64_img=base64_img,
+                ocr_reader=self.ocr_reader,
+                invoice_extractor=self.invoice_extractor,
+                config=self.config,
+                logger=self.logger,
+                file_name=file_name
+            )
+
+            self.mongo_db.update_document_by_id(str(document_id), new_data)
+
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Error processing document {document_id}: {str(e)}")
+    
     
     def get_total_docs(self) -> int:
         """Returns the total number of documents in the queue plus those currently processing."""
