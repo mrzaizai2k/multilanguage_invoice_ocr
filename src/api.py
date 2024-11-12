@@ -28,7 +28,9 @@ from src.Utils.utils import (read_config, get_current_time, is_base64,
 from src.invoice_extraction import validate_invoice
 from src.Utils.logger import create_logger
 from src.mail import EmailSender
-from src.Utils.process_documents_utils import get_egw_file, get_excel_files, BatchProcessor
+from src.Utils.process_documents_utils import get_egw_file, get_excel_files, process_single_document
+from src.rate_limiter import RateLimiter
+
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -54,32 +56,11 @@ invoice_extractor = OpenAIExtractor(config_path=config_path)
 
 email_sender = EmailSender(config=config, logger=logger)
 
-batch_processor = BatchProcessor(
-    ocr_reader=ocr_reader,
-    invoice_extractor=invoice_extractor,
-    config=config,
-    email_sender=email_sender,
-    mongo_db=mongo_db,
-    logger=logger,
-)
-
-def process_in_batches(batch_size=2):
-    while True:
-        # Get the next batch of "not extracted" documents, up to the batch size
-        documents, _ = mongo_db.get_documents(filters={"status": "not extracted"}, limit=batch_size)
-        
-        # If no documents are left, exit the loop
-        if not documents:
-            break
-        
-        # Process each document one at a time
-        for document in documents:
-            batch_processor.process_single_document(document)
-
+max_files_per_min = config['rate_limit']['max_files_per_min']
+rate_limiter = RateLimiter(max_files_per_min)
 
 def process_change_stream(config):
     global change_stream
-    batch_processor.start()
     
     for change in change_stream:
         if change['operationType'] == 'insert':
@@ -87,9 +68,20 @@ def process_change_stream(config):
             _, total_matching_docs = mongo_db.get_documents(filters={"status": "not extracted"})
             
             # Only proceed if there are fewer than 3 "not extracted" documents
-            if total_matching_docs < 3:
-                # Start processing in batches of 3
-                process_in_batches(batch_size=2)
+            if total_matching_docs > 3:
+                continue
+            # Start processing in batches of 3
+            while True:
+                documents, _ = mongo_db.get_documents(filters={"status": "not extracted"})
+        
+                # If no documents are left, exit the loop
+                if not documents:
+                    break
+                
+                # Process each document one at a time
+                for document in documents:
+                    process_single_document(ocr_reader=ocr_reader, invoice_extractor=invoice_extractor,
+                                            config=config, mongo_db=mongo_db, logger=logger, document=document)
 
 
         elif change['operationType'] == 'update':
@@ -189,6 +181,18 @@ def get_current_user_dependency(token: str = Depends(oauth2_scheme)) -> User:
 @app.post("/")
 async def hello():
     return {"message": "Hello, world!"}
+
+
+# Apply middleware for rate limiting
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    if request.url.path == "/api/v1/invoices/upload":
+        if not await rate_limiter.is_allowed():
+            return JSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                content={"status": "error", "message": "Rate limit exceeded. Try again later."}
+            )
+    return await call_next(request)
 
 
 @app.post("/token", response_model=Token)
