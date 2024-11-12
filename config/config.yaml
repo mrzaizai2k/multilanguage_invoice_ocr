@@ -143,6 +143,7 @@ fixed_line_titles:
   - Toll
   - Parking fees
 
+lock_file: /tmp/process_change_stream.lock
 
 rate_limit:
   max_files_per_min: 30

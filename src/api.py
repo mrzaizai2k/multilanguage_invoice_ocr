@@ -24,7 +24,8 @@ from src.ldap_authen import (User, get_current_user, ldap_authen,
                              Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
                              valid_base64_image, convert_datetime_to_iso, convert_iso_to_string,
-                             get_land_and_city_list, get_currencies_from_txt)
+                             get_land_and_city_list, get_currencies_from_txt, is_another_instance_running, 
+                             create_lock_file, remove_lock_file)
 from src.invoice_extraction import validate_invoice
 from src.Utils.logger import create_logger
 from src.mail import EmailSender
@@ -59,29 +60,42 @@ email_sender = EmailSender(config=config, logger=logger)
 max_files_per_min = config['rate_limit']['max_files_per_min']
 rate_limiter = RateLimiter(max_files_per_min)
 
+
 def process_change_stream(config):
     global change_stream
     
     for change in change_stream:
         if change['operationType'] == 'insert':
-            # Get the current count of "not extracted" documents
-            _, total_matching_docs = mongo_db.get_documents(filters={"status": "not extracted"})
-            
-            # Only proceed if there are fewer than 3 "not extracted" documents
-            if total_matching_docs > 3:
+            if is_another_instance_running(config['lock_file']):
+                # Another process is already running, skip this one
                 continue
-            # Start processing in batches of 3
-            while True:
-                documents, _ = mongo_db.get_documents(filters={"status": "not extracted"})
-        
-                # If no documents are left, exit the loop
-                if not documents:
-                    break
+            
+            # Create a lock file to indicate this process is running
+            create_lock_file(config['lock_file'])
+            
+            try:
                 
-                # Process each document one at a time
-                for document in documents:
-                    process_single_document(ocr_reader=ocr_reader, invoice_extractor=invoice_extractor,
-                                            config=config, mongo_db=mongo_db, logger=logger, document=document)
+                # Start processing in batches of 3
+                while True:
+                    documents, _ = mongo_db.get_documents(filters={"status": "not extracted"}, limit=3)
+                    
+                    # If no documents are left, exit the loop
+                    if not documents:
+                        break
+                    
+                    # Process each document one at a time
+                    for document in documents:
+                        process_single_document(
+                            ocr_reader=ocr_reader, 
+                            invoice_extractor=invoice_extractor,
+                            config=config, 
+                            mongo_db=mongo_db, 
+                            logger=logger, 
+                            document=document
+                        )
+            finally:
+                # Always remove the lock file at the end of processing
+                remove_lock_file(config['lock_file'])
 
 
         elif change['operationType'] == 'update':
@@ -273,19 +287,6 @@ async def upload_invoice(
     ):
 
     try:
-       
-        # queue = batch_processor.get_total_docs()
-        # logger.debug(f'number of docs in queue {queue}')
-        # if batch_processor.get_total_docs() >= config['batch_processor']['queue_size']:  # Adjust queue size limit as needed
-        #     msg = {
-        #         "status": "error",
-        #         "message": "Server is currently processing too many documents. Please try again later."
-        #     }
-        #     return JSONResponse(
-        #         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-        #         content=msg
-        #     )
-        
         # Parse JSON body
         body = await request.json()
         img = body.get("img")

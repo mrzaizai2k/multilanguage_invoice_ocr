@@ -25,7 +25,18 @@ from collections import defaultdict
 from dotenv import load_dotenv
 load_dotenv()
 
+def is_another_instance_running(lock_file):
+    # Check if lock file exists
+    return os.path.exists(lock_file)
 
+def create_lock_file(lock_file):
+    with open(lock_file, 'w') as f:
+        f.write("locked")
+
+def remove_lock_file(lock_file):
+    if os.path.exists(lock_file):
+        os.remove(lock_file)
+        
 def convert_ms_to_hms(ms):
     seconds = ms / 1000
     hours = seconds // 3600
