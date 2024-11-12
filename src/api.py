@@ -255,6 +255,8 @@ async def upload_invoice(
     ):
 
     try:
+        queue = batch_processor.process_queue.qsize()
+        logger.debug(f'number of docs in queue {queue}')
         if batch_processor.process_queue.qsize() >= config['batch_processor']['queue_size']:  # Adjust queue size limit as needed
             msg = {
                 "status": "error",
