@@ -90,13 +90,15 @@ class BatchProcessor:
         self.email_sender = email_sender
         self.logger = logger
         
-        self.process_queue = queue.Queue()
+        # Use a maximum queue size to prevent memory issues
+        self.process_queue = queue.Queue(maxsize=self.config['batch_processor']["queue_size"])  # Limit queue size
         self.batch_size = self.config['batch_processor']["batch_size"]
         self.processing_interval = self.config['batch_processor']["processing_interval"]
         self.processing_thread = None
         self.is_running = False
         self.last_processed_time = datetime.now()
         self.currently_processing = set()
+        self.queued_documents = set()  # Track queued document IDs
         self.lock = threading.Lock()
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=self.batch_size)
 
@@ -113,8 +115,22 @@ class BatchProcessor:
             self.processing_thread.join()
         self.executor.shutdown(wait=True)
 
-    def add_to_queue(self, document: Dict):
-        self.process_queue.put(document)
+    def add_to_queue(self, document: Dict) -> bool:
+        """Add document to queue if not already queued. Returns True if added, False if skipped."""
+        document_id = document['_id']
+        
+        with self.lock:
+            # Skip if document is already queued or being processed
+            if document_id in self.queued_documents or document_id in self.currently_processing:
+                return False
+            
+            try:
+                # Try to add to queue with a timeout to prevent blocking
+                self.process_queue.put(document, timeout=1)
+                self.queued_documents.add(document_id)
+                return True
+            except queue.Full:
+                return False
 
     def _process_queue(self):
         while self.is_running:
@@ -184,3 +200,4 @@ class BatchProcessor:
         finally:
             with self.lock:
                 self.currently_processing.remove(document_id)
+                self.queued_documents.remove(document_id)

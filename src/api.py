@@ -5,6 +5,7 @@ import uvicorn
 import time
 import os
 import json
+import random
 from fastapi import (FastAPI, Request, Depends,
                      status, HTTPException, Query)
 from fastapi.responses import JSONResponse
@@ -61,21 +62,34 @@ batch_processor = BatchProcessor(
     mongo_db=mongo_db,
     logger=logger,
 )
-batch_processor.start()
 
 def process_change_stream(config):
     global change_stream
     batch_processor.start()
+    
     for change in change_stream:
         if change['operationType'] == 'insert':
-            # Instead of processing just the inserted document, we'll fetch all unprocessed documents
-            unprocessed_documents, _ = mongo_db.get_documents(
-                    filters={"status": "not extracted"},
-                    limit=10,
+            # Only process the newly inserted document
+            document_id = change['documentKey']['_id']
+            document = mongo_db.get_document_by_id(document_id)
+            
+            if document and document.get('status') == 'not extracted':
+                # Try to add to queue, log if queue is full
+                if not batch_processor.add_to_queue(document):
+                    logger.warning(f"Could not add document {document_id} to queue - queue full or document already queued")
+
+            # Optionally, check for any missed documents periodically
+            if random.random() < 0.1:  # 10% chance to check for missed documents
+                unprocessed_docs, _ = mongo_db.get_documents(
+                    filters={
+                        "status": "not extracted",
+                        "_id": {"$nin": list(batch_processor.queued_documents.union(batch_processor.currently_processing))}
+                    },
+                    limit=5
                 )
                 
-            for document in unprocessed_documents:
-                batch_processor.add_to_queue(document)
+                for doc in unprocessed_docs:
+                    batch_processor.add_to_queue(doc)
 
 
         elif change['operationType'] == 'update':
@@ -255,6 +269,7 @@ async def upload_invoice(
     ):
 
     try:
+       
         queue = batch_processor.process_queue.qsize()
         logger.debug(f'number of docs in queue {queue}')
         if batch_processor.process_queue.qsize() >= config['batch_processor']['queue_size']:  # Adjust queue size limit as needed
