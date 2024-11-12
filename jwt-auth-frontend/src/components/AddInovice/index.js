@@ -117,7 +117,7 @@ function AddInvoice({ username }) {
       return;
     }
   
-    const MAX_BATCH_SIZE = 5;
+    const MAX_BATCH_SIZE = 10;
     const RETRY_LIMIT = 3;
     let currentBatchIndex = 0;
     
@@ -205,10 +205,9 @@ function AddInvoice({ username }) {
         setUploadProgress(progress);
   
         currentBatchIndex += MAX_BATCH_SIZE;
-  
-        if (currentBatchIndex < selectedFiles.length) {
-          await new Promise(resolve => setTimeout(resolve, 60000));
-        }
+
+        // Add 0.5-second delay between each batch
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
   
       notification.destroy();
@@ -233,6 +232,7 @@ function AddInvoice({ username }) {
       setLoadingUpload(false);
     }
   };
+
 
   const deleteImage = (imageToDelete) => {
     const indexToDelete = images.indexOf(imageToDelete);
