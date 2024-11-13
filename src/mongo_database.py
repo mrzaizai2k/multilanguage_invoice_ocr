@@ -115,13 +115,6 @@ class MongoDatabase:
         result = self.collection.delete_many({})
         return result.deleted_count > 0
 
-    # def start_change_stream(self):
-    #     change_stream = change_stream = self.collection.watch([{
-    #             '$match': {
-    #                 'operationType': { '$in': ['insert'] }
-    #             }
-    #         }])
-    #     return change_stream
     
     def start_change_stream(self):
         change_stream = self.collection.watch([

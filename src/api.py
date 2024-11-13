@@ -5,7 +5,8 @@ import uvicorn
 import time
 import os
 import json
-import random
+import threading
+import gc
 from fastapi import (FastAPI, Request, Depends,
                      status, HTTPException, Query)
 from fastapi.responses import JSONResponse
@@ -14,9 +15,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import timedelta
 from typing import Optional, Literal
 from contextlib import asynccontextmanager
+
 from src.mongo_database import MongoDatabase
-import threading
-import gc
 from src.ocr_reader import OcrReader, GoogleTranslator
 from src.base_extractors import OpenAIExtractor 
 # from src.qwen2_extract import Qwen2Extractor
@@ -62,114 +62,117 @@ max_files_per_min = config['rate_limit']['max_files_per_min']
 rate_limiter = RateLimiter(max_files_per_min)
 
 remove_lock_file(config['lock_file'])
-
 def process_change_stream(config):
-    global change_stream
-    
-    for change in change_stream:
-        if change['operationType'] == 'insert':
-            if is_another_instance_running(config['lock_file']):
-                # Another process is already running, so skip this one
-                continue
-            
-            # Create a lock file to indicate this process is running
-            create_lock_file(config['lock_file'])
-            
-            try:
-                # Start processing in batches of 3
-                while True:
-                    documents, _ = mongo_db.get_documents(filters={"status": "not extracted"}, limit=3)
-                    
-                    # If no documents are left, exit the loop
-                    if not documents:
-                        # Send email only once after all documents are processed
-                        break
-                    
-                    # Process each document one at a time
-                    for document in documents:
-                        process_single_document(
-                            ocr_reader=ocr_reader, 
-                            invoice_extractor=invoice_extractor,
-                            config=config, 
-                            mongo_db=mongo_db, 
-                            logger=logger, 
-                            document=document
-                        )
+    # Use local variables for change stream and avoid using global state
+    with mongo_db.start_change_stream() as change_stream:
+        
+        # Loop over the change stream events
+        for change in change_stream:
+            if change['operationType'] == 'insert':
+                if is_another_instance_running(config['lock_file']):
+                    continue  # Skip processing if another instance is running
+
+                # Create a lock file to signal that processing has started
+                create_lock_file(config['lock_file'])
+
+                try:
+                    # Start batch processing
+                    while True:
+                        # Retrieve the next batch of documents
+                        documents, _ = mongo_db.get_documents(filters={"status": "not extracted"}, limit=3)
                         
-                        # Explicitly delete large data and run garbage collection
-                        del document
+                        # If no more documents, exit the loop and send email once all are processed
+                        if not documents:
+                            break
+                        
+                        # Process each document individually
+                        for document in documents:
+                            process_single_document(
+                                ocr_reader=ocr_reader, 
+                                invoice_extractor=invoice_extractor,
+                                config=config, 
+                                mongo_db=mongo_db, 
+                                logger=logger, 
+                                document=document
+                            )
+                            # Explicitly delete the document and trigger garbage collection
+                            del document
+                            gc.collect()
+
+                        del documents
                         gc.collect()
+                        # Clear batch from memory
 
-            finally:
-                # Always remove the lock file at the end of processing
-                remove_lock_file(config['lock_file'])
-                # Final garbage collection to release memory
-                gc.collect()
+                finally:
+                    # Ensure lock file is removed after processing ends
+                    remove_lock_file(config['lock_file'])
+                    # Perform a final garbage collection pass
+                    gc.collect()
 
 
-        elif change['operationType'] == 'update':
-            try:
-                # Process modified documents
-                doc_id = str(change['documentKey']['_id'])
-                updated_doc = mongo_db.get_document_by_id(document_id=doc_id)
+            elif change['operationType'] == 'update':
+                try:
+                    # Process modified documents
+                    doc_id = str(change['documentKey']['_id'])
+                    updated_doc = mongo_db.get_document_by_id(document_id=doc_id)
 
-                if not updated_doc:
-                    logger.warning(f"Document with ID {doc_id} not found.")
-                    continue
+                    if not updated_doc:
+                        logger.warning(f"Document with ID {doc_id} not found.")
+                        continue
 
-                # Check document properties before processing
-                if (updated_doc.get('last_modified_by') is None or 
-                        updated_doc.get('invoice_type') not in ['invoice 1', 'invoice 2']):
-                    continue
+                    # Check document properties before processing
+                    if (updated_doc.get('last_modified_by') is None or 
+                            updated_doc.get('invoice_type') not in ['invoice 1', 'invoice 2']):
+                        continue
 
-                # Define the start of the month timestamp
-                start_of_month = get_current_time(timezone=config['timezone']).replace(
-                    day=1, hour=0, minute=0, second=0, microsecond=0
-                )
-
-                # Process Invoice 1 EGW file if applicable
-                if updated_doc['invoice_type'] == "invoice 1":
-                    output_egw_file_path = get_egw_file(
-                        mongo_db=mongo_db, start_of_month=start_of_month, config=config, logger=logger
+                    # Define the start of the month timestamp
+                    start_of_month = get_current_time(timezone=config['timezone']).replace(
+                        day=1, hour=0, minute=0, second=0, microsecond=0
                     )
 
-                # Process Excel files for paired invoices
-                employee_expense_report_path, output_2_excel = get_excel_files(
-                    mongo_db=mongo_db, start_of_month=start_of_month, updated_doc=updated_doc, logger=logger
-                )
+                    # Process Invoice 1 EGW file if applicable
+                    if updated_doc['invoice_type'] == "invoice 1":
+                        output_egw_file_path = get_egw_file(
+                            mongo_db=mongo_db, start_of_month=start_of_month, config=config, logger=logger
+                        )
 
-                # Send email with attachments if any
-                attachment_paths = [employee_expense_report_path, output_2_excel, output_egw_file_path]
-                if attachment_paths:
-                    email_sender.send_email(
-                        email_type='send_excel',
-                        receivers=None,
-                        attachment_paths=attachment_paths
+                    # Process Excel files for paired invoices
+                    employee_expense_report_path, output_2_excel = get_excel_files(
+                        mongo_db=mongo_db, start_of_month=start_of_month, updated_doc=updated_doc, logger=logger
                     )
-                    logger.debug(f"Sent email with attachments: {attachment_paths}")
-                else:
-                    logger.info("No attachments to send for this update.")
 
-            except Exception as e:
-                logger.error(f"Error in change stream processing: {e}")
+                    # Send email with attachments if any
+                    attachment_paths = [employee_expense_report_path, output_2_excel, output_egw_file_path]
+                    if attachment_paths:
+                        email_sender.send_email(
+                            email_type='send_excel',
+                            receivers=None,
+                            attachment_paths=attachment_paths
+                        )
+                        logger.debug(f"Sent email with attachments: {attachment_paths}")
+                    else:
+                        logger.info("No attachments to send for this update.")
 
+                except Exception as e:
+                    logger.error(f"Error in change stream processing: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
-    global change_stream, change_stream_thread
-    change_stream = mongo_db.start_change_stream()
-    change_stream_thread = threading.Thread(target=process_change_stream, 
-                                            args=(config,))
+    # Set up the change stream processing thread within the lifespan
+    change_stream_thread = threading.Thread(
+        target=process_change_stream,
+        args=(config,),
+        daemon=True  # Daemon thread so it terminates when the main program ends
+    )
+    
+    # Start the thread when the app starts up
     change_stream_thread.start()
     
-    yield  # This is where the FastAPI app runs
-    
-    # Shutdown
-    if change_stream:
-        change_stream.close()
-    if change_stream_thread:
-        change_stream_thread.join()
+    yield  # FastAPI continues running here
+
+    # Cleanup: Wait for the change stream thread to complete
+    if change_stream_thread.is_alive():
+        change_stream_thread.join(timeout=5)  # Join with timeout to prevent indefinite wait
 
 app = FastAPI(lifespan=lifespan)
 
