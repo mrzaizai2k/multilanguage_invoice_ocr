@@ -61,7 +61,7 @@ email_sender = EmailSender(config=config, logger=logger)
 max_files_per_min = config['rate_limit']['max_files_per_min']
 rate_limiter = RateLimiter(max_files_per_min)
 
-
+remove_lock_file(config['lock_file'])
 
 def process_change_stream(config):
     global change_stream
