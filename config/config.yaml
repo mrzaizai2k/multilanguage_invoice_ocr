@@ -83,6 +83,7 @@ excel:
 
 egw:
   output_path: output
+  category_matching_thresh: 0.6
 
 
   

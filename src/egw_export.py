@@ -86,7 +86,7 @@ def calculate_similarity(a: str, b: str) -> float:
     """
     return SequenceMatcher(None, a, b).ratio()
 
-def handle_kategorie(invoice_info: dict, line: dict, threshold: float = 0.7) -> str:
+def handle_kategorie(invoice_info: dict, line: dict, threshold: float = 0.6) -> str:
     """
     Determine 'Kategorie' based on 'is_without_measuring_technology' and 'description'.
     If 'description' closely matches "reisezeit auftrag" based on the similarity threshold, 
@@ -132,7 +132,8 @@ def export_egw_file(config: dict, invoice_lists: list) -> str:
         for line in invoice_info["lines"]:
             title = handle_title(invoice_info, line)
             dauer = handle_dauer(line)
-            kategorie = handle_kategorie(invoice_info, line)  # Now passing `line` for description check
+            kategorie = handle_kategorie(invoice_info, line, 
+                                         threshold=config['category_matching_thresh'])  # Now passing `line` for description check
             
             row = {
                 "Stundenzettel ID": None,
