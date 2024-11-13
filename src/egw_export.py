@@ -4,6 +4,7 @@ sys.path.append("")
 import os
 import pandas as pd
 from datetime import datetime, timedelta
+from difflib import SequenceMatcher
 from src.Utils.utils import convert_datetime_to_string
 
 def create_egw_filename() -> str:
@@ -14,11 +15,21 @@ def create_egw_filename() -> str:
     filename = f"egw_export_timesheet-{current_date}.csv"
     return filename
 
-def handle_project_and_title(invoice_info: dict) -> str:
+def handle_project(invoice_info: dict) -> str:
     """
     Create the 'Projekt' and 'Titel' content as '<project_number>: <customer>'.
     """
     return f"{invoice_info['project_number']}: {invoice_info['customer']}"
+
+def handle_title(invoice_info: dict, line: dict) -> str:
+    """
+    Create 'Titel' content based on the line's description.
+    If the description is not None and not an empty string, use it as the title.
+    Otherwise, fall back to the project content.
+    """
+    description = line.get("description")
+    return description if description else handle_project(invoice_info)
+
 
 def handle_start(line: dict) -> str:
     """
@@ -67,10 +78,26 @@ def handle_besitzer(invoice_info: dict) -> str:
     """
     return invoice_info["name"]
 
-def handle_kategorie(invoice_info: dict) -> str:
+
+def calculate_similarity(a: str, b: str) -> float:
     """
-    Determine 'Kategorie' based on 'is_without_measuring_technology'.
+    Calculate the similarity ratio between two strings using Levenshtein distance.
+    Returns a ratio between 0 and 1.
     """
+    return SequenceMatcher(None, a, b).ratio()
+
+def handle_kategorie(invoice_info: dict, line: dict, threshold: float = 0.7) -> str:
+    """
+    Determine 'Kategorie' based on 'is_without_measuring_technology' and 'description'.
+    If 'description' closely matches "reisezeit auftrag" based on the similarity threshold, 
+    return "Reisezeit Auftrag".
+    """
+    description = line.get("description", "").lower()
+    target_phrases = ["reisezeit", "auftrag"]
+    
+    if any(calculate_similarity(word, description) >= threshold for word in target_phrases):
+        return "Reisezeit Auftrag"
+    
     return (
         "Auftragsarbeit ohne Messtechnik" 
         if invoice_info.get("is_without_measuring_technology", False)
@@ -86,10 +113,9 @@ def export_egw_file(config: dict, invoice_lists: list) -> str:
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     
-    # Prepare the filename and output path
+    # Generate filename and path for the output file
     file_name = create_egw_filename()
     output_egw_file_path = f"{output_path}/{file_name}"
-    
     
     # List to store all rows for DataFrame creation
     rows = []
@@ -97,20 +123,21 @@ def export_egw_file(config: dict, invoice_lists: list) -> str:
     # Process each invoice in invoice_lists once
     for invoice in invoice_lists:
         invoice_info = convert_datetime_to_string(invoice['invoice_info'])
-        # invoice_info = invoice["invoice_info"]
         
         # Shared fields
-        project_and_title = handle_project_and_title(invoice_info)
+        project = handle_project(invoice_info)
         besitzer = handle_besitzer(invoice_info)
-        kategorie = handle_kategorie(invoice_info)
         
         # Process each line and add the structured data to rows
         for line in invoice_info["lines"]:
+            title = handle_title(invoice_info, line)
             dauer = handle_dauer(line)
+            kategorie = handle_kategorie(invoice_info, line)  # Now passing `line` for description check
+            
             row = {
                 "Stundenzettel ID": None,
-                "Projekt": project_and_title,
-                "Titel": project_and_title,
+                "Projekt": project,
+                "Titel": title,
                 "Kategorie": kategorie,
                 "Beschreibung": None,
                 "Start": handle_start(line),
@@ -130,7 +157,7 @@ def export_egw_file(config: dict, invoice_lists: list) -> str:
     df = df.drop_duplicates()
     
     # Save to CSV
-    df.to_csv(output_egw_file_path, index=False, sep=";")
+    df.to_csv(output_egw_file_path, index=False)
     
     print(f"File saved as {output_egw_file_path}")
     return output_egw_file_path

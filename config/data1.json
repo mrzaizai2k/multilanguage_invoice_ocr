@@ -12,7 +12,6 @@
                 "start_time": "06:00:00",
                 "end_time": "19:00:00",
                 "break_time": 0.5,
-                "description": "BS - S2 - Support",
                 "has_customer_signature": true
             },
             {
@@ -20,7 +19,6 @@
                 "start_time": "07:00:00",
                 "end_time": "24:00:00",
                 "break_time": 0.5,
-                "description": "S2 - BS - Support",
                 "has_customer_signature": false
             },
             {
@@ -28,7 +26,7 @@
                 "start_time": "07:00:00",
                 "end_time": "20:00:00",
                 "break_time": 0.5,
-                "description": "BS - S2 - Support",
+                "description": "reservation",
                 "has_customer_signature": false
             },
             {
@@ -36,7 +34,7 @@
                 "start_time": "07:00:00",
                 "end_time": "20:00:00",
                 "break_time": 0.5,
-                "description": "S2 - BS - Support",
+                "description": "invitation ",
                 "has_customer_signature": false
             },
             {
@@ -44,7 +42,15 @@
                 "start_time": "06:00:00",
                 "end_time": "16:00:00",
                 "break_time": 0.5,
-                "description": "BS - S2 - Support",
+                "description": "reisezeit ",
+                "has_customer_signature": false
+            },
+            {
+                "date": "2024-08-11",
+                "start_time": "06:00:00",
+                "end_time": "16:00:00",
+                "break_time": 0.5,
+                "description": "reisezeit autfrag",
                 "has_customer_signature": false
             }
         ],
