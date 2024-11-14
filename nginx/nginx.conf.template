@@ -33,5 +33,41 @@ http {
         }
     }
 
-    
+    # HTTPS server
+    server {
+        listen 443 ssl;
+        server_name mrzaizai2k.xyz;
+
+        # SSL configuration
+        ssl_certificate /etc/letsencrypt/live/mrzaizai2k.xyz/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/mrzaizai2k.xyz/privkey.pem;
+        ssl_trusted_certificate /etc/letsencrypt/live/mrzaizai2k.xyz/chain.pem;
+
+        # Frontend
+        location / {
+            proxy_pass http://jwt-frontend:3000/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        # Backend API
+        location /api/ {
+            proxy_pass http://fastapi-app:8149/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_read_timeout 300s;
+            proxy_connect_timeout 75s;
+        }
+
+        # MongoDB
+        location /mongo/ {
+            proxy_pass http://mongodb:27017/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
 }
