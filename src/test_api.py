@@ -2,6 +2,9 @@ import sys
 sys.path.append("") 
 
 import requests
+
+import os
+import random
 from typing import Literal, Optional
 from src.Utils.utils import *
 from dotenv import load_dotenv
@@ -158,32 +161,55 @@ def test_get_frontend_defines(root_url):
         print(f"Failed to retrieve frontend defines: {response.status_code} - {response.text}")
 
 
+def upload_many_files(folder_path: str, user_uuid: str, number_of_images: int):
+    # Get a list of all files in the folder
+    all_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+    
+    # Ensure we do not request more images than available in the folder
+    if number_of_images > len(all_files):
+        print(f"Warning: Only {len(all_files)} images available, will upload all.")
+        number_of_images = len(all_files)
+    
+    # Randomly select images to upload
+    selected_files = random.sample(all_files, number_of_images)
+    
+    # Upload each selected file to the server
+    for file_path in selected_files:
+        file_name = os.path.basename(file_path)
+        test_upload_invoice(img_path=file_path, user_uuid=user_uuid, file_name=file_name)
+
+
+
+
 if __name__ == "__main__":
     config_path='config/config.yaml'
     config = read_config(path=config_path)
 
     SERVER_IP = "52.76.178.14"
 
-    root_url = f"https://mrzaizai2k.xyz/api" # aws
+    # root_url = f"https://mrzaizai2k.xyz/api" # aws
     # root_url = f"http://{SERVER_IP}/api" # aws
 
-    # root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
+    root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
 
 
     img_path = "test/images/007_2.png"
     user_uuid = "gauss"
     # user_uuid = "2111_1111_1111_1111"
-    invoice_uuid = "67283754c979f87afe6711f9"
+    invoice_uuid = "67334a87523c36e276c8e507"
     invoice_info = {"land": "Laos",} 
 
     # test_excel()
     file_name = os.path.basename(img_path)
 
-    # for i in range(5):
-    #     test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
+    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
 
-    # test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
-    _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='not extracted',)
+    # Example usage:
+    upload_many_files(folder_path="test/images", user_uuid="gauss", number_of_images=5)
+
+    # res, _ = test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
+    # print(res.json()["invoices"][0]['invoice_info'])
+    # _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='not extracted', limit=20)
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
     # test_get_frontend_defines(root_url=root_url)

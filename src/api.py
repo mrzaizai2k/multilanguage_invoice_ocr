@@ -61,7 +61,7 @@ email_sender = EmailSender(config=config, logger=logger)
 max_files_per_min = config['rate_limit']['max_files_per_min']
 rate_limiter = RateLimiter(max_files_per_min)
 
-remove_lock_file(config['lock_file'])
+# remove_lock_file(config['lock_file'])
 def process_change_stream(config):
     # Use local variables for change stream and avoid using global state
     with mongo_db.start_change_stream() as change_stream:
@@ -69,47 +69,48 @@ def process_change_stream(config):
         # Loop over the change stream events
         for change in change_stream:
             if change['operationType'] == 'insert':
-                if is_another_instance_running(config['lock_file']):
-                    continue  # Skip processing if another instance is running
+                # if is_another_instance_running(config['lock_file']):
+                #     continue  # Skip processing if another instance is running
 
                 # Create a lock file to signal that processing has started
-                create_lock_file(config['lock_file'])
+                # create_lock_file(config['lock_file'])
 
                 try:
                     # Start batch processing
-                    while True:
-                        # Retrieve the next batch of documents
-                        documents, _ = mongo_db.get_documents(filters={"status": "not extracted"}, limit=3)
-                        
-                        # If no more documents, exit the loop and send email once all are processed
-                        if not documents:
-                            break
-                        
-                        # Process each document individually
-                        for document in documents:
-                            process_single_document(
-                                ocr_reader=ocr_reader, 
-                                invoice_extractor=invoice_extractor,
-                                config=config, 
-                                mongo_db=mongo_db, 
-                                logger=logger, 
-                                document=document
-                            )
-                            # Explicitly delete the document and trigger garbage collection
-                            del document
-                            gc.collect()
-
-                        del documents
+                    # while True:
+                    # Retrieve the next batch of documents
+                    documents, _ = mongo_db.get_documents(filters={"status": "not extracted"})
+                    
+                    # If no more documents, exit the loop and send email once all are processed
+                    if not documents:
+                        # remove_lock_file(config['lock_file'])
+                        break
+                    
+                    # Process each document individually
+                    for document in documents:
+                        process_single_document(
+                            ocr_reader=ocr_reader, 
+                            invoice_extractor=invoice_extractor,
+                            config=config, 
+                            mongo_db=mongo_db, 
+                            logger=logger, 
+                            document=document
+                        )
+                        # Explicitly delete the document and trigger garbage collection
+                        del document
                         gc.collect()
+
+                    del documents
+                    gc.collect()
                         # Clear batch from memory
 
                 finally:
                     # Ensure lock file is removed after processing ends
-                    remove_lock_file(config['lock_file'])
+                    # remove_lock_file(config['lock_file'])
                     # Perform a final garbage collection pass
                     gc.collect()
 
-
+ 
             elif change['operationType'] == 'update':
                 try:
                     # Process modified documents
