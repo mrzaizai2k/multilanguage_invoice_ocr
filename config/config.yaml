@@ -48,7 +48,7 @@ invoice_txt_template:
   invoice 1: config/invoice_1_text_template.txt
   invoice 2: config/invoice_2_text_template.txt
 
-invoice_txt_template_thresh: 0.25
+invoice_txt_template_thresh: 0.2
 
 timezone: Europe/Berlin
 currencies_path: config/currencies.txt
