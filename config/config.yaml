@@ -48,7 +48,7 @@ invoice_txt_template:
   invoice 1: config/invoice_1_text_template.txt
   invoice 2: config/invoice_2_text_template.txt
 
-invoice_txt_template_thresh: 0.3
+invoice_txt_template_thresh: 0.25
 
 timezone: Europe/Berlin
 currencies_path: config/currencies.txt
@@ -75,7 +75,7 @@ excel:
     FORMAT_NUMBER: '_-* #,##0.00\ "€"_-;\-* #,##0.00\ "€"_-;_-* "-"??\ "€"_-;_-@_-'
 
   employee_name:
-    excel_file_path: config/user_template.xlsm
+    excel_file_path: config/1.4437_10578_A3DS GmbH_04_2024 .xlsm
     sheet_name: April 24_0
     nachname_key: 'nachname'
     vorname_key: 'vorname'
