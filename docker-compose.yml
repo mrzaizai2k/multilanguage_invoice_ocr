@@ -76,13 +76,14 @@ services:
     environment:
     - REACT_APP_SERVER_IP=${SERVER_IP}
     
-
   nginx:
     build:
       context: ./nginx
     container_name: nginx
     volumes:
-      - ./nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+      # Remove the dynamic path in volume mounting
+      - ./nginx/dev/nginx.conf.template:/etc/nginx/dev/nginx.conf.template:ro
+      - ./nginx/prod/nginx.conf.template:/etc/nginx/prod/nginx.conf.template:ro
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     ports:
@@ -97,8 +98,11 @@ services:
     environment:
       - CLIENT_MAX_BODY_SIZE=${CLIENT_MAX_BODY_SIZE}
       - SERVER_IP=${SERVER_IP}
-      - DOMAIN_NAME=${DOMAIN_NAME}
+      - DEBUG=${DEBUG:-false}
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+
+
 
   certbot:
     image: certbot/certbot

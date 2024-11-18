@@ -11,6 +11,7 @@ This document provides step-by-step instructions to set up the Multilanguage Inv
     - [4. Optional: Add user to Docker group](#4-optional-add-your-user-to-the-docker-group)
     - [5. Verify Docker Installation](#5-verify-docker-installation)
     - [6. Reboot the EC2 instance](#6-reboot-the-ec2-instance-optional)
+    - [7. Using bash scripts (optional)](#7-using-bash-scripts-optional)
 3. [Clone Code, Setup .env File, and Run](#clone-code-setup-env-file-and-run)
 4. [SSH to EC2 instance](#ssh-to-ec2-instance)
 
@@ -122,6 +123,13 @@ If necessary, reboot your EC2 instance:
 sudo reboot
 ```
 
+### 7. Using bash scripts (optional)
+You can do all the commands above by running bash script
+```bash
+chmod +x ./scripts/setup-docker.sh
+./scripts/setup-docker.sh
+```
+
 ---
 
 ## Clone Code, Setup .env File, and Run
@@ -149,7 +157,8 @@ SECRET_KEY=
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 CLIENT_MAX_BODY_SIZE=5M
-SERVER_IP=
+SERVER_IP= # Can be public IP or domain name like xyz.com
+DEBUG=True # Debuf True will use nginx config in dev folder, True/False
 ```
 
 #### Explanation:
