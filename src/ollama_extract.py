@@ -1,3 +1,6 @@
+import sys
+sys.path.append("") 
+
 from llama_index.multi_modal_llms.ollama import OllamaMultiModal
 # from pathlib import Path
 # from llama_index.core import Document
@@ -9,6 +12,7 @@ from llama_index.core.output_parsers import PydanticOutputParser
 # import base64
 # import io
 from llama_index.core import SimpleDirectoryReader
+from src.Utils.utils import read_txt_file
 
 # Define the path to your local image
 local_image_path = ["test/images/fr_1.png"]
@@ -16,7 +20,7 @@ local_image_path = ["test/images/fr_1.png"]
 image_documents = SimpleDirectoryReader(input_files = local_image_path).load_data()
 
 # Initialize the multi-modal model
-mm_model = OllamaMultiModal(model="llava-llama3", request_timeout=60)
+mm_model = OllamaMultiModal(model="llama3.2-vision", request_timeout=60)
 
 
 class VatItem(BaseModel):
@@ -103,33 +107,58 @@ print(response)
 def test_ollama():
     import base64
     import requests
+    import json
 
     def send_image_to_ollama(image_path):
         # Read the image from the local path and convert it to base64
+        text = "Géant Casino Annecy Welcome to our Caisse014 Date28/06/28 store, your store welcomes you Monday to Saturday from 8:30 a.m. to 9:30 pm Tel.04.50.88.20.00 Glasses 22.00e Hats 10.00e = Total (2) 32.00E CB EMV 32.00E you had the loyalty card, you would have accumulated 11SMILES Cashier000148/Time 17:46:26 Ticket number: 000130 Speed, comfort of purchase bude and controlled.. Scan'Express is waiting for you!!! Thank you for your visit See you soon"
+        invoice_template = read_txt_file("config/invoice_3_template.txt")
         with open(image_path, "rb") as image_file:
             encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
         # Prepare the data for the API request
         data = {
-            "model": "llama3.1:8b",
+            "model": "llama3.2-vision",
             "messages": [
                 {
                     "role": "user",
-                    "content": "what is in this image?",
+                    "content": f""" You are a helpful assistant that responds in JSON format with the invoice information in English. 
+                            Don't add any annotations there. Remember to close any bracket. And just output the field that has value, 
+                            don't return field that are empty. number, price and amount should be number, date should be convert to dd/mm/yyyy, 
+                            time should be convert to HH:mm:ss, currency should be 3 chracters like VND, USD, EUR.
+                            Use the text from the model response and the text from OCR. Return the key names as in the template is a MUST.
+                            USe the image and the text from OCR, Describe what's in the image. 
+                            The ocr text is: {text}. export the text as this template: {invoice_template}""",
                     "images": [encoded_image]
                 }
             ]
         }
 
-        # Send the request to the Ollama API
-        response = requests.post("http://localhost:11434/api/chat", json=data)
+        # Send the request to the Ollama API and stream the response
+        response = requests.post(
+            "http://localhost:11434/api/chat", 
+            json=data, 
+            stream=True
+        )
 
-        # Print the response from the API
-        print(response.text)
+        # Collect the content from the streaming response
+        final_text = ""
+        for line in response.iter_lines():
+            if line:  # Avoid empty lines
+                message = json.loads(line.decode('utf-8'))
+                if "message" in message and "content" in message["message"]:
+                    final_text += message["message"]["content"]
+                if message.get("done", False):  # Stop when "done" is True
+                    break
 
-    # Usage example
-    image_path = "test/images/fr_1.png"  # Replace with the actual path to your image
-    send_image_to_ollama(image_path)
+        return final_text
+
+    # Example usage
+    image_path = "test/images/fr_1.png"
+    result = send_image_to_ollama(image_path)
+    print("Final Text:", result)
 
 ######################
 
+if __name__=="__main__":
+    test_ollama()
