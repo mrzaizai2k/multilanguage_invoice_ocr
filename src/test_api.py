@@ -193,23 +193,23 @@ if __name__ == "__main__":
     root_url = f"http://{config['IES_host']}:{config['IES_port']}" #localhost
 
 
-    img_path = "test/images/007_2.png"
+    img_path = "test/images/1_1.jpg"
     user_uuid = "gauss"
     # user_uuid = "2111_1111_1111_1111"
-    invoice_uuid = "67334a87523c36e276c8e507"
+    invoice_uuid = "673984b99476e17028e485ad"
     invoice_info = {"land": "Laos",} 
 
     # test_excel()
     file_name = os.path.basename(img_path)
 
-    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
+    test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
 
     # Example usage:
-    upload_many_files(folder_path="test/images", user_uuid="gauss", number_of_images=5)
+    # upload_many_files(folder_path="test/images", user_uuid="gauss", number_of_images=5)
 
     # res, _ = test_get_invoices(user_uuid=user_uuid, invoice_type=None, created_at='desc', invoice_uuid=invoice_uuid)
     # print(res.json()["invoices"][0]['invoice_info'])
-    # _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='not extracted', limit=20)
+    # _, invoice_ids = test_get_invoices(user_uuid=None, invoice_type=None, created_at='desc', invoice_status='completed', limit=30)
     # test_modify_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid, new_invoice_info=invoice_info)
     # test_delete_invoice(invoice_uuid=invoice_uuid, user_uuid=user_uuid)
     # test_get_frontend_defines(root_url=root_url)

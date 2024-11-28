@@ -63,6 +63,15 @@ For LDAP authentication using FastAPI, explore the following resources:
 ## Set up Ollama
 
 - ollama: https://ollama.com/blog/ollama-is-now-available-as-an-official-docker-image
+- ollama github: https://github.com/ollama/ollama
+
+1. To install Ollama on docker: follow the instruction here based on your hardware (the OS asn CPU or GPU): https://ollama.com/blog/ollama-is-now-available-as-an-official-docker-image
+2. Run this command to download the model
+``` bash
+docker exec -it ollama ollama run llama3.1:8b
+```
+
+- All the models available [here](https://ollama.com/search)
 
 
 ## Illegal instruction using lang ch in Paddle
