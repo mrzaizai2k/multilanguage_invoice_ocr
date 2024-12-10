@@ -25,8 +25,7 @@ from src.ldap_authen import (User, get_current_user, ldap_authen,
                              Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
                              valid_base64_image, convert_datetime_to_iso, convert_iso_to_string,
-                             get_land_and_city_list, get_currencies_from_txt, is_another_instance_running, 
-                             create_lock_file, remove_lock_file)
+                             get_land_and_city_list, get_currencies_from_txt)
 from src.invoice_extraction import validate_invoice
 from src.Utils.logger import create_logger
 from src.mail import EmailSender

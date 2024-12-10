@@ -182,8 +182,8 @@ def flatten_dict(d, parent_key='', sep='_'):
             items.append((new_key, v))
     return dict(items)
 
-def rotate_image(image, angle):
-    return image.rotate(angle, expand=True)
+# def rotate_image(image, angle):
+#     return image.rotate(angle, expand=True)
 
 def create_thumbnail(image, size=(500, 500)):
     thumbnail = image.copy()
