@@ -203,7 +203,7 @@ Because each instance running will have a different IP address, elastic IP help 
 - 
 
 ```
-./init-letsencrypt.sh
+./scripts/init-letsencrypt.sh
 docker compose up -d
 ```
 Then check if cert is downloaded in nginx docker
