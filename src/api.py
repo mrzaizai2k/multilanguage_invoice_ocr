@@ -25,8 +25,7 @@ from src.ldap_authen import (User, get_current_user, ldap_authen,
                              Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
                              valid_base64_image, convert_datetime_to_iso, convert_iso_to_string,
-                             get_land_and_city_list, get_currencies_from_txt, is_another_instance_running, 
-                             create_lock_file, remove_lock_file)
+                             get_land_and_city_list, get_currencies_from_txt, debounce)
 from src.invoice_extraction import validate_invoice
 from src.Utils.logger import create_logger
 from src.mail import EmailSender
@@ -61,28 +60,74 @@ email_sender = EmailSender(config=config, logger=logger)
 max_files_per_min = config['rate_limit']['max_files_per_min']
 rate_limiter = RateLimiter(max_files_per_min)
 
+
+def generate_and_send_files():
+    """Generate EGW and Excel files for the month and send an email, but only if all files are processed."""
+    # Check if any documents remain with status "not extracted"
+    documents, _ = mongo_db.get_documents(filters={"status": "not extracted"})
+    if len(documents) > 0:
+        logger.debug(f"Skipping file generation: {len(documents)} documents still 'not extracted'.")
+        return
+
+    try:
+        # Get the start of the current month
+        start_of_month = get_current_time(timezone=config['timezone']).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+
+        # Generate EGW file for all 'invoice 1' documents in the month
+        output_egw_file_path = get_egw_file(
+            mongo_db=mongo_db, start_of_month=start_of_month, config=config, logger=logger
+        )
+
+        # Generate Excel files for all relevant documents in the month
+        employee_expense_report_path, output_2_excel = get_excel_files(
+            mongo_db=mongo_db, start_of_month=start_of_month, logger=logger
+        )
+
+        # Prepare attachments, filtering out None values
+        attachment_paths = [
+            path for path in [employee_expense_report_path, output_2_excel, output_egw_file_path]
+            if path is not None
+        ]
+
+        if attachment_paths:
+            email_sender.send_email(
+                email_type='send_excel',
+                receivers=None,
+                attachment_paths=attachment_paths
+            )
+            logger.debug(f"Sent email with attachments: {attachment_paths}")
+        else:
+            logger.info("No attachments generated for this month.")
+
+    except Exception as e:
+        logger.error(f"Error in generate_and_send_files: {e}")
+
+
+# Debounce times in milliseconds
+debounced_insert_generate_and_send = debounce(generate_and_send_files, config['debounce_time']['insert'])  # 10 seconds
+debounced_update_generate_and_send = debounce(generate_and_send_files, config['debounce_time']['update'])  # 60 seconds
+
 def process_change_stream(config):
-    # Use local variables for change stream and avoid using global state
     with mongo_db.start_change_stream() as change_stream:
-        
-        # Loop over the change stream events
         for change in change_stream:
             if change['operationType'] == 'insert':
-
                 try:
+                    # Fetch up to 10 documents with status "not extracted"
                     documents, _ = mongo_db.get_documents(filters={"status": "not extracted"}, limit=10)
                     
                     if not documents:
                         continue
                     
-                    # Process each document individually
+                    # Process each document in the batch
                     for document in documents:
                         process_single_document(
-                            ocr_reader=ocr_reader, 
+                            ocr_reader=ocr_reader,
                             invoice_extractor=invoice_extractor,
-                            config=config, 
-                            mongo_db=mongo_db, 
-                            logger=logger, 
+                            config=config,
+                            mongo_db=mongo_db,
+                            logger=logger,
                             document=document
                         )
                         del document
@@ -91,57 +136,20 @@ def process_change_stream(config):
                     del documents
                     gc.collect()
 
+                    # Trigger debounced file generation for insert (10s delay)
+                    debounced_insert_generate_and_send()
+
                 except Exception as e:
-                    msg=f"Error on extracting invoice: {e}"
-                    logger.debug(msg=msg)
+                    logger.debug(f"Error on extracting invoice: {e}")
                     gc.collect()
 
- 
             elif change['operationType'] == 'update':
                 try:
-                    # Process modified documents
-                    doc_id = str(change['documentKey']['_id'])
-                    updated_doc = mongo_db.get_document_by_id(document_id=doc_id)
-
-                    if not updated_doc:
-                        logger.warning(f"Document with ID {doc_id} not found.")
-                        continue
-
-                    # Check document properties before processing
-                    if (updated_doc.get('last_modified_by') is None or 
-                            updated_doc.get('invoice_type') not in ['invoice 1', 'invoice 2']):
-                        continue
-
-                    # Define the start of the month timestamp
-                    start_of_month = get_current_time(timezone=config['timezone']).replace(
-                        day=1, hour=0, minute=0, second=0, microsecond=0
-                    )
-
-                    # Process Invoice 1 EGW file if applicable
-                    if updated_doc['invoice_type'] == "invoice 1":
-                        output_egw_file_path = get_egw_file(
-                            mongo_db=mongo_db, start_of_month=start_of_month, config=config, logger=logger
-                        )
-
-                    # Process Excel files for paired invoices
-                    employee_expense_report_path, output_2_excel = get_excel_files(
-                        mongo_db=mongo_db, start_of_month=start_of_month, updated_doc=updated_doc, logger=logger
-                    )
-
-                    # Send email with attachments if any
-                    attachment_paths = [employee_expense_report_path, output_2_excel, output_egw_file_path]
-                    if attachment_paths:
-                        email_sender.send_email(
-                            email_type='send_excel',
-                            receivers=None,
-                            attachment_paths=attachment_paths
-                        )
-                        logger.debug(f"Sent email with attachments: {attachment_paths}")
-                    else:
-                        logger.info("No attachments to send for this update.")
+                    # Trigger debounced file generation for update (60s delay)
+                    debounced_update_generate_and_send()
 
                 except Exception as e:
-                    logger.error(f"Error in change stream processing: {e}")
+                    logger.error(f"Error in update processing: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

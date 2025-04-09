@@ -23,6 +23,9 @@ llm_extract:
     top_p: 0.8
     top_k: 20
 
+debounce_time:
+  insert: 10000
+  update: 60000
 
 postprocessing:
   model_name: llama3.1:8b
@@ -93,7 +96,7 @@ mail:
   receivers: # For demo only
     - mrzaizai2k@gmail.com
     - chibao24.12.1999@gmail.com
-    - alexander.brosinger@gmail.com
+    # - alexander.brosinger@gmail.com
 
   modify_invoice_remind:
     subject: "[No Reply - Done extracting Invoice Information]"

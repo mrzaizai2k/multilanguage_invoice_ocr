@@ -100,25 +100,28 @@ def validate_city(city_text: str, config:dict) -> str:
     return city
 
 def check_file_name(file_name: str, invoice_data: dict) -> dict:
-    """Check file name for invoice 1 and 2 to extract project_number, kunde and name
+    """Check file name for invoice 1 and 2 to extract project_number, kunde, name and optional kw
     ex: Ford_EEE_Filip_Witkowski_V230109 -> <customer>_EEE_<vorname>_<name>_<project_number>
+    or: ZEISS_EEE_Filip_Witkowski_V250036_KW7 -> <customer>_EEE_<vorname>_<name>_<project_number>_KW<kw>
     """
     if not file_name:
         return invoice_data
     
     base_name = file_name.rsplit('.', 1)[0]  # Splits only once from the right
-    
     parts = base_name.split("_")
     
-    # Check if the file name format is correct
-    if not len(parts) == 5:
+    # Check if the file name format is correct (5 or 6 parts)
+    if len(parts) not in (5, 6):
         return invoice_data
     
-    customer, label, vorname, name, project_number = parts        
+    customer, label, vorname, name, project_number = parts[:5]  # Take first 5 parts
+    kw = parts[5][2:] if len(parts) == 6 and parts[5].lower().startswith("kw") else invoice_data['invoice_info'].get("kw")  # Extract number after "kw" (case-insensitive) if present        
     # Populate extracted values in the invoice_data dictionary
     invoice_data['invoice_info']["customer"] = customer
-    invoice_data['invoice_info']["name"] = str(name) + " " + str(vorname) 
+    invoice_data['invoice_info']["name"] = f"{name} {vorname}"
     invoice_data['invoice_info']["project_number"] = project_number
+    invoice_data['invoice_info']["kw"] = kw
+    print("invoice_data", invoice_data)
 
     return invoice_data
 
@@ -677,6 +680,7 @@ if __name__ == "__main__":
             'sign_date': '13/08/2024',
             'has_employee_signature': True, 
             "file_name": "Ford_EEE_Filip_Wikos_V230109.pdf"
+            # "file_name": "ZEISS_EEE_Filip_Witkowski_V250036_KW7.pdf"
         }
     }
     data2 = {
