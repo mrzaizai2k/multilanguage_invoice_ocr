@@ -60,6 +60,8 @@ frontend_fields_define_path: config/frontend_fields_define.json
 country_and_city:
   file_path: config/travel_expenses-2024.xlsx
   sheet_name: Table 1 
+  land_text_default: Deutschland
+  city_text_default: Other
 
 
 excel:

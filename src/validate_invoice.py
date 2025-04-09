@@ -74,28 +74,36 @@ def validate_currency(currency_text: str, config:dict) -> str:
     return currency
 
 def validate_land(land_text: str, config:dict) -> str:
+    land_text_default = config["country_and_city"]["land_text_default"]
     if not land_text or land_text =="":
-        return ""
+        return land_text_default
     
-    lands, cities = get_land_and_city_list(file_path=config['country_and_city']['file_path'],
+    if land_text.lower().strip() == "de":
+        return land_text_default
+    
+    lands, _ = get_land_and_city_list(file_path=config['country_and_city']['file_path'],
                                                   sheet_name=config['country_and_city']['sheet_name'])
     
-    best_idx, land, best_score = find_best_match_fuzzy(string_list=lands, text=land_text)
+    _, land, best_score = find_best_match_fuzzy(string_list=lands, text=land_text)
     # Return the best matching currency or the original currency if no match is found
+    if best_score <= 20:
+        return land_text_default
     return land
 
 
 def validate_city(city_text: str, config:dict) -> str:
+    city_text_default = config["country_and_city"]["city_text_default"]
+
     if not city_text or city_text =="":
-        return "Other"
+        return city_text_default
     
-    lands, cities = get_land_and_city_list(file_path=config['country_and_city']['file_path'],
+    _, cities = get_land_and_city_list(file_path=config['country_and_city']['file_path'],
                                                   sheet_name=config['country_and_city']['sheet_name'])
     
-    best_idx, city, best_score = find_best_match_fuzzy(string_list=cities, text=city_text)
+    _, city, best_score = find_best_match_fuzzy(string_list=cities, text=city_text)
     # Return the best matching currency or the original currency if no match is found
     if best_score <= 50:
-        return "Other"
+        return city_text_default
     
     return city
 
@@ -655,7 +663,7 @@ if __name__ == "__main__":
             'customer': 'Magua',
             'city': 'Othe',
             'kw': " V12",
-            'land': 'Vietna',
+            'land': 'VietNa',
             'lines': [
                 {
                     'date': None,
