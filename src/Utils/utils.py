@@ -21,6 +21,7 @@ from collections import Counter
 from io import BytesIO
 import openpyxl
 from fuzzywuzzy import fuzz
+from threading import Timer
 from collections import defaultdict
 from dotenv import load_dotenv
 load_dotenv()
@@ -510,26 +511,35 @@ def find_best_match_fuzzy(string_list: list[str], text:str):
     original_name = string_list[best_idx]
     return best_idx, original_name, best_score
 
+
+def debounce(func, delay):
+    timer = None
+    def wrapper():
+        nonlocal timer
+        if timer is not None:
+            timer.cancel()
+        timer = Timer(delay / 1000, func)
+        timer.start()
+    return wrapper
+
 def find_pairs_of_docs(documents):
-    # Create two dictionaries to store documents by sign_date
-    invoice_1_dict = defaultdict(list)
-    invoice_2_dict = defaultdict(list)
+    # Separate invoice 1 and invoice 2 documents
+    invoice_1_docs = [doc for doc in documents if doc['invoice_type'] == "invoice 1"]
+    invoice_2_docs = [doc for doc in documents if doc['invoice_type'] == "invoice 2"]
 
-    # Populate the dictionaries
-    for doc in documents:
-        sign_date = doc['invoice_info']['sign_date']
-        if doc['invoice_type'] == 'invoice 1':
-            invoice_1_dict[sign_date].append(doc)
-        elif doc['invoice_type'] == 'invoice 2':
-            invoice_2_dict[sign_date].append(doc)
+    # Create a dictionary to store invoice 2 documents by file_name
+    invoice_2_dict = {}
+    for doc in invoice_2_docs:
+        file_name = doc['file_name']
+        if file_name not in invoice_2_dict:
+            invoice_2_dict[file_name] = doc  # Take the first invoice 2 for each file_name
 
-    # Find matching pairs
+    # Find pairs
     pairs = []
-    for sign_date, invoice_1_docs in invoice_1_dict.items():
-        if sign_date in invoice_2_dict:
-            for invoice_1 in invoice_1_docs:
-                for invoice_2 in invoice_2_dict[sign_date]:
-                    pairs.append((invoice_1, invoice_2))
+    for invoice_1 in invoice_1_docs:
+        file_name = invoice_1['file_name']
+        if file_name in invoice_2_dict:
+            pairs.append((invoice_1, invoice_2_dict[file_name]))
 
     return pairs
 

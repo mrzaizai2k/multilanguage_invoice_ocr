@@ -122,36 +122,41 @@ def export_egw_file(config: dict, invoice_lists: list) -> str:
     
     # Process each invoice in invoice_lists once
     for invoice in invoice_lists:
-        invoice_info = convert_datetime_to_string(invoice['invoice_info'])
-        
-        # Shared fields
-        project = handle_project(invoice_info)
-        besitzer = handle_besitzer(invoice_info)
-        
-        # Process each line and add the structured data to rows
-        for line in invoice_info["lines"]:
-            title = handle_title(invoice_info, line)
-            dauer = handle_dauer(line)
-            kategorie = handle_kategorie(invoice_info, line, 
-                                         threshold=config['category_matching_thresh'])  # Now passing `line` for description check
+        try:
+            invoice_info = convert_datetime_to_string(invoice['invoice_info'])
             
-            row = {
-                "Stundenzettel ID": None,
-                "Projekt": project,
-                "Titel": title,
-                "Kategorie": kategorie,
-                "Beschreibung": None,
-                "Start": handle_start(line),
-                "Dauer": dauer,
-                "Menge": handle_menge(dauer),
-                "Preis pro Einheit": None,
-                "Besitzer": besitzer,
-                "Geändert von": None,
-                "Status": None,
-                "Projectid": None,
-                "Geändert": None
-            }
-            rows.append(row)
+            # Shared fields
+            project = handle_project(invoice_info)
+            besitzer = handle_besitzer(invoice_info)
+            
+            # Process each line and add the structured data to rows
+            for line in invoice_info["lines"]:
+                title = handle_title(invoice_info, line)
+                dauer = handle_dauer(line)
+                kategorie = handle_kategorie(invoice_info, line, 
+                                             threshold=config['category_matching_thresh'])  # Now passing `line` for description check
+                
+                row = {
+                    "Stundenzettel ID": None,
+                    "Projekt": project,
+                    "Titel": title,
+                    "Kategorie": kategorie,
+                    "Beschreibung": None,
+                    "Start": handle_start(line),
+                    "Dauer": dauer,
+                    "Menge": handle_menge(dauer),
+                    "Preis pro Einheit": None,
+                    "Besitzer": besitzer,
+                    "Geändert von": None,
+                    "Status": None,
+                    "Projectid": None,
+                    "Geändert": None
+                }
+                rows.append(row)
+        
+        except Exception as e:
+            print(f"Error processing invoice with uuid {invoice.get('invoice_uuid', 'unknown')}: {e}")
+            continue  # Move to the next invoice
     
     # Create DataFrame and remove duplicates
     df = pd.DataFrame(rows)
@@ -162,7 +167,6 @@ def export_egw_file(config: dict, invoice_lists: list) -> str:
     
     print(f"File saved as {output_egw_file_path}")
     return output_egw_file_path
-
 
 if __name__ == "__main__":
     import json
@@ -184,6 +188,14 @@ if __name__ == "__main__":
     # print(invoice_1_c['invoice_info'])
     # print(invoice_1_d['invoice_info'])
     
+    # invoice_lists = []
+    # id_list =    ['67f4abd2e5a3a2552eba538f', '67f4abd2e5a3a2552eba5391', '67f4abd2e5a3a2552eba5394', '67f4ad3e3476efdb64f6ed84', '67f4ad3e3476efdb64f6ed86', '67f4ced3672e7109121b1272', '67f4d01c6b78bec5f5f07970']
+    # for id in id_list:
+    #     print('id', id)
+    #     invoice_1 = mongo_db.get_document_by_id(document_id=id)
+    #     invoice_lists.append(invoice_1)
+
+    # output_egw_file_path = export_egw_file(config['egw'], invoice_lists =invoice_lists)
     output_egw_file_path = export_egw_file(config['egw'], invoice_lists =[invoice_1_a, invoice_1_b])
     print("output_egw_file_path", output_egw_file_path)
 

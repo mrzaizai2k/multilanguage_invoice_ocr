@@ -15,7 +15,6 @@ def get_egw_file(mongo_db, start_of_month, config, logger):
     try:
         invoice_1_documents, _ = mongo_db.get_documents(
             filters={
-                "last_modified_by": {"$ne": None},
                 "last_modified_at": {"$gte": start_of_month},
                 "invoice_type": "invoice 1"
             }
@@ -37,28 +36,25 @@ def get_egw_file(mongo_db, start_of_month, config, logger):
     
     return output_egw_file_path
 
-
-def get_excel_files(mongo_db, start_of_month, updated_doc, logger):
+def get_excel_files(mongo_db, start_of_month, logger):
     employee_expense_report_path, output_2_excel = None, None
 
     try:
+        # Filter all invoice 1 and 2 documents modified in the same month
         modified_documents, _ = mongo_db.get_documents(
             filters={
-                "last_modified_by": {"$ne": None},
                 "last_modified_at": {"$gte": start_of_month},
-                "invoice_type": {"$in": ["invoice 1", "invoice 2"]},
-                "invoice_info.name": updated_doc['invoice_info']['name'],
-                "invoice_info.project_number": updated_doc['invoice_info']['project_number']
+                "invoice_type": {"$in": ["invoice 1", "invoice 2"]}
             }
         )
 
-        if not modified_documents or len(modified_documents) <= 1:
-            logger.info("Not enough modified documents to find pairs.")
+        if not modified_documents:
+            logger.info("No modified documents found for the month.")
             return employee_expense_report_path, output_2_excel
 
-        logger.info(f"Modified documents found in change streams: {len(modified_documents)}")
+        logger.info(f"Modified documents found: {len(modified_documents)}")
 
-        # Find pairs of documents
+        # Find pairs of documents based on file_name (handled in find_pairs_of_docs)
         invoice_pairs = find_pairs_of_docs(modified_documents)
         if not invoice_pairs:
             logger.info("No matching invoice pairs found.")
@@ -66,9 +62,11 @@ def get_excel_files(mongo_db, start_of_month, updated_doc, logger):
 
         # Export pairs to Excel and JSON
         logger.debug("Creating paired JSON for export.")
-        employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs=invoice_pairs, logger=logger)
+        employee_expense_report_path, output_2_excel = export_json_to_excel(
+            invoice_pairs=invoice_pairs, logger=logger
+        )
         logger.debug(f"Attachment paths: {[employee_expense_report_path, output_2_excel]}")
-        
+
     except Exception as e:
         logger.error(f"Error exporting to Excel or JSON: {e}")
 

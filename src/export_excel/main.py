@@ -15,6 +15,16 @@ def get_start_date(data):
         return lines[0]["date"]
     return None
 
+def get_end_date(data):
+    """Get end_date from invoice lines by filtering null dates, sorting, and taking the last date"""
+    lines = data["lines"]
+    if lines:
+        # Filter out null dates and sort the remaining dates
+        valid_dates = [line["date"] for line in lines if line["date"] is not None]
+        if valid_dates:
+            return sorted(valid_dates)[-1]  # Sort and take the last date
+    return None
+
 def create_filename_from_dict(invoice_1: dict) -> str:
     """
     Create a file name based on the employee's name and sign date from a Python dictionary.
@@ -23,7 +33,7 @@ def create_filename_from_dict(invoice_1: dict) -> str:
     The final filename will be in the format: "First2LettersOfFirstName+First2LettersOfLastName_mm_YY.xlsx"
     Example: if name is "Tummler Dirk" and sign_date is "2024-08-13", the result will be "TuDi_08_24.xlsx".
     
-    If sign_date is not found, it will print an error message.
+    If sign_date is not found or null, uses get_end_date. Will print an error if no valid date is found.
     """
 
     # Extract name and split into first name and last name
@@ -40,23 +50,28 @@ def create_filename_from_dict(invoice_1: dict) -> str:
         print("Error: 'name' key not found in the dictionary.")
         return None
 
-    # Extract the sign_date and format it as mm_YY
-    if 'sign_date' in invoice_1:
+    # Extract the date: use sign_date if present and not null, otherwise use get_end_date
+    if 'sign_date' in invoice_1 and invoice_1['sign_date'] is not None:
+        date_str = invoice_1['sign_date']
+    else:
+        date_str = get_end_date(invoice_1)
+    
+    if date_str:
         try:
-            date_str = invoice_1['sign_date']
             sign_date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
             month_year = sign_date.strftime("%m_%y")  # Format as mm_YY
         except ValueError as e:
-            print(f"Error: Invalid date format for sign_date '{date_str}': {e}")
+            print(f"Error: Invalid date format for date '{date_str}': {e}")
             return None
     else:
-        print("Error: 'sign_date' key not found in the dictionary.")
+        print("Error: No valid date found (sign_date is null and no valid end date available).")
         return None
 
     # Combine initials and formatted date to create the final filename
     final_filename = f"{initials}_{month_year}.xlsx"
     
     return final_filename
+
 
 def update_project(employee_expense_report_path:str, invoice_1:dict, invoice_2:dict, 
                    main_sheet_name:str, working_sheet_name:str):
@@ -82,6 +97,7 @@ def update_project(employee_expense_report_path:str, invoice_1:dict, invoice_2:d
     invoice_2['sign_date'] = get_start_date(data=invoice_1)
     update_excel(json_data=invoice_2, excel_des_path=employee_expense_report_path, 
                     sheet_name=working_sheet_name, cell='', value = 'service')
+
 
 
 def export_json_to_excel(invoice_pairs: list[tuple[dict, dict]], logger=None):
@@ -143,7 +159,6 @@ def export_json_to_excel(invoice_pairs: list[tuple[dict, dict]], logger=None):
             logger.debug(msg =msg)
     
         return None, None
-
     
 
 if __name__ == "__main__":
@@ -161,9 +176,9 @@ if __name__ == "__main__":
         invoice_2_b = json.load(file)  
 
     
-    # from src.mongo_database import MongoDatabase
-    # config_path='config/config.yaml'
-    # mongo_db = MongoDatabase(config_path=config_path)
+    from src.mongo_database import MongoDatabase
+    config_path='config/config.yaml'
+    mongo_db = MongoDatabase(config_path=config_path)
     # invoice_1 = mongo_db.get_document_by_id(document_id='6702803020af02d7f38e4238')
     # invoice_2 = mongo_db.get_document_by_id(document_id='67028a752d2ad07517a0c286')
     # print(invoice_1['invoice_type'])
@@ -171,8 +186,32 @@ if __name__ == "__main__":
 
     # print(invoice_1['invoice_info'])
     # print(invoice_2['invoice_info'])
-    
-    for i in range(2):
-        employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2), (invoice_1_b, invoice_2_b)],)
+
+    from src.Utils.utils import find_pairs_of_docs, get_current_time
+
+    start_of_month = get_current_time(timezone="Europe/Berlin").replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+
+
+    modified_documents, _ = mongo_db.get_documents(
+            filters={
+                "last_modified_at": {"$gte": start_of_month},
+                "invoice_type": {"$in": ["invoice 1", "invoice 2"]}
+            }
+        )
+
+
+    invoice_pairs = find_pairs_of_docs(modified_documents)
+    print('invoice_pairs', len(invoice_pairs))
+    for pair in invoice_pairs:
+        invoice = pair[0]
+        print("uuid", invoice["invoice_uuid"])
+
+    for i in range(len(invoice_pairs)):
+        employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[invoice_pairs[i]],)
         print("employee_expense_report_path, output_2_excel", employee_expense_report_path, output_2_excel)
 
+    # for i in range(2):
+    #     employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2), (invoice_1_b, invoice_2_b)],)
+    #     print("employee_expense_report_path, output_2_excel", employee_expense_report_path, output_2_excel)
