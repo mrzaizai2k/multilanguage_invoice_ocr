@@ -7,6 +7,7 @@ import os
 import json
 import threading
 import gc
+import shutil
 from fastapi import (FastAPI, Request, Depends,
                      status, HTTPException, Query)
 from fastapi.responses import JSONResponse
@@ -25,7 +26,7 @@ from src.ldap_authen import (User, get_current_user, ldap_authen,
                              Token, create_access_token)
 from src.Utils.utils import (read_config, get_current_time, is_base64, 
                              valid_base64_image, convert_datetime_to_iso, convert_iso_to_string,
-                             get_land_and_city_list, get_currencies_from_txt, debounce)
+                             get_land_and_city_list, get_currencies_from_txt, debounce, create_zip_file)
 from src.invoice_extraction import validate_invoice
 from src.Utils.logger import create_logger
 from src.mail import EmailSender
@@ -62,12 +63,15 @@ rate_limiter = RateLimiter(max_files_per_min)
 
 
 def generate_and_send_files():
-    """Generate EGW and Excel files for the month and send an email, but only if all files are processed."""
+    """Generate EGW and Excel files for the month, zip them, send an email, and clean up."""
     # Check if any documents remain with status "not extracted"
-    documents, _ = mongo_db.get_documents(filters={"status": "not extracted"})
+    documents, _ = mongo_db.get_documents(filters={"status": "not extracted"}, limit = 10)
     if len(documents) > 0:
-        logger.debug(f"Skipping file generation: {len(documents)} documents still 'not extracted'.")
+        logger.debug(f"Skipping file generation: {len(documents)} documents still 'not extracted'")
         return
+
+    output_folder = None
+    zip_file_path = None
 
     try:
         # Get the start of the current month
@@ -80,29 +84,64 @@ def generate_and_send_files():
             mongo_db=mongo_db, start_of_month=start_of_month, config=config, logger=logger
         )
 
-        # Generate Excel files for all relevant documents in the month
-        employee_expense_report_path, output_2_excel = get_excel_files(
+        # Generate Excel files and get the output folder
+        output_folder = get_excel_files(
             mongo_db=mongo_db, start_of_month=start_of_month, logger=logger
         )
 
-        # Prepare attachments, filtering out None values
-        attachment_paths = [
-            path for path in [employee_expense_report_path, output_2_excel, output_egw_file_path]
-            if path is not None
-        ]
+        # If we have an output folder or EGW file, proceed
+        if output_folder or output_egw_file_path:
+            
+            # Create zip file with the same name as the folder
+            if output_folder:
+                folder_name = os.path.basename(output_folder)
+                zip_file_path = os.path.join(os.path.dirname(output_folder), f"{folder_name}.zip")
+                zip_result = create_zip_file(
+                    folder_path=output_folder,
+                    compression_level=config['mail']['compression_level'],
+                    zip_file_path=zip_file_path
+                )
+                if not zip_result:
+                    logger.error(f"Failed to create zip file at {zip_file_path}")
+                    return
 
-        if attachment_paths:
-            email_sender.send_email(
-                email_type='send_excel',
-                receivers=None,
-                attachment_paths=attachment_paths
-            )
-            logger.debug(f"Sent email with attachments: {attachment_paths}")
+                # Send email with zip file as attachment
+                email_sender.send_email(
+                    email_type='send_excel',
+                    receivers=None,
+                    attachment_paths=[zip_file_path]
+                )
+                logger.info(f"Sent email with attachment: {zip_file_path}")
+            else:
+                logger.info("No Excel files generated, sending EGW file only")
+                email_sender.send_email(
+                    email_type='send_excel',
+                    receivers=None,
+                    attachment_paths=[output_egw_file_path]
+                )
+                logger.info(f"Sent email with attachment: {output_egw_file_path}")
         else:
-            logger.info("No attachments generated for this month.")
+            logger.info("No files generated for this month")
 
     except Exception as e:
-        logger.error(f"Error in generate_and_send_files: {e}")
+        logger.error(f"Error in generate_and_send_files: {str(e)}")
+
+    finally:
+        # Clean up: remove folder and zip file
+        if output_folder and os.path.exists(output_folder):
+            try:
+                shutil.rmtree(output_folder)
+                logger.debug(f"Removed output folder: {output_folder}")
+            except Exception as e:
+                logger.error(f"Error removing output folder {output_folder}: {str(e)}")
+        
+        if zip_file_path and os.path.exists(zip_file_path):
+            try:
+                os.remove(zip_file_path)
+                logger.debug(f"Removed zip file: {zip_file_path}")
+            except Exception as e:
+                logger.error(f"Error removing zip file {zip_file_path}: {str(e)}")
+
 
 
 # Debounce times in milliseconds

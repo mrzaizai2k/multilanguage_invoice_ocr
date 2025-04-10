@@ -117,8 +117,6 @@ def export_json_to_excel(invoice_pairs: list[tuple[dict, dict]], logger=None):
         # new_sheet_name = None
         
         for idx, (invoice_1, invoice_2) in enumerate(invoice_pairs):
-            print("invoice 1", invoice_1['invoice_uuid'])
-            print("invoice 2", invoice_2['invoice_uuid'])
             invoice_1 = convert_datetime_to_string(invoice_1['invoice_info'])
             invoice_2 = convert_datetime_to_string(invoice_2['invoice_info'])
             
@@ -206,15 +204,18 @@ if __name__ == "__main__":
     start_of_month = get_current_time(timezone="Europe/Berlin").replace(
             day=1, hour=0, minute=0, second=0, microsecond=0
         )
+    print("start_of_month", start_of_month)
 
 
     modified_documents, _ = mongo_db.get_documents(
             filters={
                 "last_modified_at": {"$gte": start_of_month},
                 "invoice_type": {"$in": ["invoice 1", "invoice 2"]}
-            }
+            },
+            limit = 300,
         )
 
+    print("modified_documents", len(modified_documents))
 
     invoice_pairs = find_pairs_of_docs(modified_documents)
     print('invoice_pairs', len(invoice_pairs))
