@@ -95,6 +95,7 @@ egw:
 mail:
   smtp_server: smtp.gmail.com
   port: 587
+
   receivers: # For demo only
     - mrzaizai2k@gmail.com
     - chibao24.12.1999@gmail.com

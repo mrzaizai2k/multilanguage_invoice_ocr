@@ -23,6 +23,7 @@ import openpyxl
 from fuzzywuzzy import fuzz
 from threading import Timer
 from collections import defaultdict
+import zipfile
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -543,6 +544,46 @@ def find_pairs_of_docs(documents):
 
     return pairs
 
+
+
+def create_zip_file(folder_path, 
+                    compression_level:int = 9, 
+                    zip_file_path:str = "output.zip"):
+    """
+    Create a zip file from the specified folder at the highest compression level
+    
+    Args:
+        folder_path (str): Path to the folder to be zipped
+        zip_file_path (str): Path for the output zip file
+        config (dict): Configuration dictionary containing compression_level
+        
+    Returns:
+        str: Path to the created zip file if successful, None otherwise
+    """
+    try:
+        # Ensure folder exists
+        if not os.path.isdir(folder_path):
+            print(f"Folder not found: {folder_path}")
+            return None
+
+        # Create zip file with specified compression
+        with zipfile.ZipFile(zip_file_path, 'w', compression=zipfile.ZIP_DEFLATED, 
+                           compresslevel=compression_level) as zipf:
+            # Walk through the folder and add all files
+            for root, dirs, files in os.walk(folder_path):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    # Preserve relative directory structure in the zip
+                    relative_path = os.path.relpath(file_path, os.path.dirname(folder_path))
+                    zipf.write(file_path, relative_path)
+        
+        print(f"Successfully created zip file: {zip_file_path}")
+        return zip_file_path
+    
+    except Exception as e:
+        print(f"Error creating zip file: {str(e)}")
+        return None
+
 if __name__ == "__main__":
     config_path = "config/config.yaml"
     config = read_config(config_path)
@@ -558,4 +599,6 @@ if __name__ == "__main__":
     # print("cities",cities)
 
     print(find_best_match_fuzzy(string_list=cities, text = "Tokioo"))
+
+    print (create_zip_file(folder_path='config'))
         

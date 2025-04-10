@@ -53,9 +53,12 @@ def create_filename_from_dict(invoice_1: dict) -> str:
     # Extract the date: use sign_date if present and not null, otherwise use get_end_date
     if 'sign_date' in invoice_1 and invoice_1['sign_date'] is not None:
         date_str = invoice_1['sign_date']
-    else:
+    elif get_end_date(invoice_1) is not None:
         date_str = get_end_date(invoice_1)
-    
+    else:
+        date_str = datetime.datetime.now().strftime('%Y-%m-%d')    
+
+
     if date_str:
         try:
             sign_date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
@@ -110,13 +113,19 @@ def export_json_to_excel(invoice_pairs: list[tuple[dict, dict]], logger=None):
     try:
         from src.export_excel.config import (MAIN_SHEET, output_path, 
                                              output_2_excel, input_1_excel)
+        # employee_expense_report_path = None
+        # new_sheet_name = None
+        
         for idx, (invoice_1, invoice_2) in enumerate(invoice_pairs):
-            
+            print("invoice 1", invoice_1['invoice_uuid'])
+            print("invoice 2", invoice_2['invoice_uuid'])
             invoice_1 = convert_datetime_to_string(invoice_1['invoice_info'])
             invoice_2 = convert_datetime_to_string(invoice_2['invoice_info'])
-
+            
             if idx == 0:
                 employee_expense_report_name = create_filename_from_dict(invoice_1=invoice_1)
+
+
                 employee_expense_report_path = f"{output_path}/{employee_expense_report_name}"
 
                 # Call the function
@@ -179,6 +188,7 @@ if __name__ == "__main__":
     from src.mongo_database import MongoDatabase
     config_path='config/config.yaml'
     mongo_db = MongoDatabase(config_path=config_path)
+    
     # invoice_1 = mongo_db.get_document_by_id(document_id='6702803020af02d7f38e4238')
     # invoice_2 = mongo_db.get_document_by_id(document_id='67028a752d2ad07517a0c286')
     # print(invoice_1['invoice_type'])
@@ -186,6 +196,10 @@ if __name__ == "__main__":
 
     # print(invoice_1['invoice_info'])
     # print(invoice_2['invoice_info'])
+
+    # for i in range(2):
+    #     employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2), (invoice_1_b, invoice_2_b)],)
+    #     print("employee_expense_report_path, output_2_excel", employee_expense_report_path, output_2_excel)
 
     from src.Utils.utils import find_pairs_of_docs, get_current_time
 
@@ -211,7 +225,3 @@ if __name__ == "__main__":
     for i in range(len(invoice_pairs)):
         employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[invoice_pairs[i]],)
         print("employee_expense_report_path, output_2_excel", employee_expense_report_path, output_2_excel)
-
-    # for i in range(2):
-    #     employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2), (invoice_1_b, invoice_2_b)],)
-    #     print("employee_expense_report_path, output_2_excel", employee_expense_report_path, output_2_excel)
