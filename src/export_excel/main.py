@@ -183,9 +183,9 @@ if __name__ == "__main__":
         invoice_2_b = json.load(file)  
 
     
-    from src.mongo_database import MongoDatabase
-    config_path='config/config.yaml'
-    mongo_db = MongoDatabase(config_path=config_path)
+    # from src.mongo_database import MongoDatabase
+    # config_path='config/config.yaml'
+    # mongo_db = MongoDatabase(config_path=config_path)
     
     # invoice_1 = mongo_db.get_document_by_id(document_id='6702803020af02d7f38e4238')
     # invoice_2 = mongo_db.get_document_by_id(document_id='67028a752d2ad07517a0c286')
@@ -195,36 +195,36 @@ if __name__ == "__main__":
     # print(invoice_1['invoice_info'])
     # print(invoice_2['invoice_info'])
 
-    # for i in range(2):
-    #     employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2), (invoice_1_b, invoice_2_b)],)
-    #     print("employee_expense_report_path, output_2_excel", employee_expense_report_path, output_2_excel)
-
-    from src.Utils.utils import find_pairs_of_docs, get_current_time
-
-    start_of_month = get_current_time(timezone="Europe/Berlin").replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
-        )
-    print("start_of_month", start_of_month)
-
-
-    modified_documents, _ = mongo_db.get_documents(
-            filters={
-                "last_modified_at": {"$gte": start_of_month},
-                "invoice_type": {"$in": ["invoice 1", "invoice 2"]}
-            },
-            limit = 300,
-        )
-
-
-    print("modified_documents", len(modified_documents))
-
-    invoice_pairs = find_pairs_of_docs(modified_documents)
-    print('invoice_pairs', len(invoice_pairs))
-    for pair in invoice_pairs:
-        invoice = pair[0]
-        print("uuid", invoice["invoice_uuid"])
-
-    for i in range(len(invoice_pairs)):
-        employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[invoice_pairs[i]],)
+    for i in range(2):
+        employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[(invoice_1, invoice_2), (invoice_1_b, invoice_2_b)],)
         print("employee_expense_report_path, output_2_excel", employee_expense_report_path, output_2_excel)
+
+    # from src.Utils.utils import find_pairs_of_docs, get_current_time
+
+    # start_of_month = get_current_time(timezone="Europe/Berlin").replace(
+    #         day=1, hour=0, minute=0, second=0, microsecond=0
+    #     )
+    # print("start_of_month", start_of_month)
+
+
+    # modified_documents, _ = mongo_db.get_documents(
+    #         filters={
+    #             "last_modified_at": {"$gte": start_of_month},
+    #             "invoice_type": {"$in": ["invoice 1", "invoice 2"]}
+    #         },
+    #         limit = 300,
+    #     )
+
+
+    # print("modified_documents", len(modified_documents))
+
+    # invoice_pairs = find_pairs_of_docs(modified_documents)
+    # print('invoice_pairs', len(invoice_pairs))
+    # for pair in invoice_pairs:
+    #     invoice = pair[0]
+    #     print("uuid", invoice["invoice_uuid"])
+
+    # for i in range(len(invoice_pairs)):
+    #     employee_expense_report_path, output_2_excel = export_json_to_excel(invoice_pairs =[invoice_pairs[i]],)
+    #     print("employee_expense_report_path, output_2_excel", employee_expense_report_path, output_2_excel)
 
