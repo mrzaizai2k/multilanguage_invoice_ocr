@@ -176,7 +176,7 @@ def process_change_stream(config):
                     gc.collect()
 
                     # Trigger debounced file generation for insert (10s delay)
-                    debounced_insert_generate_and_send()
+                    # debounced_insert_generate_and_send()
 
                 except Exception as e:
                     logger.debug(f"Error on extracting invoice: {e}")
