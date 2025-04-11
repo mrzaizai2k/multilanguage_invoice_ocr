@@ -58,6 +58,34 @@ def test_modify_invoice(invoice_uuid, user_uuid, new_invoice_info):
     else:
         print("Failed to modify invoice.")
 
+def test_delete_invoice_this_month(config_path:str='config/config.yaml'):
+    
+    from src.Utils.utils import get_current_time
+    from src.mongo_database import MongoDatabase
+
+    mongo_db = MongoDatabase(config_path=config_path)
+
+    start_of_month = get_current_time(timezone=config['timezone']).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+    print("start_of_month", start_of_month)
+
+
+    modified_documents, _ = mongo_db.get_documents(
+            filters={
+                "last_modified_at": {"$gte": start_of_month},
+                "invoice_type": {"$in": ["invoice 1", "invoice 2"]}
+            },
+            limit = 300,
+        )
+    
+    for invoice in modified_documents:
+        id = invoice['invoice_uuid']
+        print('id delete', id)
+        mongo_db.delete_document_by_id(document_id = id)
+
+
+
 def test_delete_invoice(invoice_uuid, user_uuid):
     # Define the URL with query parameters
     url = f"{root_url}/api/v1/invoices/{invoice_uuid}?user_uuid={user_uuid}"
@@ -202,7 +230,8 @@ if __name__ == "__main__":
     # test_excel()
     file_name = os.path.basename(img_path)
 
-    test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
+    # test_upload_invoice(img_path=img_path, user_uuid=user_uuid, file_name=file_name)
+    test_delete_invoice_this_month(config_path=config_path)
 
     # Example usage:
     # upload_many_files(folder_path="test/images", user_uuid="gauss", number_of_images=5)
