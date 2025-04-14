@@ -557,7 +557,7 @@ if __name__ == "__main__":
     while True:
         try:
             logger.info("Starting the server...")
-            uvicorn.run(app, host=config['IES_host'], port=config['IES_port'], log_config=None)
+            uvicorn.run(app, host=config['IES_host'], port=config['IES_port'])
         except Exception as e:
             logger.error(f"An error occurred: {str(e)}")
             logger.info("Restarting the server in 5 seconds...")
