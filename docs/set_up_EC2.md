@@ -197,7 +197,7 @@ Because each instance running will have a different IP address, elastic IP help 
 ## Setup https
 
 1. You should by a domain: can be from [Hostinger](https://hpanel.hostinger.com/)
-2. Then map your domain to your public IP as this [tutorial](https://srini-dev.hashnode.dev/adding-custom-domain-to-ec2-instance-with-nginx)
+2. Then map your domain to your public IP as this [tutorial](https://srini-dev.hashnode.dev/adding-custom-domain-to-ec2-instance-with-nginx) - Remember to always change your IP, if not , it can not retrieve the cert
 3. Because we are running docker nginx so it's a bit complicated. [reference](https://youtu.be/J9jKKeV1XVE?si=DhCVBHrH9ua82rAg)
 - in `nginx/nginx.conf.template` remove the 443 server part first, so we can take the cert
 - 
